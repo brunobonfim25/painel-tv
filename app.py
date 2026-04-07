@@ -9,8 +9,8 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import pg8000.dbapi as psycopg2
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'troque-isso-em-producao')
