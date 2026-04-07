@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Editor — {{ academia.nome }}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;background:#f4f4f8;color:#111}
+  .topbar{
+    background:#1a1a2e;color:#fff;
+    padding:14px 24px;display:flex;
+    align-items:center;justify-content:space-between;
+  }
+  .topbar h1{font-size:16px;font-weight:700}
+  .topbar a{color:#aac4ff;font-size:13px;text-decoration:none}
+  .topbar a:hover{color:#fff}
+  .container{max-width:900px;margin:0 auto;padding:24px 16px}
+  .card{
+    background:#fff;border-radius:10px;
+    border:1px solid #e0e0e0;padding:20px;margin-bottom:20px;
+  }
+  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;
+    padding-bottom:10px;border-bottom:1px solid #eee;color:#1a1a2e}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .row.full{grid-template-columns:1fr}
+  label{font-size:12px;color:#555;display:block;margin-bottom:4px;font-weight:600}
+  input[type=text],input[type=email],input[type=password],input[type=number],textarea{
+    width:100%;padding:8px 10px;border:1px solid #ddd;
+    border-radius:6px;font-size:13px;
+  }
+  input[type=color]{width:44px;height:32px;border:1px solid #ddd;border-radius:4px;cursor:pointer;padding:2px}
+  input[type=file]{font-size:12px;color:#555}
+  .color-row{display:flex;align-items:center;gap:8px}
+  .color-row label{margin:0;white-space:nowrap}
+  .btn{
+    padding:9px 18px;border:none;border-radius:6px;
+    font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .btn-save{background:#1a6fd4;color:#fff}
+  .btn-save:hover{background:#155db5}
+  .btn-danger{background:#e24b4a;color:#fff}
+  .btn-danger:hover{background:#c0392b}
+  .btn-add{background:#1a1a2e;color:#fff;width:100%;margin-top:8px}
+  .btn-add:hover{background:#2a2a4e}
+  .flash{
+    background:#eef7ee;border:1px solid #a8d5a2;
+    border-radius:6px;padding:10px 14px;
+    font-size:13px;color:#276221;margin-bottom:16px;
+  }
+  .prof-card{
+    border:1px solid #e0e0e0;border-radius:8px;
+    margin-bottom:12px;overflow:hidden;
+  }
+  .prof-header{
+    background:#f8f8f8;padding:12px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;
+  }
+  .prof-header:hover{background:#f0f0f0}
+  .prof-nome{font-size:14px;font-weight:700;color:#1a1a2e}
+  .prof-cargo{font-size:12px;color:#888;margin-top:2px}
+  .prof-body{padding:16px;border-top:1px solid #eee}
+  .avatar-preview{
+    width:56px;height:56px;border-radius:50%;
+    border:2px solid #ddd;object-fit:cover;
+    display:block;margin-bottom:8px;
+  }
+  .avatar-placeholder{
+    width:56px;height:56px;border-radius:50%;
+    background:#1a6fd4;display:flex;align-items:center;
+    justify-content:center;color:#fff;font-weight:800;font-size:16px;
+    margin-bottom:8px;
+  }
+  details summary{list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  .tv-btn{
+    display:inline-block;padding:9px 18px;
+    background:#f0f0f0;color:#333;border:1px solid #ddd;
+    border-radius:6px;text-decoration:none;font-size:13px;font-weight:700;
+  }
+  .tv-btn:hover{background:#e0e0e0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Editor — {{ academia.nome }}</h1>
+  <div style="display:flex;gap:16px;align-items:center">
+    <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank">Ver TV ao vivo</a>
+    <a href="{{ url_for('admin_logout', slug=academia.slug) }}">Sair</a>
+  </div>
+</div>
+
+<div class="container">
+
+  {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+      {% for m in msgs %}
+        <div class="flash">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- ── Configurações gerais ────────────────────────────────── -->
+  <div class="card">
+    <h2>Configurações da Academia</h2>
+    <form method="POST" action="{{ url_for('salvar_config', slug=academia.slug) }}" enctype="multipart/form-data">
+
+      <div class="row">
+        <div>
+          <label>Nome da academia</label>
+          <input type="text" name="nome" value="{{ academia.nome }}" required>
+        </div>
+        <div>
+          <label>Subtítulo / Unidade</label>
+          <input type="text" name="subtitulo" value="{{ academia.subtitulo }}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Logo (PNG ou JPG)</label>
+          {% if academia.logo_url %}
+            <img src="{{ academia.logo_url }}" class="avatar-preview">
+          {% endif %}
+          <input type="file" name="logo" accept="image/*">
+        </div>
+        <div>
+          <label>Texto da logo (se não tiver imagem)</label>
+          <input type="text" name="logo_texto" value="{{ academia.logo_texto }}" maxlength="6">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Email do gerente (QR Code)</label>
+          <input type="email" name="email_qr" value="{{ academia.email_qr }}">
+        </div>
+        <div>
+          <label>Texto do botão de agendamento</label>
+          <input type="text" name="cta_texto" value="{{ academia.cta_texto }}">
+        </div>
+      </div>
+
+      <div class="row" style="margin-bottom:16px">
+        <div>
+          <label>Cores</label>
+          <div class="color-row" style="margin-bottom:8px">
+            <input type="color" name="cor_primaria" value="{{ academia.cor_primaria }}">
+            <label>Cor principal</label>
+          </div>
+          <div class="color-row" style="margin-bottom:8px">
+            <input type="color" name="cor_destaque" value="{{ academia.cor_destaque }}">
+            <label>Cor destaque</label>
+          </div>
+          <div class="color-row">
+            <input type="color" name="cor_tag" value="{{ academia.cor_tag }}">
+            <label>Cor das especialidades</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-save">Salvar configurações</button>
+    </form>
+  </div>
+
+  <!-- ── Lista de profissionais ──────────────────────────────── -->
+  <div class="card">
+    <h2>Profissionais ({{ profissionais|length }})</h2>
+
+    {% for p in profissionais %}
+    <details class="prof-card">
+      <summary class="prof-header">
+        <div>
+          <div class="prof-nome">{{ p.nome }}</div>
+          <div class="prof-cargo">{{ p.cargo }}</div>
+        </div>
+        <span style="font-size:12px;color:#aaa">Clique para editar ▾</span>
+      </summary>
+      <div class="prof-body">
+        <form method="POST"
+              action="{{ url_for('editar_profissional', slug=academia.slug, prof_id=p.id) }}"
+              enctype="multipart/form-data">
+
+          <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:12px">
+            {% if p.foto_url %}
+              <img src="{{ p.foto_url }}" class="avatar-preview">
+            {% else %}
+              <div class="avatar-placeholder" style="background:{{ p.cor_avatar }}">
+                {{ p.nome.split()|map('first')|list|join('')|upper }}
+              </div>
+            {% endif %}
+            <div>
+              <label>Trocar foto</label>
+              <input type="file" name="foto" accept="image/*">
+              <div style="margin-top:8px" class="color-row">
+                <input type="color" name="cor_avatar" value="{{ p.cor_avatar }}">
+                <label>Cor do avatar</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Nome</label>
+              <input type="text" name="nome" value="{{ p.nome }}" required>
+            </div>
+            <div>
+              <label>Cargo</label>
+              <input type="text" name="cargo" value="{{ p.cargo }}">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Email</label>
+              <input type="email" name="email" value="{{ p.email }}">
+            </div>
+            <div>
+              <label>Instagram</label>
+              <input type="text" name="instagram" value="{{ p.instagram }}">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Anos de experiência</label>
+              <input type="text" name="anos" value="{{ p.anos }}">
+            </div>
+            <div>
+              <label>Especialidades (separadas por vírgula)</label>
+              <input type="text" name="especialidades" value="{{ p.especialidades }}">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button type="submit" class="btn btn-save">Salvar alterações</button>
+            <form method="POST"
+                  action="{{ url_for('remover_profissional', slug=academia.slug, prof_id=p.id) }}"
+                  onsubmit="return confirm('Remover {{ p.nome }}? Esta ação não pode ser desfeita.')">
+              <button type="submit" class="btn btn-danger">Remover</button>
+            </form>
+          </div>
+        </form>
+      </div>
+    </details>
+    {% endfor %}
+
+    <!-- ── Adicionar novo profissional ────────────────── -->
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;font-size:14px;font-weight:700;color:#1a6fd4;padding:8px 0;list-style:none">
+        + Adicionar novo profissional
+      </summary>
+      <div style="padding:16px;background:#f8f8f8;border-radius:8px;margin-top:8px;border:1px solid #e0e0e0">
+        <form method="POST"
+              action="{{ url_for('adicionar_profissional', slug=academia.slug) }}"
+              enctype="multipart/form-data">
+
+          <div style="margin-bottom:12px">
+            <label>Foto do profissional</label>
+            <input type="file" name="foto" accept="image/*">
+          </div>
+          <div style="margin-bottom:8px" class="color-row">
+            <input type="color" name="cor_avatar" value="#1a6fd4">
+            <label>Cor do avatar (caso não tenha foto)</label>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Nome *</label>
+              <input type="text" name="nome" placeholder="João Silva" required>
+            </div>
+            <div>
+              <label>Cargo</label>
+              <input type="text" name="cargo" placeholder="Personal Trainer">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Email</label>
+              <input type="email" name="email" placeholder="joao@academia.com">
+            </div>
+            <div>
+              <label>Instagram</label>
+              <input type="text" name="instagram" placeholder="@joaosilva">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Anos de experiência</label>
+              <input type="text" name="anos" placeholder="5">
+            </div>
+            <div>
+              <label>Especialidades (separadas por vírgula)</label>
+              <input type="text" name="especialidades" placeholder="Musculação, Emagrecimento">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-add">Adicionar profissional</button>
+        </form>
+      </div>
+    </details>
+  </div>
+
+  <div style="text-align:center;margin-top:8px;margin-bottom:32px">
+    <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank" class="tv-btn">
+      Abrir painel da TV em nova aba
+    </a>
+  </div>
+
+</div>
+</body>
+</html>

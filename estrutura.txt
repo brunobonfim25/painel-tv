@@ -1,0 +1,11 @@
+painel_tv/
+├── app.py                  ← aplicação principal Flask
+├── requirements.txt        ← dependências
+├── Procfile               ← Railway deploy
+├── .env                   ← variáveis de ambiente (não sobe pro git)
+├── templates/
+│   ├── painel.html        ← TV pública
+│   ├── admin_login.html   ← tela de login
+│   └── admin_editor.html  ← painel de edição
+└── static/
+    └── uploads/           ← fotos dos profissionais

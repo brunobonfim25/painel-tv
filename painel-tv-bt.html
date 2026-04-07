@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel TV - BT Academia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 10px;
+  }
+  .tv-frame {
+    background: #fff;
+    width: 100%;
+    max-width: 1400px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 200px;
+  }
+  .tv-main { padding: 20px; }
+  .tv-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--color-accent);
+  }
+  .tv-logo-circle {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .tv-logo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .tv-logo-text { color: #fff; font-weight: 900; font-size: 20px; font-style: italic; }
+  .tv-academy-name { font-size: 28px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+  .tv-subtitle { font-size: 13px; color: #888; margin-top: 2px; }
+  .trainers-grid {
+    display: grid;
+    gap: 8px;
+  }
+  .t-card {
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    border: 1px solid #eee;
+  }
+  .t-avatar {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    margin: 0 auto 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff;
+    border: 2px solid #ddd;
+    overflow: hidden;
+  }
+  .t-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .t-role { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .t-name { font-size: 11px; font-weight: 800; color: #111; margin-bottom: 4px; line-height: 1.2; }
+  .t-detail { font-size: 8px; color: #555; line-height: 1.6; text-align: left; }
+  .t-detail .lbl { color: #aaa; font-size: 7px; display: block; margin-top: 3px; }
+  .t-tags { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; justify-content: center; }
+  .t-tag { font-size: 7px; padding: 2px 5px; border-radius: 3px; font-weight: 700; color: #fff; }
+  .tv-side {
+    border-left: 1px solid #e0e0e0;
+    background: #f5f5f0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px 12px; gap: 14px;
+  }
+  .side-circle {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 3px solid var(--color-primary);
+    background: var(--color-primary);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .side-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .side-circle span { color: #fff; font-weight: 900; font-size: 18px; font-style: italic; }
+  .side-cta { font-size: 18px; font-weight: 800; text-align: center; line-height: 1.3; color: #111; }
+  .qr-wrap { background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
+  .qr-row { display: flex; align-items: center; gap: 6px; }
+  .book-vert { font-size: 8px; font-weight: 800; letter-spacing: 3px; color: #888; text-transform: uppercase; writing-mode: vertical-rl; }
+
+  /* ===================== PERSONALIZE AQUI ===================== */
+  :root {
+    --color-primary: #1a1a2e;   /* Cor principal: fundo da logo, borda lateral */
+    --color-accent:  #e94560;   /* Cor destaque: cargo, linha do header */
+    --color-tag:     #1a1a2e;   /* Cor das tags de especialidade */
+  }
+</style>
+</head>
+<body>
+
+<div class="tv-frame">
+  <div class="tv-main">
+    <div class="tv-header">
+      <div class="tv-logo-circle">
+        <!-- LOGO: substitua a linha abaixo pela tag <img src="logo.png"> se tiver imagem -->
+        <span class="tv-logo-text">BT</span>
+      </div>
+      <div>
+        <!-- NOME DA ACADEMIA -->
+        <div class="tv-academy-name" style="color: var(--color-primary)">
+          BT <span style="color: var(--color-accent)">Academia</span>
+        </div>
+        <!-- SUBTÍTULO / UNIDADE -->
+        <div class="tv-subtitle">Equipe de Profissionais</div>
+      </div>
+    </div>
+
+    <!-- GRADE DE PROFISSIONAIS -->
+    <div class="trainers-grid" id="trainersGrid"></div>
+  </div>
+
+  <div class="tv-side">
+    <div class="side-circle">
+      <span>BT</span>
+    </div>
+    <!-- TEXTO DE CALL TO ACTION -->
+    <div class="side-cta">Agende uma avaliação gratuita</div>
+    <div class="qr-row">
+      <span class="book-vert">Agende</span>
+      <div class="qr-wrap" id="qrCode"></div>
+      <span class="book-vert">Agende</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  PERSONALIZE AQUI: Dados dos profissionais
+//  Para cada profissional, edite os campos abaixo.
+//  Para adicionar mais, copie um bloco { } e cole antes do ];
+// ================================================================
+const PROFISSIONAIS = [
+  {
+    nome: "Nome do Profissional",
+    cargo: "Personal Trainer",
+    email: "email@btacademia.com",
+    instagram: "@instagram",
+    anos: "5",
+    especialidades: ["Musculação", "Emagrecimento", "Hipertrofia"],
+    cor: "#1a6fd4"       // cor do avatar
+  },
+  {
+    nome: "Segundo Profissional",
+    cargo: "Coach",
+    email: "email2@btacademia.com",
+    instagram: "@instagram2",
+    anos: "8",
+    especialidades: ["Funcional", "Mobilidade", "Reabilitação"],
+    cor: "#e94560"
+  },
+  {
+    nome: "Terceiro Profissional",
+    cargo: "Nutricionista",
+    email: "email3@btacademia.com",
+    instagram: "@instagram3",
+    anos: "3",
+    especialidades: ["Nutrição Esportiva", "Dieta", "Performance"],
+    cor: "#2eb87a"
+  },
+  {
+    nome: "Quarto Profissional",
+    cargo: "Personal Trainer",
+    email: "email4@btacademia.com",
+    instagram: "@instagram4",
+    anos: "6",
+    especialidades: ["Força", "Crossfit", "Condicionamento"],
+    cor: "#e08030"
+  },
+  {
+    nome: "Quinto Profissional",
+    cargo: "Master Trainer",
+    email: "email5@btacademia.com",
+    instagram: "@instagram5",
+    anos: "10",
+    especialidades: ["Yoga", "Pilates", "Flexibilidade"],
+    cor: "#7a5ab5"
+  }
+];
+
+// ================================================================
+//  EMAIL DO GERENTE/COORDENADOR — aparece no QR Code
+// ================================================================
+const EMAIL_GERENTE = "gerente@btacademia.com";
+
+// ================================================================
+//  NÃO PRECISA MEXER ABAIXO DESTA LINHA
+// ================================================================
+function iniciais(nome) {
+  return nome.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+function renderProfissionais() {
+  const grid = document.getElementById('trainersGrid');
+  const cols = PROFISSIONAIS.length <= 4 ? PROFISSIONAIS.length :
+               PROFISSIONAIS.length <= 8 ? 4 : 5;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  grid.innerHTML = PROFISSIONAIS.map(p => {
+    const tags = p.especialidades.map(e =>
+      `<span class="t-tag" style="background:var(--color-tag)">${e}</span>`
+    ).join('');
+    return `
+      <div class="t-card">
+        <div class="t-avatar" style="background:${p.cor}">${iniciais(p.nome)}</div>
+        <div class="t-role" style="color:var(--color-accent)">${p.cargo}</div>
+        <div class="t-name">${p.nome}</div>
+        <div class="t-detail">
+          <span class="lbl">Email</span>
+          <span style="word-break:break-all;font-size:7px">${p.email}</span>
+          <span class="lbl">Instagram</span>
+          <span>${p.instagram}</span>
+          <span class="lbl">Experiência</span>
+          <span>${p.anos} anos</span>
+        </div>
+        <div class="t-tags">${tags}</div>
+      </div>`;
+  }).join('');
+}
+
+function gerarQR() {
+  new QRCode(document.getElementById('qrCode'), {
+    text: `mailto:${EMAIL_GERENTE}`,
+    width: 110, height: 110,
+    colorDark: getComputedStyle(document.documentElement)
+      .getPropertyValue('--color-primary').trim() || '#000',
+    colorLight: '#ffffff'
+  });
+}
+
+renderProfissionais();
+gerarQR();
+</script>
+</body>
+</html>
