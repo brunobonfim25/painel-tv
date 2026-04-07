@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -7,57 +7,75 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--primary:{{ academia.cor_primaria }};--accent:{{ academia.cor_destaque }};--tag:{{ academia.cor_tag }}}
-  body{font-family:Arial,sans-serif;background:#111;height:100vh;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden}
-  .tv{background:#fff;width:100%;max-width:1600px;height:calc(100vh - 24px);border-radius:10px;overflow:hidden;display:grid;grid-template-columns:1fr 180px}
-  .main{display:flex;flex-direction:column;padding:16px 16px 12px;overflow:hidden}
-  .header{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:3px solid var(--accent);flex-shrink:0}
-  .logo-circle{width:50px;height:50px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+  body{font-family:'Arial',sans-serif;background:#111;height:100vh;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+  .tv{background:#fff;width:100%;max-width:1600px;height:calc(100vh - 20px);border-radius:8px;overflow:hidden;display:grid;grid-template-columns:1fr 220px}
+
+  /* MAIN */
+  .main{display:flex;flex-direction:column;padding:18px 20px 14px;overflow:hidden}
+
+  /* HEADER */
+  .header{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:3px solid #111;flex-shrink:0}
+  .logo-wrap{display:flex;align-items:center;gap:10px}
+  .logo-circle{width:52px;height:52px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid #111}
   .logo-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
   .logo-text{color:#fff;font-weight:900;font-size:18px;font-style:italic}
-  .academy-name{font-size:24px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--primary)}
-  .academy-name span{color:var(--accent)}
-  .academy-sub{font-size:12px;color:#888;margin-top:1px}
+  .header-titles{display:flex;flex-direction:column}
+  .academy-name{font-size:26px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:#111;line-height:1}
+  .panel-label{font-size:26px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--accent);line-height:1}
+  .academy-sub{font-size:11px;color:#888;margin-top:3px;letter-spacing:1px}
   .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-  .page-info{font-size:12px;color:#aaa;font-weight:600;white-space:nowrap}
-  .progress-bar{width:100px;height:4px;background:#eee;border-radius:2px;overflow:hidden}
-  .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .1s linear}
+  .page-info{font-size:12px;color:#aaa;font-weight:600}
+  .progress-bar{width:80px;height:3px;background:#eee;border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:#111;border-radius:2px;transition:width .1s linear}
+
+  /* GRID */
   .grid-wrap{flex:1;overflow:hidden}
-  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;height:100%;align-content:start}
-  .card{background:#f8f8f8;border-radius:8px;padding:8px 6px;text-align:center;border:1px solid #eee;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:border-color .2s}
-  .card:hover{border-color:var(--accent)}
-  .avatar{width:70px;height:70px;border-radius:50%;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;border:3px solid #ddd;overflow:hidden;flex-shrink:0}
-  .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .cargo{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:2px}
-  .nome{font-size:11px;font-weight:800;color:#111;margin-bottom:3px;line-height:1.2}
-  .info{font-size:8px;color:#555;line-height:1.6;text-align:left;width:100%}
-  .lbl{color:#aaa;font-size:7px;display:block;margin-top:2px}
-  .tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px;justify-content:center}
-  .tag{font-size:7px;padding:2px 4px;border-radius:3px;font-weight:700;color:#fff;background:var(--tag)}
-  .qr-mini{margin-top:5px}
-  .qr-mini canvas{border-radius:4px}
-  .wa-label{font-size:7px;color:#25d366;font-weight:700;margin-top:2px}
-  .side{border-left:1px solid #e0e0e0;background:#f5f5f0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 10px;gap:12px}
-  .side-circle{width:60px;height:60px;border-radius:50%;border:3px solid var(--primary);background:var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden}
-  .side-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .side-circle span{color:#fff;font-weight:900;font-size:16px;font-style:italic}
-  .cta{font-size:15px;font-weight:800;text-align:center;line-height:1.3;color:#111}
-  .qr-box{background:#fff;padding:8px;border-radius:6px;border:1px solid #ddd}
-  .qr-row{display:flex;align-items:center;gap:5px}
-  .book{font-size:8px;font-weight:800;letter-spacing:3px;color:#888;text-transform:uppercase;writing-mode:vertical-rl}
-  .total-badge{background:var(--primary);color:#fff;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;text-align:center}
+  .grid{display:grid;gap:10px;height:100%;align-content:start}
+
+  /* CARD */
+  .card{display:flex;flex-direction:column;align-items:center;padding:8px 6px 6px;background:#fff;border-bottom:2px solid #f0f0f0;position:relative}
+  .card-photo{width:80px;height:80px;border-radius:50%;overflow:hidden;margin-bottom:4px;border:3px solid #eee;flex-shrink:0;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#888}
+  .card-photo img{width:100%;height:100%;object-fit:cover}
+  .card-role{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent);margin-bottom:1px;text-align:center}
+  .card-name{font-size:12px;font-weight:900;color:#111;text-align:center;line-height:1.2;margin-bottom:4px}
+  .card-info{width:100%;font-size:7.5px;color:#666;line-height:1.7}
+  .card-info .row-info{display:flex;gap:3px}
+  .card-info .lbl{color:#bbb;font-size:7px;min-width:18px}
+  .card-tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px;justify-content:center}
+  .tag{font-size:6.5px;padding:1px 5px;border-radius:2px;font-weight:700;color:#fff;background:var(--tag);letter-spacing:0.3px}
+  .qr-mini{margin-top:4px}
+  .qr-mini canvas{border-radius:3px !important}
+  .wa-label{font-size:6.5px;color:#25d366;font-weight:700;margin-top:1px;text-align:center}
+
+  /* LATERAL */
+  .side{border-left:2px solid #111;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px;gap:16px;background:#fff}
+  .side-logo{width:70px;height:70px;border-radius:50%;border:3px solid #111;background:var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .side-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .side-logo span{color:#fff;font-weight:900;font-size:20px;font-style:italic}
+  .side-divider{width:60px;height:2px;background:#111}
+  .cta-text{font-size:20px;font-weight:900;text-align:center;line-height:1.2;color:#111;text-transform:lowercase}
+  .qr-main-wrap{display:flex;align-items:center;gap:6px}
+  .book-vert{font-size:9px;font-weight:900;letter-spacing:4px;color:#111;text-transform:uppercase;writing-mode:vertical-rl}
+  .qr-main-box{padding:8px;background:#fff;border:1px solid #ddd;border-radius:4px}
+  .total-count{font-size:11px;font-weight:700;color:#888;text-align:center;letter-spacing:1px;text-transform:uppercase}
 </style>
 </head>
 <body>
 <div class="tv">
   <div class="main">
     <div class="header">
-      <div class="logo-circle">
-        {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="Logo">
-        {% else %}<span class="logo-text">{{ academia.logo_texto or academia.nome[:2] }}</span>{% endif %}
-      </div>
-      <div>
-        <div class="academy-name">{{ academia.nome }} <span>Trainers</span></div>
-        <div class="academy-sub">{{ academia.subtitulo }}</div>
+      <div class="logo-wrap">
+        <div class="logo-circle">
+          {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="Logo">
+          {% else %}<span class="logo-text">{{ academia.logo_texto or academia.nome[:2] }}</span>{% endif %}
+        </div>
+        <div class="header-titles">
+          <div style="display:flex;gap:10px;align-items:baseline">
+            <span class="academy-name">{{ academia.nome }}</span>
+            <span class="panel-label">Trainers</span>
+          </div>
+          <div class="academy-sub">{{ academia.subtitulo }}</div>
+        </div>
       </div>
       <div class="header-right">
         <span class="page-info" id="pageInfo"></span>
@@ -68,18 +86,20 @@
       <div class="grid" id="grid"></div>
     </div>
   </div>
+
   <div class="side">
-    <div class="side-circle">
+    <div class="side-logo">
       {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="Logo">
       {% else %}<span>{{ academia.logo_texto or academia.nome[:2] }}</span>{% endif %}
     </div>
-    <div class="cta">{{ academia.cta_texto }}</div>
-    <div class="qr-row">
-      <span class="book">Agende</span>
-      <div class="qr-box" id="qr"></div>
-      <span class="book">Agende</span>
+    <div class="side-divider"></div>
+    <div class="cta-text">{{ academia.cta_texto }}</div>
+    <div class="qr-main-wrap">
+      <span class="book-vert">Book Here</span>
+      <div class="qr-main-box" id="qr"></div>
+      <span class="book-vert">Book Here</span>
     </div>
-    <div class="total-badge" id="totalBadge"></div>
+    <div class="total-count" id="totalCount"></div>
   </div>
 </div>
 
@@ -99,27 +119,30 @@ function limpaNumero(n) {
 
 function renderPage(page) {
   const grid = document.getElementById("grid");
+  const cols = Math.min(PROFISSIONAIS.length, COLS);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
   const slice = PROFISSIONAIS.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
 
   grid.innerHTML = slice.map(p => {
     const tags = (p.especialidades||"").split(",").filter(e=>e.trim())
-      .map(e=>`<span class="tag">${e.trim()}</span>`).join("");
+      .slice(0,4).map(e=>`<span class="tag">${e.trim()}</span>`).join("");
     const avatarInner = p.foto_url
       ? `<img src="${p.foto_url}" alt="${p.nome}">`
-      : iniciais(p.nome);
+      : `<span>${iniciais(p.nome)}</span>`;
     const hasWA = p.whatsapp && limpaNumero(p.whatsapp).length >= 10;
-    const waQR = hasWA
-      ? `<div class="qr-mini" id="qr-${p.id}"></div><div class="wa-label">WhatsApp</div>`
-      : "";
+    const waQR = hasWA ? `<div class="qr-mini" id="qr-${p.id}"></div><div class="wa-label">WhatsApp</div>` : "";
+
     return `<div class="card">
-      <div class="avatar" style="background:${p.cor_avatar}">${avatarInner}</div>
-      <div class="cargo">${p.cargo||""}</div>
-      <div class="nome">${p.nome}</div>
-      <div class="info">
-        <span class="lbl">Instagram</span><span>${p.instagram||""}</span>
-        <span class="lbl">Experiencia</span><span>${p.anos||""} anos</span>
+      <div class="card-photo">${avatarInner}</div>
+      <div class="card-role">${p.cargo||""}</div>
+      <div class="card-name">${p.nome}</div>
+      <div class="card-info">
+        ${p.instagram ? `<div class="row-info"><span class="lbl">IG</span><span>${p.instagram}</span></div>` : ""}
+        ${p.anos ? `<div class="row-info"><span class="lbl">Exp</span><span>${p.anos} anos</span></div>` : ""}
+        ${p.email ? `<div class="row-info"><span class="lbl">@</span><span style="word-break:break-all;font-size:7px">${p.email}</span></div>` : ""}
       </div>
-      <div class="tags">${tags}</div>
+      <div class="card-tags">${tags}</div>
       ${waQR}
     </div>`;
   }).join("");
@@ -128,12 +151,11 @@ function renderPage(page) {
     if (p.whatsapp && limpaNumero(p.whatsapp).length >= 10) {
       const num = limpaNumero(p.whatsapp);
       const msg = encodeURIComponent(`Ola ${p.nome}! Vi seu perfil na academia e gostaria de saber mais sobre seus servicos.`);
-      const waUrl = `https://wa.me/${num}?text=${msg}`;
       const el = document.getElementById(`qr-${p.id}`);
       if (el) {
         new QRCode(el, {
-          text: waUrl,
-          width: 80, height: 80,
+          text: `https://wa.me/${num}?text=${msg}`,
+          width: 60, height: 60,
           colorDark: "#25d366",
           colorLight: "#ffffff"
         });
@@ -141,10 +163,8 @@ function renderPage(page) {
     }
   });
 
-  document.getElementById("pageInfo").textContent =
-    totalPages > 1 ? `${page+1} / ${totalPages}` : "";
-  document.getElementById("totalBadge").textContent =
-    `${PROFISSIONAIS.length} profissional${PROFISSIONAIS.length!==1?"is":""}`;
+  document.getElementById("pageInfo").textContent = totalPages > 1 ? `${page+1} / ${totalPages}` : "";
+  document.getElementById("totalCount").textContent = `${PROFISSIONAIS.length} profissionais`;
 }
 
 function startProgress() {
@@ -162,7 +182,7 @@ function init() {
   renderPage(0);
   new QRCode(document.getElementById("qr"), {
     text: "mailto:{{ academia.email_qr }}",
-    width: 110, height: 110,
+    width: 120, height: 120,
     colorDark: "{{ academia.cor_primaria }}",
     colorLight: "#ffffff"
   });
@@ -180,4 +200,3 @@ init();
 </script>
 </body>
 </html>
-
