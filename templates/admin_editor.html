@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editor — {{ academia.nome }}</title>
+<title>Editor â€” {{ academia.nome }}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:Arial,sans-serif;background:#f4f4f8;color:#111}
@@ -45,7 +45,7 @@
 <body>
 
 <div class="topbar">
-  <h1>Editor — {{ academia.nome }}</h1>
+  <h1>Editor â€” {{ academia.nome }}</h1>
   <div style="display:flex;gap:16px;align-items:center">
     <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank">Ver TV ao vivo</a>
     <a href="{{ url_for('admin_logout', slug=academia.slug) }}">Sair</a>
@@ -129,8 +129,8 @@
           <div class="row">
             <div>
               <label>WhatsApp (com DDI)</label>
-              <input type="text" name="whatsapp" value="{{ p.whatsapp }}" placeholder="5511999999999">
-              <div class="wa-hint">Formato: 55 + DDD + numero. Ex: 5511999999999</div>
+              <input type="text" name="whatsapp" value="{{ p.whatsapp }}" placeholder="5511999999999 (ex: 5521987654321)">
+              <div class="wa-hint">Formato: 55 + DDD + numero SEM espacos ou tracos. Ex: 5521987654321 (ex: 5521987654321)</div>
             </div>
             <div><label>Anos de experiencia</label><input type="text" name="anos" value="{{ p.anos }}"></div>
           </div>
@@ -171,8 +171,8 @@
           <div class="row">
             <div>
               <label>WhatsApp (com DDI)</label>
-              <input type="text" name="whatsapp" placeholder="5511999999999">
-              <div class="wa-hint">Formato: 55 + DDD + numero. Ex: 5511999999999</div>
+              <input type="text" name="whatsapp" placeholder="5511999999999 (ex: 5521987654321)">
+              <div class="wa-hint">Formato: 55 + DDD + numero SEM espacos ou tracos. Ex: 5521987654321 (ex: 5521987654321)</div>
             </div>
             <div><label>Anos de experiencia</label><input type="text" name="anos" placeholder="5"></div>
           </div>
@@ -192,3 +192,5 @@
 </div>
 </body>
 </html>
+
+
