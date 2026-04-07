@@ -1,10 +1,10 @@
-Ôªøimport os
+import os
 import uuid
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import pg8000.dbapi
+import psycopg2
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'troque-em-producao')
@@ -46,7 +46,7 @@ def init_db():
         nome TEXT NOT NULL, subtitulo TEXT DEFAULT '',
         logo_url TEXT DEFAULT '', logo_texto TEXT DEFAULT '',
         cor_primaria TEXT DEFAULT '#1a1a2e', cor_destaque TEXT DEFAULT '#e94560',
-        cor_tag TEXT DEFAULT '#1a1a2e', cta_texto TEXT DEFAULT 'Agende uma avalia√ß√£o gratuita',
+        cor_tag TEXT DEFAULT '#1a1a2e', cta_texto TEXT DEFAULT 'Agende uma avaliaÁ„o gratuita',
         email_qr TEXT DEFAULT '', senha_hash TEXT NOT NULL, criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
         id SERIAL PRIMARY KEY, academia_id INTEGER REFERENCES academias(id) ON DELETE CASCADE,
@@ -69,14 +69,14 @@ def login_required(f):
 @app.route('/<slug>/')
 def painel(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch='one')
-    if not academia: return "Academia n√£o encontrada.", 404
+    if not academia: return "Academia n„o encontrada.", 404
     profissionais = query("SELECT * FROM profissionais WHERE academia_id = %s ORDER BY ordem, id", (academia['id'],), fetch='all')
     return render_template('painel.html', academia=academia, profissionais=profissionais or [])
 
 @app.route('/<slug>/admin', methods=['GET', 'POST'])
 def admin_login(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch='one')
-    if not academia: return "Academia n√£o encontrada.", 404
+    if not academia: return "Academia n„o encontrada.", 404
     if request.method == 'POST':
         if check_password_hash(academia['senha_hash'], request.form.get('senha', '')):
             session['academia_slug'] = slug
@@ -114,7 +114,7 @@ def salvar_config(slug):
          request.form.get('logo_texto'), request.form.get('cor_primaria'),
          request.form.get('cor_destaque'), request.form.get('cor_tag'),
          request.form.get('cta_texto'), request.form.get('email_qr'), slug))
-    flash('Configura√ß√µes salvas!')
+    flash('ConfiguraÁıes salvas!')
     return redirect(url_for('admin_editor', slug=slug))
 
 @app.route('/<slug>/admin/profissional/adicionar', methods=['POST'])
@@ -143,7 +143,7 @@ def editar_profissional(slug, prof_id):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch='one')
     prof = query("SELECT * FROM profissionais WHERE id=%s AND academia_id=%s", (prof_id, academia['id']), fetch='one')
     if not prof:
-        flash('Profissional n√£o encontrado.')
+        flash('Profissional n„o encontrado.')
         return redirect(url_for('admin_editor', slug=slug))
     foto_url = prof['foto_url']
     if 'foto' in request.files:
@@ -178,7 +178,7 @@ def setup():
             flash('Preencha todos os campos.')
             return redirect(url_for('setup'))
         if query("SELECT id FROM academias WHERE slug=%s", (slug,), fetch='one'):
-            flash('Slug j√° em uso.')
+            flash('Slug j· em uso.')
             return redirect(url_for('setup'))
         query("INSERT INTO academias (slug,nome,senha_hash) VALUES (%s,%s,%s)",
               (slug, nome, generate_password_hash(senha)))
