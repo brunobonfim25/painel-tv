@@ -3,79 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="300"> <!-- atualiza a cada 5 min -->
 <title>{{ academia.nome }}</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
     --primary: {{ academia.cor_primaria }};
     --accent:  {{ academia.cor_destaque }};
     --tag:     {{ academia.cor_tag }};
   }
-  body{
-    font-family:Arial,sans-serif;
-    background:#111;
-    display:flex;align-items:center;justify-content:center;
-    min-height:100vh;padding:10px;
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    overflow: hidden;
   }
-  .tv{
-    background:#fff;width:100%;max-width:1400px;
-    border-radius:8px;overflow:hidden;
-    display:grid;grid-template-columns:1fr 200px;
+  .tv {
+    background: #fff;
+    width: 100%;
+    max-width: 1600px;
+    height: calc(100vh - 24px);
+    border-radius: 10px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 180px;
   }
-  .main{padding:20px}
-  .header{
-    display:flex;align-items:center;gap:14px;
-    margin-bottom:18px;padding-bottom:14px;
-    border-bottom:3px solid var(--accent);
+
+  /* ── PAINEL PRINCIPAL ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 12px;
+    overflow: hidden;
   }
-  .logo-circle{
-    width:56px;height:56px;border-radius:50%;
-    background:var(--primary);
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;overflow:hidden;
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--accent);
+    flex-shrink: 0;
   }
-  .logo-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .logo-texto{color:#fff;font-weight:900;font-size:20px;font-style:italic}
-  .academy-name{font-size:28px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--primary)}
-  .academy-sub{font-size:13px;color:#888;margin-top:2px}
-  .grid{display:grid;gap:8px}
-  .card{
-    background:#f8f8f8;border-radius:8px;
-    padding:10px 8px;text-align:center;border:1px solid #eee;
+  .logo-circle {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
   }
-  .avatar{
-    width:56px;height:56px;border-radius:50%;
-    margin:0 auto 6px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:16px;font-weight:800;color:#fff;
-    border:2px solid #ddd;overflow:hidden;
+  .logo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .logo-text { color: #fff; font-weight: 900; font-size: 18px; font-style: italic; }
+  .academy-name {
+    font-size: 24px; font-weight: 900;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--primary);
   }
-  .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .cargo{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:2px}
-  .nome{font-size:11px;font-weight:800;color:#111;margin-bottom:4px;line-height:1.2}
-  .info{font-size:8px;color:#555;line-height:1.6;text-align:left}
-  .lbl{color:#aaa;font-size:7px;display:block;margin-top:3px}
-  .tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;justify-content:center}
-  .tag{font-size:7px;padding:2px 5px;border-radius:3px;font-weight:700;color:#fff;background:var(--tag)}
-  .side{
-    border-left:1px solid #e0e0e0;background:#f5f5f0;
-    display:flex;flex-direction:column;
-    align-items:center;justify-content:center;
-    padding:20px 12px;gap:14px;
+  .academy-name span { color: var(--accent); }
+  .academy-sub { font-size: 12px; color: #888; margin-top: 1px; }
+  .header-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 16px;
   }
-  .side-circle{
-    width:64px;height:64px;border-radius:50%;
-    border:3px solid var(--primary);background:var(--primary);
-    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  .page-indicator {
+    font-size: 12px; color: #aaa; font-weight: 600;
+    white-space: nowrap;
   }
-  .side-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-  .side-circle span{color:#fff;font-weight:900;font-size:18px;font-style:italic}
-  .cta{font-size:17px;font-weight:800;text-align:center;line-height:1.3;color:#111}
-  .qr-box{background:#fff;padding:8px;border-radius:6px;border:1px solid #ddd}
-  .qr-row{display:flex;align-items:center;gap:6px}
-  .book{font-size:8px;font-weight:800;letter-spacing:3px;color:#888;text-transform:uppercase;writing-mode:vertical-rl}
+  .progress-bar {
+    width: 120px; height: 4px;
+    background: #eee; border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+
+  /* ── GRADE ── */
+  .grid-wrap { flex: 1; overflow: hidden; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    height: 100%;
+    align-content: start;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 10px 6px 8px;
+    text-align: center;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .avatar {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; color: #fff;
+    border: 3px solid #ddd;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .cargo {
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--accent); margin-bottom: 2px;
+  }
+  .nome {
+    font-size: 11px; font-weight: 800;
+    color: #111; margin-bottom: 4px; line-height: 1.2;
+  }
+  .info { font-size: 8px; color: #555; line-height: 1.6; text-align: left; width: 100%; }
+  .lbl { color: #aaa; font-size: 7px; display: block; margin-top: 2px; }
+  .tags {
+    display: flex; flex-wrap: wrap; gap: 2px;
+    margin-top: 4px; justify-content: center;
+  }
+  .tag {
+    font-size: 7px; padding: 2px 4px;
+    border-radius: 3px; font-weight: 700;
+    color: #fff; background: var(--tag);
+  }
+
+  /* ── LATERAL ── */
+  .side {
+    border-left: 1px solid #e0e0e0;
+    background: #f5f5f0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 16px 10px; gap: 12px;
+  }
+  .side-circle {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 3px solid var(--primary); background: var(--primary);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .side-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .side-circle span { color: #fff; font-weight: 900; font-size: 16px; font-style: italic; }
+  .cta { font-size: 16px; font-weight: 800; text-align: center; line-height: 1.3; color: #111; }
+  .qr-box { background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
+  .qr-row { display: flex; align-items: center; gap: 5px; }
+  .book { font-size: 8px; font-weight: 800; letter-spacing: 3px; color: #888; text-transform: uppercase; writing-mode: vertical-rl; }
+  .total-badge {
+    background: var(--primary); color: #fff;
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 11px; font-weight: 700; text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -86,49 +172,25 @@
         {% if academia.logo_url %}
           <img src="{{ academia.logo_url }}" alt="Logo">
         {% else %}
-          <span class="logo-texto">{{ academia.logo_texto or academia.nome[:2] }}</span>
+          <span class="logo-text">{{ academia.logo_texto or academia.nome[:2] }}</span>
         {% endif %}
       </div>
       <div>
         <div class="academy-name">
-          {{ academia.nome }} <span style="color:var(--accent)">Trainers</span>
+          {{ academia.nome }} <span>Trainers</span>
         </div>
         <div class="academy-sub">{{ academia.subtitulo }}</div>
       </div>
-    </div>
-
-    {% set cols = profissionais|length %}
-    {% set cols = [cols, 5]|min %}
-    {% set cols = [cols, 1]|max %}
-    <div class="grid" style="grid-template-columns: repeat({{ cols }}, 1fr)">
-      {% for p in profissionais %}
-      <div class="card">
-        <div class="avatar" style="background:{{ p.cor_avatar }}">
-          {% if p.foto_url %}
-            <img src="{{ p.foto_url }}" alt="{{ p.nome }}">
-          {% else %}
-            {{ p.nome.split()|map('first')|list|join('')|upper }}
-          {% endif %}
-        </div>
-        <div class="cargo">{{ p.cargo }}</div>
-        <div class="nome">{{ p.nome }}</div>
-        <div class="info">
-          <span class="lbl">Email</span>
-          <span style="word-break:break-all;font-size:7px">{{ p.email }}</span>
-          <span class="lbl">Instagram</span>
-          <span>{{ p.instagram }}</span>
-          <span class="lbl">Experiência</span>
-          <span>{{ p.anos }} anos</span>
-        </div>
-        <div class="tags">
-          {% for esp in p.especialidades.split(',') %}
-            {% if esp.strip() %}
-              <span class="tag">{{ esp.strip() }}</span>
-            {% endif %}
-          {% endfor %}
+      <div class="header-right">
+        <span class="page-indicator" id="pageInfo"></span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
         </div>
       </div>
-      {% endfor %}
+    </div>
+
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
     </div>
   </div>
 
@@ -146,16 +208,101 @@
       <div class="qr-box" id="qr"></div>
       <span class="book">Agende</span>
     </div>
+    <div class="total-badge" id="totalBadge"></div>
   </div>
 </div>
 
 <script>
-  new QRCode(document.getElementById('qr'), {
-    text: 'mailto:{{ academia.email_qr }}',
+const PROFISSIONAIS = {{ profissionais | tojson }};
+const COLS = 6;
+const ROWS = 3;
+const PER_PAGE = COLS * ROWS;
+const INTERVAL_MS = 12000;
+
+let currentPage = 0;
+let timer = null;
+let progress = 0;
+let progressTimer = null;
+
+const totalPages = Math.max(1, Math.ceil(PROFISSIONAIS.length / PER_PAGE));
+
+function iniciais(nome) {
+  return nome.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
+
+function renderPage(page) {
+  const grid = document.getElementById("grid");
+  const start = page * PER_PAGE;
+  const slice = PROFISSIONAIS.slice(start, start + PER_PAGE);
+
+  grid.innerHTML = slice.map(p => {
+    const tags = (p.especialidades || "").split(",")
+      .filter(e => e.trim())
+      .map(e => `<span class="tag">${e.trim()}</span>`)
+      .join("");
+
+    const avatarInner = p.foto_url
+      ? `<img src="${p.foto_url}" alt="${p.nome}">`
+      : iniciais(p.nome);
+
+    return `<div class="card">
+      <div class="avatar" style="background:${p.cor_avatar}">${avatarInner}</div>
+      <div class="cargo">${p.cargo || ""}</div>
+      <div class="nome">${p.nome}</div>
+      <div class="info">
+        <span class="lbl">Email</span>
+        <span style="word-break:break-all;font-size:7px">${p.email || ""}</span>
+        <span class="lbl">Instagram</span>
+        <span>${p.instagram || ""}</span>
+        <span class="lbl">Experiencia</span>
+        <span>${p.anos || ""} anos</span>
+      </div>
+      <div class="tags">${tags}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("pageInfo").textContent =
+    totalPages > 1 ? `${page + 1} / ${totalPages}` : "";
+  document.getElementById("totalBadge").textContent =
+    `${PROFISSIONAIS.length} profissional${PROFISSIONAIS.length !== 1 ? "is" : ""}`;
+}
+
+function startProgress() {
+  clearInterval(progressTimer);
+  progress = 0;
+  document.getElementById("progressFill").style.width = "0%";
+  progressTimer = setInterval(() => {
+    progress += 100 / (INTERVAL_MS / 100);
+    if (progress > 100) progress = 100;
+    document.getElementById("progressFill").style.width = progress + "%";
+  }, 100);
+}
+
+function nextPage() {
+  currentPage = (currentPage + 1) % totalPages;
+  renderPage(currentPage);
+  startProgress();
+}
+
+function init() {
+  renderPage(0);
+  document.getElementById("totalBadge").textContent =
+    `${PROFISSIONAIS.length} profissional${PROFISSIONAIS.length !== 1 ? "is" : ""}`;
+
+  new QRCode(document.getElementById("qr"), {
+    text: "mailto:{{ academia.email_qr }}",
     width: 110, height: 110,
-    colorDark: '{{ academia.cor_primaria }}',
-    colorLight: '#ffffff'
+    colorDark: "{{ academia.cor_primaria }}",
+    colorLight: "#ffffff"
   });
+
+  if (totalPages > 1) {
+    startProgress();
+    timer = setInterval(nextPage, INTERVAL_MS);
+  }
+}
+
+init();
 </script>
 </body>
 </html>
