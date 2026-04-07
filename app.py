@@ -55,12 +55,14 @@ def init_db():
         cargo TEXT DEFAULT '',
         email TEXT DEFAULT '',
         instagram TEXT DEFAULT '',
+        whatsapp TEXT DEFAULT '',
         anos TEXT DEFAULT '',
         especialidades TEXT DEFAULT '',
         foto_url TEXT DEFAULT '',
         cor_avatar TEXT DEFAULT '#1a6fd4',
         ordem INTEGER DEFAULT 0,
         criado_em TIMESTAMP DEFAULT NOW())""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS whatsapp TEXT DEFAULT ''""")
 
 
 def arquivo_permitido(f):
@@ -154,13 +156,14 @@ def adicionar_profissional(slug):
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             foto_url = "/static/uploads/" + filename
     query("""INSERT INTO profissionais
-        (academia_id, nome, cargo, email, instagram, anos, especialidades, foto_url, cor_avatar, ordem)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
-        (SELECT COALESCE(MAX(ordem), 0)+1 FROM profissionais WHERE academia_id=%s))""",
+        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
-         request.form.get("email"), request.form.get("instagram"), request.form.get("anos"),
+         request.form.get("email"), request.form.get("instagram"),
+         request.form.get("whatsapp",""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar", "#1a6fd4"), academia["id"]))
+         request.form.get("cor_avatar","#1a6fd4"), academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -169,10 +172,8 @@ def adicionar_profissional(slug):
 @login_required
 def editar_profissional(slug, prof_id):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
-    prof = query(
-        "SELECT * FROM profissionais WHERE id=%s AND academia_id=%s",
-        (prof_id, academia["id"]), fetch="one"
-    )
+    prof = query("SELECT * FROM profissionais WHERE id=%s AND academia_id=%s",
+        (prof_id, academia["id"]), fetch="one")
     if not prof:
         flash("Profissional nao encontrado.")
         return redirect(url_for("admin_editor", slug=slug))
@@ -184,14 +185,14 @@ def editar_profissional(slug, prof_id):
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             foto_url = "/static/uploads/" + filename
     query("""UPDATE profissionais SET
-        nome=%s, cargo=%s, email=%s, instagram=%s,
+        nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
         anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
-         request.form.get("anos"), request.form.get("especialidades"),
-         foto_url, request.form.get("cor_avatar", "#1a6fd4"),
-         prof_id, academia["id"]))
+         request.form.get("whatsapp",""), request.form.get("anos"),
+         request.form.get("especialidades"), foto_url,
+         request.form.get("cor_avatar","#1a6fd4"), prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -208,20 +209,20 @@ def remover_profissional(slug, prof_id):
 @app.route("/setup", methods=["GET", "POST"])
 def setup():
     if request.method == "POST":
-        slug = request.form.get("slug", "").lower().strip()
-        nome = request.form.get("nome", "").strip()
-        senha = request.form.get("senha", "").strip()
+        slug = request.form.get("slug","").lower().strip()
+        nome = request.form.get("nome","").strip()
+        senha = request.form.get("senha","").strip()
         if not slug or not nome or not senha:
             flash("Preencha todos os campos.")
             return redirect(url_for("setup"))
         if query("SELECT id FROM academias WHERE slug=%s", (slug,), fetch="one"):
             flash("Slug ja em uso.")
             return redirect(url_for("setup"))
-        query("INSERT INTO academias (slug, nome, senha_hash) VALUES (%s, %s, %s)",
+        query("INSERT INTO academias (slug,nome,senha_hash) VALUES (%s,%s,%s)",
               (slug, nome, generate_password_hash(senha)))
         flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
-    msgs = session.pop("_flashes", [])
+    msgs = session.pop("_flashes",[])
     msgs_html = "".join(f"<div class='msg'>{m[1]}</div>" for m in msgs)
     return f"""<style>
     body{{font-family:Arial;max-width:400px;margin:60px auto;padding:20px}}
@@ -231,14 +232,10 @@ def setup():
     </style>
     <h2>Criar nova academia</h2>{msgs_html}
     <form method="POST">
-    <label>Slug (URL) - ex: bt</label>
-    <input name="slug" placeholder="bt" required>
-    <label>Nome da academia</label>
-    <input name="nome" placeholder="BT Academia" required>
-    <label>Senha do admin</label>
-    <input type="password" name="senha" required>
-    <button type="submit">Criar Academia</button>
-    </form>"""
+    <label>Slug (URL)</label><input name="slug" placeholder="bt" required>
+    <label>Nome da academia</label><input name="nome" placeholder="BT Academia" required>
+    <label>Senha do admin</label><input type="password" name="senha" required>
+    <button type="submit">Criar Academia</button></form>"""
 
 
 with app.app_context():
