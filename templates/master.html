@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Master — Painel TV SaaS</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;background:#0f0f1a;color:#fff;min-height:100vh}
+  .topbar{background:#1a1a2e;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e94560}
+  .topbar h1{font-size:18px;font-weight:900;letter-spacing:2px}
+  .topbar span{font-size:12px;color:#aaa}
+  .topbar a{color:#aac4ff;font-size:13px;text-decoration:none}
+  .container{max-width:1100px;margin:0 auto;padding:24px 16px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+  .stat{background:#1a1a2e;border-radius:10px;padding:16px;text-align:center;border:1px solid #2a2a4e}
+  .stat-num{font-size:28px;font-weight:900;color:#e94560}
+  .stat-label{font-size:11px;color:#aaa;margin-top:4px}
+  .section-title{font-size:14px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+  .client-card{background:#1a1a2e;border-radius:10px;border:1px solid #2a2a4e;margin-bottom:12px;overflow:hidden}
+  .client-header{padding:14px 18px;display:flex;align-items:center;gap:14px}
+  .client-logo{width:44px;height:44px;border-radius:50%;background:#e94560;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden}
+  .client-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .client-name{font-size:15px;font-weight:700;color:#fff}
+  .client-slug{font-size:12px;color:#aaa;margin-top:2px}
+  .client-meta{margin-left:auto;display:flex;gap:20px;align-items:center}
+  .meta-item{text-align:center}
+  .meta-num{font-size:18px;font-weight:700;color:#fff}
+  .meta-label{font-size:10px;color:#aaa}
+  .status-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .status-ok{background:#0f3d1f;color:#4caf50}
+  .status-new{background:#1a2a4e;color:#64b5f6}
+  .client-actions{padding:10px 18px;border-top:1px solid #2a2a4e;display:flex;gap:8px;background:#141428}
+  .btn-action{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;border:none;cursor:pointer}
+  .btn-tv{background:#1a6fd4;color:#fff}
+  .btn-admin{background:#2a2a4e;color:#aac4ff}
+  .btn-tv:hover{background:#155db5}
+  .btn-admin:hover{background:#3a3a6e}
+  .created{font-size:11px;color:#666;margin-left:auto}
+  .empty{text-align:center;padding:40px;color:#555;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>PAINEL TV — MASTER</h1>
+  <div style="display:flex;gap:20px;align-items:center">
+    <span>{{ total_academias }} cliente{{ 's' if total_academias != 1 else '' }} ativo{{ 's' if total_academias != 1 else '' }}</span>
+    <a href="{{ url_for('master_logout') }}">Sair</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">{{ total_academias }}</div>
+      <div class="stat-label">Clientes ativos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ total_profissionais }}</div>
+      <div class="stat-label">Profissionais cadastrados</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ total_academias * 99 }}</div>
+      <div class="stat-label">Receita mensal (R$)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ novos_mes }}</div>
+      <div class="stat-label">Novos este mes</div>
+    </div>
+  </div>
+
+  <div class="section-title">Clientes</div>
+
+  {% if academias %}
+    {% for a in academias %}
+    <div class="client-card">
+      <div class="client-header">
+        <div class="client-logo">
+          {% if a.logo_url %}<img src="{{ a.logo_url }}" alt="{{ a.nome }}">
+          {% else %}{{ (a.logo_texto or a.nome[:2])|upper }}{% endif %}
+        </div>
+        <div>
+          <div class="client-name">{{ a.nome }}</div>
+          <div class="client-slug">{{ a.slug }} &mdash; {{ a.subtitulo or 'Sem subtitulo' }}</div>
+        </div>
+        <div class="client-meta">
+          <div class="meta-item">
+            <div class="meta-num">{{ a.total_profs }}</div>
+            <div class="meta-label">Profissionais</div>
+          </div>
+          <span class="status-badge status-ok">Ativo</span>
+          <div class="created">Criado em {{ a.criado_em.strftime('%d/%m/%Y') if a.criado_em else '-' }}</div>
+        </div>
+      </div>
+      <div class="client-actions">
+        <a href="{{ url_for('painel', slug=a.slug) }}" target="_blank" class="btn-action btn-tv">Ver TV</a>
+        <a href="{{ url_for('admin_login', slug=a.slug) }}" target="_blank" class="btn-action btn-admin">Acessar Admin</a>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">Nenhum cliente cadastrado ainda. Acesse /setup para criar o primeiro.</div>
+  {% endif %}
+
+</div>
+</body>
+</html>

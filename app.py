@@ -10,6 +10,7 @@ from psycopg2.extras import RealDictCursor
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 DATABASE_URL = os.environ.get("DATABASE_URL")
+MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -62,7 +63,7 @@ def init_db():
         cor_avatar TEXT DEFAULT '#1a6fd4',
         ordem INTEGER DEFAULT 0,
         criado_em TIMESTAMP DEFAULT NOW())""")
-    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS whatsapp TEXT DEFAULT ''""")
+    query("ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS whatsapp TEXT DEFAULT ''")
 
 
 def arquivo_permitido(f):
@@ -78,6 +79,17 @@ def login_required(f):
     return decorated
 
 
+def master_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("master_logged"):
+            return redirect(url_for("master_login"))
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ── Painel publico TV ─────────────────────────────────────────────────────────
+
 @app.route("/<slug>/")
 def painel(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
@@ -89,6 +101,8 @@ def painel(slug):
     )
     return render_template("painel.html", academia=academia, profissionais=profissionais or [])
 
+
+# ── Admin cliente ─────────────────────────────────────────────────────────────
 
 @app.route("/<slug>/admin", methods=["GET", "POST"])
 def admin_login(slug):
@@ -205,6 +219,52 @@ def remover_profissional(slug, prof_id):
     flash("Profissional removido.")
     return redirect(url_for("admin_editor", slug=slug))
 
+
+# ── Master dashboard ──────────────────────────────────────────────────────────
+
+@app.route("/master", methods=["GET", "POST"])
+def master_login():
+    if session.get("master_logged"):
+        return redirect(url_for("master_dashboard"))
+    if request.method == "POST":
+        if request.form.get("senha") == MASTER_PASSWORD:
+            session["master_logged"] = True
+            return redirect(url_for("master_dashboard"))
+        flash("Senha incorreta.")
+    return render_template("master_login.html")
+
+
+@app.route("/master/logout")
+def master_logout():
+    session.pop("master_logged", None)
+    return redirect(url_for("master_login"))
+
+
+@app.route("/master/dashboard")
+@master_required
+def master_dashboard():
+    academias = query("""
+        SELECT a.*, COUNT(p.id) as total_profs
+        FROM academias a
+        LEFT JOIN profissionais p ON p.academia_id = a.id
+        GROUP BY a.id ORDER BY a.criado_em DESC
+    """, fetch="all") or []
+
+    total_profissionais = sum(a["total_profs"] for a in academias)
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    novos_mes = sum(1 for a in academias
+        if a["criado_em"] and a["criado_em"].month == now.month
+        and a["criado_em"].year == now.year)
+
+    return render_template("master.html",
+        academias=academias,
+        total_academias=len(academias),
+        total_profissionais=total_profissionais,
+        novos_mes=novos_mes)
+
+
+# ── Setup novo cliente ────────────────────────────────────────────────────────
 
 @app.route("/setup", methods=["GET", "POST"])
 def setup():
