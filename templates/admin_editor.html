@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editor â€” {{ academia.nome }}</title>
+<title>Editor — {{ academia.nome }}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:Arial,sans-serif;background:#f4f4f8;color:#111}
@@ -45,7 +45,7 @@
 <body>
 
 <div class="topbar">
-  <h1>Editor â€” {{ academia.nome }}</h1>
+  <h1>Editor — {{ academia.nome }}</h1>
   <div style="display:flex;gap:16px;align-items:center">
     <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank">Ver TV ao vivo</a>
     <a href="{{ url_for('admin_logout', slug=academia.slug) }}">Sair</a>
@@ -192,5 +192,6 @@
 </div>
 </body>
 </html>
+
 
 
