@@ -4,557 +4,472 @@
 <meta charset="UTF-8">
 <title>{{ academia.nome }}</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800;900&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100vh;overflow:hidden}
 
-:root {
-  --green:  {{ academia.cor_destaque }};
-  --dark:   {{ academia.cor_primaria }};
-  --bg:     #f7f9f8;
-  --white:  #ffffff;
-  --txt:    #0d1f18;
-  --sub:    #4a6355;
-  --muted:  #8aa898;
-  --line:   #e2ece7;
-  --card:   #ffffff;
-  --green10: color-mix(in srgb, var(--green) 10%, white);
-  --green20: color-mix(in srgb, var(--green) 20%, white);
+:root{
+  --g: {{ academia.cor_destaque }};
+  --p: {{ academia.cor_primaria }};
+  --bg:    #0a0a0f;
+  --s1:    #111118;
+  --s2:    #16161f;
+  --s3:    #1c1c28;
+  --b1:    rgba(255,255,255,0.06);
+  --b2:    rgba(255,255,255,0.1);
+  --t1:    #ffffff;
+  --t2:    #a0a0b8;
+  --t3:    #60607a;
+  --ga:    color-mix(in srgb,var(--g) 15%,transparent);
+  --gb:    color-mix(in srgb,var(--g) 8%,transparent);
 }
 
-html, body { height: 100vh; overflow: hidden; }
-
-body {
-  font-family: 'Raleway', sans-serif;
-  background: var(--bg);
-  display: flex;
-  position: relative;
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  display:flex;
+  position:relative;
 }
 
-/* ══ MARCA D'ÁGUA ══ */
-.watermark {
-  position: fixed;
-  top: 50%; left: 48%;
-  transform: translate(-50%, -50%);
-  width: 46vw;
-  max-width: 580px;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
+/* ══ BG EFFECTS ══ */
+.bg-glow{
+  position:fixed;pointer-events:none;z-index:0;border-radius:50%;
+}
+.bg-glow-1{
+  width:700px;height:500px;
+  top:-200px;left:-150px;
+  background:radial-gradient(ellipse,color-mix(in srgb,var(--g) 8%,transparent),transparent 65%);
+}
+.bg-glow-2{
+  width:500px;height:400px;
+  bottom:-100px;right:150px;
+  background:radial-gradient(ellipse,color-mix(in srgb,var(--g) 5%,transparent),transparent 65%);
 }
 
-/* GRID PATTERN sutil */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 0;
+/* GRID DOT PATTERN */
+.bg-dots{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);
+  background-size:28px 28px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
 }
 
-/* GRADIENTE top */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(to right, var(--green), color-mix(in srgb, var(--green) 50%, white));
-  z-index: 100;
+/* ══ MARCA D'ÁGUA SVG ══ */
+.wm{
+  position:fixed;
+  top:50%;left:47%;
+  transform:translate(-50%,-50%);
+  width:42vw;max-width:540px;
+  opacity:0.06;
+  pointer-events:none;
+  z-index:0;
 }
 
-/* ══ MAIN ══ */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 20px 12px;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  min-width: 0;
+/* ══ TOP BAR ══ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:2px;z-index:99;
+  background:linear-gradient(to right,var(--g),color-mix(in srgb,var(--g) 40%,transparent));
+}
+
+/* ══ LAYOUT ══ */
+.main{
+  flex:1;display:flex;flex-direction:column;
+  padding:18px 18px 12px;
+  position:relative;z-index:1;
+  overflow:hidden;min-width:0;
+  padding-top:20px;
 }
 
 /* ══ HEADER ══ */
-.header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-  flex-shrink: 0;
+.header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;flex-shrink:0;
 }
 
-/* LOGO QUADRADO BT */
-.logo-sq {
-  width: 48px; height: 48px;
-  background: var(--green);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--green) 35%, transparent);
+.logo-block{
+  width:44px;height:44px;
+  background:var(--g);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.1),0 4px 16px color-mix(in srgb,var(--g) 40%,transparent);
 }
-.logo-sq img { 
-  width: 250%; height: 100%; 
-  object-fit: cover;
-  object-position: 0% center;
-  border-radius: 6px;
-  margin-left: 0;
-}
-.logo-sq span {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 18px; font-weight: 900;
-  color: #fff; letter-spacing: -1px;
+.logo-block img{width:100%;height:100%;object-fit:contain;padding:4px;border-radius:6px}
+.logo-block span{
+  font-family:'Inter',sans-serif;
+  font-size:17px;font-weight:800;
+  color:#fff;letter-spacing:-0.5px;
 }
 
-.header-mid { flex: 1; }
-.acad-nm {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 22px; font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  line-height: 1;
-  color: var(--txt);
+.header-info{flex:1}
+.h-name{
+  font-size:20px;font-weight:800;
+  letter-spacing:-0.3px;
+  color:var(--t1);
+  line-height:1;
 }
-.acad-nm em { color: var(--green); font-style: normal; }
-.acad-sub {
-  font-size: 10px; font-weight: 600;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 2px;
+.h-name em{color:var(--g);font-style:normal}
+.h-sub{
+  font-size:9px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--t3);margin-top:3px;
 }
 
-/* BADGE "EQUIPE" */
-.team-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--green10);
-  border: 1px solid var(--green20);
-  border-radius: 20px;
-  padding: 4px 12px;
-  flex-shrink: 0;
+/* STATUS BADGE */
+.status{
+  display:flex;align-items:center;gap:6px;
+  background:var(--ga);
+  border:1px solid color-mix(in srgb,var(--g) 25%,transparent);
+  border-radius:20px;padding:4px 10px;
+  flex-shrink:0;
 }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.85)} }
-.badge-txt {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--green);
-  text-transform: uppercase;
+.status-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--g);
+  box-shadow:0 0 6px var(--g);
+  animation:p 2s infinite;
+}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.4}}
+.status-txt{
+  font-size:9px;font-weight:600;
+  letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--g);
 }
 
-.header-right { display: flex; align-items: center; gap: 8px; }
-.pg-tag {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 10px; font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.5px;
+.h-ctrl{display:flex;align-items:center;gap:8px}
+.pg-num{
+  font-size:10px;font-weight:500;
+  color:var(--t3);letter-spacing:0.5px;
 }
-.prog-track { width: 56px; height: 2px; background: var(--line); border-radius: 1px; overflow: hidden; }
-.prog-fill { height: 100%; background: var(--green); width: 0%; transition: width .1s linear; border-radius: 1px; }
+.prog-w{width:48px;height:1px;background:var(--s3);border-radius:1px;overflow:hidden}
+.prog-f{height:100%;background:var(--g);width:0%;transition:width .1s linear}
 
-/* LINHA SEPARADORA */
-.hl {
-  height: 1px;
-  background: var(--line);
-  margin-bottom: 12px;
-  flex-shrink: 0;
-  position: relative;
-}
-.hl::after {
-  content: '';
-  position: absolute;
-  left: 0; top: 0;
-  width: 80px; height: 2px;
-  background: var(--green);
-  border-radius: 1px;
-  margin-top: -0.5px;
+/* DIVIDER */
+.div{
+  height:1px;
+  background:linear-gradient(to right,var(--b2),transparent 70%);
+  margin-bottom:12px;flex-shrink:0;
 }
 
 /* ══ GRID ══ */
-.grid {
-  display: grid;
-  gap: 10px;
-  flex: 1;
-  align-content: start;
+.grid{
+  display:grid;gap:8px;
+  flex:1;align-content:start;
 }
 
 /* ══ CARD ══ */
-.card {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 12px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(6px);
-  animation: up .3s ease forwards;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: box-shadow .2s;
+.card{
+  background:var(--s1);
+  border:1px solid var(--b1);
+  border-radius:10px;
+  padding:12px 10px 8px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;overflow:hidden;
+  opacity:0;transform:translateY(8px);
+  animation:up .3s ease forwards;
 }
-@keyframes up { to { opacity:1; transform:translateY(0); } }
+@keyframes up{to{opacity:1;transform:translateY(0)}}
 
-/* Acento verde topo */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 20%; right: 20%;
-  height: 2px;
-  background: var(--green);
-  border-radius: 0 0 2px 2px;
-  opacity: 0.6;
+/* top shimmer */
+.card::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--g),transparent);
+  opacity:0.5;
 }
 
 /* FOTO */
-.photo-wrap { position: relative; margin-bottom: 8px; }
-.photo-sq {
-  width: 88px; height: 88px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid var(--green20);
-  background: var(--green10);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 24px; font-weight: 900;
-  color: var(--green);
+.photo-wrap{position:relative;margin-bottom:7px}
+.photo{
+  width:80px;height:80px;border-radius:8px;
+  overflow:hidden;
+  border:1.5px solid var(--ga);
+  background:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;
+  color:var(--g);
 }
-.photo-sq img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.photo img{width:100%;height:100%;object-fit:cover;border-radius:7px}
 
-.exp-badge {
-  position: absolute; bottom: -4px; right: -4px;
-  background: var(--green);
-  color: #fff;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 7px; font-weight: 800;
-  padding: 2px 5px;
-  border-radius: 4px;
-  border: 1.5px solid var(--white);
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.exp{
+  position:absolute;bottom:-4px;right:-4px;
+  background:var(--g);color:#000;
+  font-size:7px;font-weight:700;
+  padding:2px 5px;border-radius:4px;
+  border:1.5px solid var(--bg);
+  white-space:nowrap;letter-spacing:.2px;
 }
 
 /* CARGO */
-.card-role {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 7.5px; font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--green);
-  margin-bottom: 2px;
-  text-align: center;
+.role{
+  font-size:7px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--g);margin-bottom:1px;text-align:center;
 }
-
 /* NOME */
-.card-name {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 12px; font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--txt);
-  text-align: center;
-  line-height: 1.2;
-  margin-bottom: 6px;
+.name{
+  font-size:11.5px;font-weight:700;
+  letter-spacing:-.2px;
+  color:var(--t1);text-align:center;
+  line-height:1.2;margin-bottom:6px;
 }
 
-/* DIVISOR */
-.cdiv { width: 100%; height: 1px; background: var(--line); margin-bottom: 5px; }
+/* LINHA */
+.cl{width:100%;height:1px;background:var(--b1);margin-bottom:5px}
 
 /* INFO */
-.card-info { width: 100%; margin-bottom: 4px; }
-.irow { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-.ilbl {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 6.5px; font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 14px;
+.info{width:100%;margin-bottom:4px}
+.irow{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.ilbl{
+  font-size:6.5px;font-weight:600;
+  color:var(--t3);text-transform:uppercase;
+  letter-spacing:.3px;min-width:14px;
 }
-.ival {
-  font-size: 8px; font-weight: 600;
-  color: var(--sub);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.ival{
+  font-size:8px;font-weight:400;color:var(--t2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 /* TAGS */
-.tags { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-bottom: 4px; }
-.tag {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 6.5px; font-weight: 700;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--green10);
-  border: 1px solid var(--green20);
-  color: var(--green);
+.tags{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-bottom:4px}
+.tag{
+  font-size:6.5px;font-weight:600;
+  letter-spacing:.3px;text-transform:uppercase;
+  padding:2px 5px;border-radius:3px;
+  background:var(--gb);
+  border:1px solid var(--ga);
+  color:color-mix(in srgb,var(--g) 80%,white);
 }
 
-/* QR WA */
-.wa-block { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 2px; }
-.wa-block canvas { border-radius: 4px !important; }
-.wa-lb {
-  display: flex; align-items: center; gap: 3px;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 7px; font-weight: 800;
-  letter-spacing: 1px; text-transform: uppercase;
-  color: #128c7e;
+/* WA */
+.wa{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:2px}
+.wa canvas{border-radius:3px!important}
+.wa-lbl{
+  display:flex;align-items:center;gap:3px;
+  font-size:7px;font-weight:600;
+  letter-spacing:.8px;text-transform:uppercase;color:#25d366;
 }
-.wa-dot { width: 4px; height: 4px; border-radius: 50%; background: #25d366; animation: blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+.wa-dot{width:4px;height:4px;border-radius:50%;background:#25d366;animation:p 2s infinite}
 
 /* ══ SIDEBAR ══ */
-.side {
-  width: 190px; flex-shrink: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 20px 14px; gap: 16px;
-  position: relative; z-index: 1;
-  background: var(--white);
-  border-left: 1px solid var(--line);
+.side{
+  width:180px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:18px 12px;gap:14px;
+  position:relative;z-index:1;
+  background:var(--s1);
+  border-left:1px solid var(--b1);
+}
+.side::before{
+  content:'';position:absolute;
+  top:20%;bottom:20%;left:0;width:1px;
+  background:linear-gradient(to bottom,transparent,var(--g),transparent);
+  opacity:.5;
 }
 
-/* accent line esquerda */
-.side::before {
-  content: '';
-  position: absolute;
-  top: 15%; bottom: 15%;
-  left: 0; width: 2px;
-  background: linear-gradient(to bottom, transparent, var(--green), transparent);
-  border-radius: 2px;
+/* LOGO LATERAL */
+.s-logo{
+  width:76px;height:76px;
+  background:var(--g);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.1),0 0 32px color-mix(in srgb,var(--g) 40%,transparent);
+}
+.s-logo img{width:100%;height:100%;object-fit:contain;padding:6px;border-radius:10px}
+.s-logo span{
+  font-size:24px;font-weight:800;color:#fff;letter-spacing:-1px;
 }
 
-/* LOGO GRANDE */
-.side-logo {
-  width: 80px; height: 80px;
-  background: var(--green);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--green) 35%, transparent);
+.s-name{
+  text-align:center;
+  font-size:11px;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;
+  color:var(--t1);line-height:1.3;
 }
-.side-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
-.side-logo span {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 26px; font-weight: 900;
-  color: #fff; letter-spacing: -1px;
+.s-name em{color:var(--g);font-style:normal;display:block}
+
+.s-sep{width:28px;height:1px;background:var(--g);opacity:.4}
+
+.s-cta-lbl{
+  font-size:8px;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--t3);text-align:center;
+}
+.s-cta{
+  font-size:14px;font-weight:700;
+  letter-spacing:-.2px;
+  color:var(--t1);text-align:center;
+  line-height:1.2;margin-top:-8px;
 }
 
-/* NOME ACADEMIA LATERAL */
-.side-nm {
-  text-align: center;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 12px; font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--txt);
-  line-height: 1.3;
+/* QR LATERAL */
+.s-qr-row{display:flex;align-items:center;gap:6px}
+.s-qv{
+  font-size:7px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--t3);writing-mode:vertical-rl;
 }
-.side-nm em { color: var(--green); font-style: normal; display: block; }
-
-/* SEP */
-.sep { width: 32px; height: 2px; background: var(--green); border-radius: 1px; opacity: 0.4; }
-
-/* CTA */
-.cta-label {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: center;
-}
-.cta {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 15px; font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--txt);
-  text-align: center;
-  line-height: 1.2;
-  margin-top: -8px;
-}
-
-/* QR */
-.qr-row { display: flex; align-items: center; gap: 7px; }
-.qr-vert {
-  font-family: 'Raleway', sans-serif;
-  font-size: 7px; font-weight: 700;
-  letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted);
-  writing-mode: vertical-rl;
-}
-.qr-box {
-  padding: 5px; background: var(--white);
-  border-radius: 6px;
-  border: 2px solid var(--green20);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+.s-qr-box{
+  padding:5px;background:#fff;
+  border-radius:5px;
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 12px color-mix(in srgb,var(--g) 20%,transparent);
 }
 
 /* CONTADOR */
-.count { text-align: center; }
-.count-n {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 32px; font-weight: 900;
-  color: var(--green); line-height: 1;
-  display: block;
+.s-count{text-align:center}
+.s-n{
+  font-size:30px;font-weight:800;
+  letter-spacing:-1px;
+  color:var(--g);line-height:1;display:block;
 }
-.count-l {
-  font-family: 'Raleway', sans-serif;
-  font-size: 8px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted);
+.s-l{
+  font-size:8px;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t3);
 }
 </style>
 </head>
 <body>
 
-<div class="watermark">
-  <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" width="100%">
-    <!-- Quadrado verde BT -->
-    <rect x="0" y="10" width="130" height="160" rx="8" fill="#55B991"/>
-    <text x="22" y="120" font-family="Arial Rounded MT Bold, Arial, sans-serif" 
-      font-size="90" font-weight="900" fill="white" letter-spacing="-4">bt</text>
-    <!-- Texto bodytech -->
-    <text x="148" y="118" font-family="Arial Rounded MT Bold, Arial, sans-serif"
-      font-size="78" font-weight="900" fill="#3a3a3a" letter-spacing="-2">bodytech</text>
+<!-- BG -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-dots"></div>
+<div class="topbar"></div>
+
+<!-- MARCA D'ÁGUA SVG COM CORES REAIS DA BT -->
+<div class="wm">
+  <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="138" height="168" rx="10" fill="{{ academia.cor_destaque }}"/>
+    <text x="14" y="128" font-family="Arial Rounded MT Bold,Arial Black,sans-serif"
+      font-size="100" font-weight="900" fill="white" letter-spacing="-4">bt</text>
+    <text x="158" y="122" font-family="Arial Rounded MT Bold,Arial Black,sans-serif"
+      font-size="80" font-weight="900" fill="#cccccc" letter-spacing="-2">bodytech</text>
   </svg>
 </div>
 
 <div class="main">
   <div class="header">
-    <div class="logo-sq">
+    <div class="logo-block">
       {% if academia.logo_url %}
         <img src="{{ academia.logo_url }}" alt="">
       {% else %}
         <span>{{ academia.logo_texto or academia.nome[:2] }}</span>
       {% endif %}
     </div>
-    <div class="header-mid">
-      {% set w = academia.nome.split() %}
-      <div class="acad-nm">
-        {% if w|length > 1 %}<span>{{ w[0] }}</span> <em>{{ w[1:] | join(' ') }}</em>
+    <div class="header-info">
+      {% set w=academia.nome.split() %}
+      <div class="h-name">
+        {% if w|length>1 %}{{ w[0] }} <em>{{ w[1:]|join(' ') }}</em>
         {% else %}{{ academia.nome }}{% endif %}
       </div>
-      <div class="acad-sub">{{ academia.subtitulo or 'Equipe de Profissionais' }}</div>
+      <div class="h-sub">{{ academia.subtitulo or 'Equipe de Profissionais' }}</div>
     </div>
-    <div class="team-badge">
-      <span class="badge-dot"></span>
-      <span class="badge-txt">Ao vivo</span>
+    <div class="status">
+      <span class="status-dot"></span>
+      <span class="status-txt">Ao vivo</span>
     </div>
-    <div class="header-right">
-      <span class="pg-tag" id="pgTag"></span>
-      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="h-ctrl">
+      <span class="pg-num" id="pgNum"></span>
+      <div class="prog-w"><div class="prog-f" id="pf"></div></div>
     </div>
   </div>
-  <div class="hl"></div>
+  <div class="div"></div>
   <div class="grid" id="grid"></div>
 </div>
 
 <div class="side">
-  <div class="side-logo">
+  <div class="s-logo">
     {% if academia.logo_url %}
       <img src="{{ academia.logo_url }}" alt="">
     {% else %}
       <span>{{ academia.logo_texto or academia.nome[:2] }}</span>
     {% endif %}
   </div>
-  {% set w = academia.nome.split() %}
-  <div class="side-nm">
-    {% if w|length > 1 %}{{ w[0] }}<em>{{ w[1:] | join(' ') }}</em>
+  {% set w=academia.nome.split() %}
+  <div class="s-name">
+    {% if w|length>1 %}{{ w[0] }}<em>{{ w[1:]|join(' ') }}</em>
     {% else %}{{ academia.nome }}{% endif %}
   </div>
-  <div class="sep"></div>
-  <div class="cta-label">Agende agora</div>
-  <div class="cta">{{ academia.cta_texto }}</div>
-  <div class="qr-row">
-    <span class="qr-vert">Escanear</span>
-    <div class="qr-box" id="qrMain"></div>
-    <span class="qr-vert">Escanear</span>
+  <div class="s-sep"></div>
+  <div class="s-cta-lbl">Agende agora</div>
+  <div class="s-cta">{{ academia.cta_texto }}</div>
+  <div class="s-qr-row">
+    <span class="s-qv">Escanear</span>
+    <div class="s-qr-box" id="qrM"></div>
+    <span class="s-qv">Escanear</span>
   </div>
-  <div class="count">
-    <span class="count-n" id="cNum"></span>
-    <span class="count-l">Profissionais</span>
+  <div class="s-count">
+    <span class="s-n" id="sn"></span>
+    <span class="s-l">Profissionais</span>
   </div>
 </div>
 
 <script>
-const PROFS = {{ profissionais | tojson }};
-const COLS=6, ROWS=3, PER=COLS*ROWS, MS=12000;
+const P={{ profissionais|tojson }};
+const C=6,R=3,PR=C*R,MS=12000;
 let pg=0,prg=0,tmr=null;
-const pgs=Math.max(1,Math.ceil(PROFS.length/PER));
-
-function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
-function num(n){return (n||'').replace(/\D/g,'');}
+const pgs=Math.max(1,Math.ceil(P.length/PR));
+const ini=n=>n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const num=n=>(n||'').replace(/\D/g,'');
 
 function render(p){
-  const grid=document.getElementById('grid');
-  const sl=PROFS.slice(p*PER,p*PER+PER);
-  const cols=Math.min(sl.length,COLS);
-  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
-
-  grid.innerHTML=sl.map((prof,i)=>{
-    const tags=(prof.especialidades||'').split(',').filter(e=>e.trim()).slice(0,4)
+  const g=document.getElementById('grid');
+  const sl=P.slice(p*PR,p*PR+PR);
+  const cols=Math.min(sl.length,C);
+  g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  g.innerHTML=sl.map((x,i)=>{
+    const tags=(x.especialidades||'').split(',').filter(e=>e.trim()).slice(0,4)
       .map(e=>`<span class="tag">${e.trim()}</span>`).join('');
-    const avBg=!prof.foto_url?`color:var(--green);background:var(--green10);`:'';
-    const avIn=prof.foto_url?`<img src="${prof.foto_url}" alt="">`:`${ini(prof.nome)}`;
-    const hasWA=prof.whatsapp&&num(prof.whatsapp).length>=10;
-    return `<div class="card" style="animation-delay:${i*.05}s">
+    const av=x.foto_url
+      ?`<img src="${x.foto_url}" alt="">`
+      :`<span style="background:${x.cor_avatar||'#55B991'};width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;border-radius:7px">${ini(x.nome)}</span>`;
+    const hasWA=x.whatsapp&&num(x.whatsapp).length>=10;
+    return`<div class="card" style="animation-delay:${i*.05}s">
       <div class="photo-wrap">
-        <div class="photo-sq" style="${avBg}">${avIn}</div>
-        ${prof.anos?`<div class="exp-badge">${prof.anos} anos</div>`:''}
+        <div class="photo">${av}</div>
+        ${x.anos?`<div class="exp">${x.anos}a</div>`:''}
       </div>
-      <div class="card-role">${prof.cargo||''}</div>
-      <div class="card-name">${prof.nome}</div>
-      <div class="cdiv"></div>
-      <div class="card-info">
-        ${prof.instagram?`<div class="irow"><span class="ilbl">IG</span><span class="ival">${prof.instagram}</span></div>`:''}
-        ${prof.email?`<div class="irow"><span class="ilbl">@</span><span class="ival">${prof.email}</span></div>`:''}
+      <div class="role">${x.cargo||''}</div>
+      <div class="name">${x.nome}</div>
+      <div class="cl"></div>
+      <div class="info">
+        ${x.instagram?`<div class="irow"><span class="ilbl">IG</span><span class="ival">${x.instagram}</span></div>`:''}
+        ${x.email?`<div class="irow"><span class="ilbl">@</span><span class="ival">${x.email}</span></div>`:''}
       </div>
       <div class="tags">${tags}</div>
-      ${hasWA?`<div class="wa-block"><div id="qw${prof.id}"></div><div class="wa-lb"><span class="wa-dot"></span>WhatsApp</div></div>`:''}
+      ${hasWA?`<div class="wa"><div id="qw${x.id}"></div><div class="wa-lbl"><span class="wa-dot"></span>WhatsApp</div></div>`:''}
     </div>`;
   }).join('');
-
-  sl.forEach(prof=>{
-    if(prof.whatsapp&&num(prof.whatsapp).length>=10){
-      const n=num(prof.whatsapp);
-      const m=encodeURIComponent(`Ola ${prof.nome}! Vi seu perfil e gostaria de saber mais.`);
-      const el=document.getElementById(`qw${prof.id}`);
-      if(el) new QRCode(el,{text:`https://wa.me/${n}?text=${m}`,width:52,height:52,colorDark:'#128c7e',colorLight:'#ffffff'});
+  sl.forEach(x=>{
+    if(x.whatsapp&&num(x.whatsapp).length>=10){
+      const n=num(x.whatsapp);
+      const m=encodeURIComponent(`Ola ${x.nome}! Vi seu perfil e gostaria de saber mais.`);
+      const el=document.getElementById(`qw${x.id}`);
+      if(el)new QRCode(el,{text:`https://wa.me/${n}?text=${m}`,width:50,height:50,colorDark:'#25d366',colorLight:'#fff'});
     }
   });
-  document.getElementById('pgTag').textContent=pgs>1?`${p+1}/${pgs}`:'';
+  document.getElementById('pgNum').textContent=pgs>1?`${p+1}/${pgs}`:'';
 }
 
-function startProg(){
+function sp(){
   clearInterval(tmr);prg=0;
-  document.getElementById('progFill').style.width='0%';
-  tmr=setInterval(()=>{prg+=100/(MS/100);if(prg>100)prg=100;document.getElementById('progFill').style.width=prg+'%';},100);
+  document.getElementById('pf').style.width='0%';
+  tmr=setInterval(()=>{prg+=100/(MS/100);if(prg>100)prg=100;document.getElementById('pf').style.width=prg+'%';},100);
 }
 
-document.getElementById('cNum').textContent=PROFS.length;
-new QRCode(document.getElementById('qrMain'),{
+document.getElementById('sn').textContent=P.length;
+new QRCode(document.getElementById('qrM'),{
   text:'mailto:{{ academia.email_qr }}',
-  width:106,height:106,
+  width:104,height:104,
   colorDark:'{{ academia.cor_primaria }}',
   colorLight:'#ffffff'
 });
-
 render(0);
-if(pgs>1){startProg();setInterval(()=>{pg=(pg+1)%pgs;render(pg);startProg();},MS);}
+if(pgs>1){sp();setInterval(()=>{pg=(pg+1)%pgs;render(pg);sp();},MS);}
 </script>
 </body>
 </html>
