@@ -11,6 +11,7 @@ import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
@@ -334,6 +335,7 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=False)
+
 
 
 
