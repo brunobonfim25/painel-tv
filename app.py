@@ -25,8 +25,22 @@ cloudinary.config(
 )
 
 
+from psycopg2 import pool as pg_pool
+
+_pool = None
+
+def get_pool():
+    global _pool
+    if _pool is None:
+        _pool = pg_pool.SimpleConnectionPool(
+            1, 10,
+            DATABASE_URL,
+            cursor_factory=RealDictCursor
+        )
+    return _pool
+
 def get_conn():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return get_pool().getconn()
 
 
 def query(sql, params=None, fetch=None):
@@ -40,7 +54,7 @@ def query(sql, params=None, fetch=None):
                 if fetch == "all":
                     return cur.fetchall()
     finally:
-        conn.close()
+        get_pool().putconn(conn)
 
 
 def init_db():
@@ -320,3 +334,7 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+
+
+
