@@ -267,6 +267,7 @@ def master_dashboard():
 # ── Setup novo cliente ────────────────────────────────────────────────────────
 
 @app.route("/setup", methods=["GET", "POST"])
+@master_required
 def setup():
     if request.method == "POST":
         slug = request.form.get("slug","").lower().strip()
@@ -303,3 +304,6 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+
+
