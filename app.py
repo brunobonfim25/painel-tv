@@ -1,19 +1,28 @@
 import os
 import uuid
+from datetime import datetime, timezone
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
-UPLOAD_FOLDER = os.path.join("static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Cloudinary config
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
 
 def get_conn():
@@ -68,6 +77,20 @@ def init_db():
 
 def arquivo_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def upload_imagem(file, pasta="painel_tv"):
+    """Faz upload para o Cloudinary e retorna a URL segura."""
+    try:
+        resultado = cloudinary.uploader.upload(
+            file,
+            folder=pasta,
+            transformation=[{"width": 400, "height": 400, "crop": "fill", "gravity": "face"}]
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print(f"Erro upload Cloudinary: {e}")
+        return ""
 
 
 def login_required(f):
@@ -143,9 +166,7 @@ def salvar_config(slug):
     if "logo" in request.files:
         file = request.files["logo"]
         if file and file.filename and arquivo_permitido(file.filename):
-            filename = f"{slug}_{uuid.uuid4().hex[:8]}_{secure_filename(file.filename)}"
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            logo_url = "/static/uploads/" + filename
+            logo_url = upload_imagem(file, pasta="painel_tv/logos")
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
@@ -166,18 +187,16 @@ def adicionar_profissional(slug):
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
-            filename = f"prof_{uuid.uuid4().hex[:10]}_{secure_filename(file.filename)}"
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            foto_url = "/static/uploads/" + filename
+            foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
     query("""INSERT INTO profissionais
         (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, ordem)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
-         request.form.get("whatsapp",""), request.form.get("anos"),
+         request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar","#1a6fd4"), academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -195,18 +214,16 @@ def editar_profissional(slug, prof_id):
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
-            filename = f"prof_{uuid.uuid4().hex[:10]}_{secure_filename(file.filename)}"
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            foto_url = "/static/uploads/" + filename
+            foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
         anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
-         request.form.get("whatsapp",""), request.form.get("anos"),
+         request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar","#1a6fd4"), prof_id, academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -251,7 +268,6 @@ def master_dashboard():
     """, fetch="all") or []
 
     total_profissionais = sum(a["total_profs"] for a in academias)
-    from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
     novos_mes = sum(1 for a in academias
         if a["criado_em"] and a["criado_em"].month == now.month
@@ -268,12 +284,11 @@ def master_dashboard():
 
 @app.route("/setup", methods=["GET", "POST"])
 @master_required
-@master_required
 def setup():
     if request.method == "POST":
-        slug = request.form.get("slug","").lower().strip()
-        nome = request.form.get("nome","").strip()
-        senha = request.form.get("senha","").strip()
+        slug = request.form.get("slug", "").lower().strip()
+        nome = request.form.get("nome", "").strip()
+        senha = request.form.get("senha", "").strip()
         if not slug or not nome or not senha:
             flash("Preencha todos os campos.")
             return redirect(url_for("setup"))
@@ -284,7 +299,7 @@ def setup():
               (slug, nome, generate_password_hash(senha)))
         flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
-    msgs = session.pop("_flashes",[])
+    msgs = session.pop("_flashes", [])
     msgs_html = "".join(f"<div class='msg'>{m[1]}</div>" for m in msgs)
     return f"""<style>
     body{{font-family:Arial;max-width:400px;margin:60px auto;padding:20px}}
@@ -305,8 +320,3 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=False)
-
-
-
-
-
