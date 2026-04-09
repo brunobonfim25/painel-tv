@@ -4,579 +4,604 @@
 <meta charset="UTF-8">
 <title>{{ academia.nome }}</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --primary:  {{ academia.cor_primaria }};
-    --accent:   {{ academia.cor_destaque }};
-    --tag:      {{ academia.cor_tag }};
-    --bg:       #080c12;
-    --surface:  #0e1420;
-    --surface2: #141b27;
-    --border:   rgba(255,255,255,0.06);
-    --text:     #f0f4ff;
-    --muted:    #6b7a99;
+    --P: {{ academia.cor_primaria }};
+    --A: {{ academia.cor_destaque }};
+    --T: {{ academia.cor_tag }};
+    --bg:     #07090f;
+    --surf:   #0d1120;
+    --surf2:  #111827;
+    --border: rgba(255,255,255,0.07);
+    --txt:    #eef2ff;
+    --muted:  #4b5a7a;
+    --dim:    #1e2a40;
   }
+
+  html, body { height: 100vh; overflow: hidden; }
 
   body {
-    font-family: 'Barlow', sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--bg);
-    height: 100vh;
-    overflow: hidden;
     display: flex;
-    align-items: stretch;
+    position: relative;
   }
 
-  /* ── BACKGROUND EFFECTS ── */
-  body::before {
+  /* NOISE OVERLAY */
+  body::after {
     content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 50% at 20% 10%, color-mix(in srgb, var(--primary) 18%, transparent) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 90%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%);
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
     pointer-events: none;
+    z-index: 100;
+  }
+
+  /* GLOW BLOBS */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    opacity: 0.18;
     z-index: 0;
   }
+  .blob-1 { width: 500px; height: 400px; top: -100px; left: -100px; background: var(--P); }
+  .blob-2 { width: 400px; height: 300px; bottom: -80px; right: 250px; background: var(--A); opacity: 0.12; }
 
-  /* ── MAIN ── */
+  /* ── MAIN AREA ── */
   .main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px 24px 16px;
+    padding: 18px 20px 14px;
     position: relative;
     z-index: 1;
     overflow: hidden;
+    min-width: 0;
   }
 
   /* ── HEADER ── */
   .header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 16px;
     flex-shrink: 0;
   }
 
-  .logo-ring {
-    width: 58px; height: 58px;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
-    padding: 2px;
+  .logo-frame {
+    position: relative;
+    width: 56px; height: 56px;
     flex-shrink: 0;
   }
+  .logo-frame::before {
+    content: '';
+    position: absolute; inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--A), var(--P), var(--A));
+    z-index: 0;
+    animation: spin 6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .logo-inner {
+    position: relative; z-index: 1;
     width: 100%; height: 100%;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--surf);
+    border: 2px solid var(--bg);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--txt);
     letter-spacing: 1px;
   }
   .logo-inner img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-  .header-text { flex: 1 }
+  .header-info { flex: 1; }
   .academy-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: 4px;
-    color: var(--text);
+    font-family: 'Oswald', sans-serif;
+    font-size: 30px; font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--txt);
     line-height: 1;
   }
-  .academy-name span { color: var(--accent); }
+  .academy-name em { color: var(--A); font-style: normal; }
   .academy-sub {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    margin-top: 2px;
+    color: var(--muted);
+    margin-top: 3px;
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .header-controls {
+    display: flex; align-items: center; gap: 10px;
   }
-  .page-badge {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--muted);
+  .page-tag {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px; font-weight: 700;
     letter-spacing: 1px;
+    color: var(--muted);
+    background: var(--dim);
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
   }
-  .progress-track {
-    width: 80px; height: 3px;
-    background: rgba(255,255,255,0.08);
+  .prog-track {
+    width: 70px; height: 2px;
+    background: var(--dim);
     border-radius: 2px;
     overflow: hidden;
   }
-  .progress-bar {
+  .prog-fill {
     height: 100%;
-    background: var(--accent);
+    background: linear-gradient(to right, var(--P), var(--A));
     border-radius: 2px;
     width: 0%;
     transition: width 0.1s linear;
   }
 
-  /* ── DIVIDER ── */
-  .divider {
+  /* HEADER LINE */
+  .hline {
     height: 1px;
-    background: linear-gradient(to right, var(--accent), transparent 60%);
-    margin-bottom: 18px;
+    background: linear-gradient(to right, var(--A) 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+    margin-bottom: 14px;
     flex-shrink: 0;
   }
 
   /* ── GRID ── */
   .grid {
     display: grid;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     align-content: start;
   }
 
   /* ── CARD ── */
   .card {
-    background: var(--surface);
+    background: var(--surf);
+    border-radius: 10px;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 14px 12px;
+    padding: 14px 12px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeUp 0.35s ease forwards;
   }
 
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* top accent */
   .card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0; left: 10%; right: 10%;
     height: 2px;
-    background: linear-gradient(to right, var(--accent), var(--primary));
-    opacity: 0.7;
+    background: linear-gradient(to right, transparent, var(--A), transparent);
+    border-radius: 0 0 4px 4px;
   }
 
-  .card-accent-line {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--accent), transparent);
-    opacity: 0.3;
-  }
-
-  /* FOTO */
-  .card-photo {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
-    overflow: hidden;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-    background: var(--surface2);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--text);
-    position: relative;
-  }
-  .card-photo::after {
+  /* subtle inner glow */
+  .card::after {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 50%;
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
+    border-radius: 10px;
+    background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,255,255,0.03), transparent 60%);
+    pointer-events: none;
   }
-  .card-photo img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* CARGO */
+  /* PHOTO */
+  .photo-wrap {
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .photo-ring {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--A), var(--P));
+  }
+  .photo-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: var(--surf2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--txt);
+    border: 2px solid var(--bg);
+  }
+  .photo-inner img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .exp-badge {
+    position: absolute;
+    bottom: -2px; right: -4px;
+    background: var(--A);
+    color: #000;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 7px; font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    border: 1px solid var(--bg);
+    white-space: nowrap;
+  }
+
+  /* ROLE */
   .card-role {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 8.5px; font-weight: 700;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--A);
     margin-bottom: 2px;
     text-align: center;
   }
 
-  /* NOME */
+  /* NAME */
   .card-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px;
-    font-weight: 900;
-    color: var(--text);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--txt);
     text-align: center;
     line-height: 1.1;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
+    margin-bottom: 6px;
   }
 
-  /* STATS */
-  .card-stats {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+  /* DIVIDER */
+  .card-div {
     width: 100%;
-    justify-content: center;
-  }
-  .stat-pill {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 3px 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .stat-icon { font-size: 8px; opacity: 0.6; }
-  .stat-val {
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--text);
-    white-space: nowrap;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin-bottom: 6px;
   }
 
-  /* INFO */
+  /* INFO ROWS */
   .card-info {
     width: 100%;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .info-row {
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
-  .info-dot {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--accent);
+  .info-icon {
+    width: 12px; height: 12px;
+    border-radius: 2px;
+    background: var(--dim);
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    opacity: 0.7;
+    font-size: 7px;
   }
   .info-val {
-    font-size: 8.5px;
+    font-size: 8px;
     color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    font-weight: 500;
   }
+  .info-val span { color: rgba(255,255,255,0.4); }
 
   /* TAGS */
-  .card-tags {
+  .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 2px;
     justify-content: center;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .tag {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 7px;
-    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 7px; font-weight: 700;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--tag) 20%, transparent);
-    border: 1px solid color-mix(in srgb, var(--tag) 40%, transparent);
-    color: color-mix(in srgb, var(--tag) 90%, white);
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
   }
 
-  /* QR WHATSAPP */
-  .qr-wrap {
-    margin-top: 4px;
+  /* WA QR */
+  .wa-block {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
+    margin-top: 2px;
   }
-  .qr-wrap canvas { border-radius: 4px !important; }
-  .wa-badge {
+  .wa-block canvas { border-radius: 4px !important; }
+  .wa-label {
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 7px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: #25d366;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 7px; font-weight: 700;
+    letter-spacing: 1px;
     text-transform: uppercase;
+    color: #25d366;
   }
   .wa-dot {
-    width: 5px; height: 5px;
+    width: 4px; height: 4px;
     border-radius: 50%;
     background: #25d366;
-    animation: pulse 2s infinite;
+    animation: blink 2s ease-in-out infinite;
   }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
+  @keyframes blink {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
   }
 
-  /* ── LATERAL ── */
+  /* ── SIDEBAR ── */
   .side {
-    width: 200px;
+    width: 190px;
     flex-shrink: 0;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
-    gap: 18px;
+    padding: 20px 14px;
+    gap: 16px;
     position: relative;
     z-index: 1;
+    background: var(--surf);
+    border-left: 1px solid var(--border);
   }
 
+  /* vertical line left */
   .side::before {
     content: '';
     position: absolute;
-    top: 0; left: 0;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to bottom, transparent, var(--accent), transparent);
-    opacity: 0.5;
+    top: 15%; bottom: 15%;
+    left: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--A) 50%, transparent);
+    opacity: 0.6;
   }
 
-  .side-logo {
-    width: 72px; height: 72px;
+  .side-logo-wrap {
+    position: relative;
+  }
+  .side-logo-ring {
+    width: 80px; height: 80px;
     border-radius: 50%;
-    border: 2px solid var(--accent);
-    background: var(--primary);
+    padding: 2px;
+    background: linear-gradient(135deg, var(--A), var(--P));
+    box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .side-logo-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: var(--surf2);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: #fff;
-    letter-spacing: 1px;
-    box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 30%, transparent);
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--txt);
+    border: 2px solid var(--bg);
   }
-  .side-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .side-logo-inner img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-  .side-divider {
-    width: 40px; height: 2px;
-    background: linear-gradient(to right, transparent, var(--accent), transparent);
+  /* glow ring */
+  .side-logo-ring::after {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--A) 25%, transparent), transparent 70%);
+    z-index: -1;
   }
 
-  .cta-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    color: var(--text);
+  .side-sep {
+    width: 50px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--A), transparent);
+    opacity: 0.6;
+  }
+
+  .cta {
+    font-family: 'Oswald', sans-serif;
+    font-size: 19px; font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--txt);
     text-align: center;
     line-height: 1.2;
-    text-transform: uppercase;
   }
 
-  .qr-main-wrap {
+  .qr-wrap {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
   }
-  .book-vert {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 8px;
-    font-weight: 800;
+  .qr-vert {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 7px; font-weight: 700;
     letter-spacing: 3px;
-    color: var(--muted);
     text-transform: uppercase;
+    color: var(--muted);
     writing-mode: vertical-rl;
   }
   .qr-box {
     padding: 6px;
     background: #fff;
     border-radius: 6px;
-    border: 2px solid var(--accent);
+    border: 2px solid var(--A);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--A) 30%, transparent);
   }
 
-  .total-pill {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 5px 14px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--muted);
-    text-transform: uppercase;
+  .count-block {
     text-align: center;
   }
-  .total-pill strong {
-    color: var(--accent);
-    font-size: 14px;
-    display: block;
+  .count-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--A);
     line-height: 1;
+    display: block;
   }
-
-  /* ── ANIMAÇÃO ENTRADA ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .count-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-  .card { animation: fadeUp 0.4s ease both; }
 </style>
 </head>
 <body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
 
 <div class="main">
   <div class="header">
-    <div class="logo-ring">
+    <div class="logo-frame">
       <div class="logo-inner">
-        {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="Logo">
+        {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="">
         {% else %}{{ academia.logo_texto or academia.nome[:2] }}{% endif %}
       </div>
     </div>
-    <div class="header-text">
+    <div class="header-info">
       <div class="academy-name">
-        {{ academia.nome.split()[0] if academia.nome.split()|length > 1 else academia.nome }}
-        {% if academia.nome.split()|length > 1 %}
-          <span>{{ academia.nome.split()[1:] | join(' ') }}</span>
+        {% set words = academia.nome.split() %}
+        {% if words|length > 1 %}
+          {{ words[0] }} <em>{{ words[1:] | join(' ') }}</em>
+        {% else %}
+          {{ academia.nome }}
         {% endif %}
       </div>
       <div class="academy-sub">{{ academia.subtitulo or 'Equipe de Profissionais' }}</div>
     </div>
-    <div class="header-right">
-      <span class="page-badge" id="pageInfo"></span>
-      <div class="progress-track">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+    <div class="header-controls">
+      <span class="page-tag" id="pageTag"></span>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
+  <div class="hline"></div>
   <div class="grid" id="grid"></div>
 </div>
 
 <div class="side">
-  <div class="side-logo">
-    {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="Logo">
-    {% else %}{{ academia.logo_texto or academia.nome[:2] }}{% endif %}
+  <div class="side-logo-wrap">
+    <div class="side-logo-ring">
+      <div class="side-logo-inner">
+        {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="">
+        {% else %}{{ academia.logo_texto or academia.nome[:2] }}{% endif %}
+      </div>
+    </div>
   </div>
-  <div class="side-divider"></div>
-  <div class="cta-text">{{ academia.cta_texto }}</div>
-  <div class="qr-main-wrap">
-    <span class="book-vert">Agende</span>
-    <div class="qr-box" id="qr"></div>
-    <span class="book-vert">Agende</span>
+  <div class="side-sep"></div>
+  <div class="cta">{{ academia.cta_texto }}</div>
+  <div class="qr-wrap">
+    <span class="qr-vert">Agende</span>
+    <div class="qr-box" id="qrMain"></div>
+    <span class="qr-vert">Agende</span>
   </div>
-  <div class="total-pill" id="totalPill"></div>
+  <div class="count-block">
+    <span class="count-num" id="countNum"></span>
+    <span class="count-label">Profissionais</span>
+  </div>
 </div>
 
 <script>
-const PROFISSIONAIS = {{ profissionais | tojson }};
-const COLS = 6, ROWS = 3, PER_PAGE = COLS * ROWS, INTERVAL_MS = 12000;
-let currentPage = 0, progress = 0, progressTimer = null;
-const totalPages = Math.max(1, Math.ceil(PROFISSIONAIS.length / PER_PAGE));
+const PROFS = {{ profissionais | tojson }};
+const COLS = 6, ROWS = 3, PER = COLS * ROWS, MS = 12000;
+let page = 0, prog = 0, timer = null;
+const pages = Math.max(1, Math.ceil(PROFS.length / PER));
 
-function iniciais(nome) {
-  return nome.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+function ini(n) {
+  return n.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
 }
-function limpaNum(n) { return (n||'').replace(/\D/g,''); }
+function num(n) { return (n||'').replace(/\D/g,''); }
 
-function renderPage(page) {
+function render(p) {
   const grid = document.getElementById('grid');
-  const slice = PROFISSIONAIS.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  const slice = PROFS.slice(p * PER, p * PER + PER);
   const cols = Math.min(slice.length, COLS);
+  grid.style.gridTemplateColumns = `repeat(${cols},1fr)`;
 
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-  grid.innerHTML = slice.map((p, i) => {
-    const tags = (p.especialidades||'').split(',').filter(e=>e.trim()).slice(0,4)
+  grid.innerHTML = slice.map((prof, i) => {
+    const tags = (prof.especialidades||'').split(',').filter(e=>e.trim()).slice(0,4)
       .map(e=>`<span class="tag">${e.trim()}</span>`).join('');
+    const av = prof.foto_url
+      ? `<img src="${prof.foto_url}" alt="${prof.nome}">`
+      : ini(prof.nome);
+    const avBg = !prof.foto_url ? `background:${prof.cor_avatar||'#1a6fd4'};` : '';
+    const hasWA = prof.whatsapp && num(prof.whatsapp).length >= 10;
 
-    const avatarBg = p.cor_avatar || '#1a6fd4';
-    const avatarInner = p.foto_url
-      ? `<img src="${p.foto_url}" alt="${p.nome}">`
-      : `<span style="color:#fff">${iniciais(p.nome)}</span>`;
-
-    const hasWA = p.whatsapp && limpaNum(p.whatsapp).length >= 10;
-    const waEl = hasWA ? `
-      <div class="qr-wrap">
-        <div id="qr-${p.id}"></div>
-        <div class="wa-badge"><span class="wa-dot"></span>WhatsApp</div>
-      </div>` : '';
-
-    return `<div class="card" style="animation-delay:${i * 0.06}s">
-      <div class="card-photo" style="border-color:${avatarBg};${!p.foto_url?'background:'+avatarBg:''}">${avatarInner}</div>
-      <div class="card-role">${p.cargo||''}</div>
-      <div class="card-name">${p.nome}</div>
-      <div class="card-stats">
-        ${p.anos ? `<div class="stat-pill"><span class="stat-icon">⚡</span><span class="stat-val">${p.anos} anos</span></div>` : ''}
-        ${p.instagram ? `<div class="stat-pill"><span class="stat-icon">📸</span><span class="stat-val">${p.instagram}</span></div>` : ''}
+    return `<div class="card" style="animation-delay:${i*0.05}s">
+      <div class="photo-wrap">
+        <div class="photo-ring">
+          <div class="photo-inner" style="${avBg}">${av}</div>
+        </div>
+        ${prof.anos ? `<div class="exp-badge">${prof.anos}a exp</div>` : ''}
       </div>
-      ${p.email ? `<div class="card-info"><div class="info-row"><div class="info-dot"></div><div class="info-val">${p.email}</div></div></div>` : ''}
-      <div class="card-tags">${tags}</div>
-      ${waEl}
-      <div class="card-accent-line"></div>
+      <div class="card-role">${prof.cargo||''}</div>
+      <div class="card-name">${prof.nome}</div>
+      <div class="card-div"></div>
+      <div class="card-info">
+        ${prof.instagram ? `<div class="info-row"><div class="info-icon">ig</div><div class="info-val">${prof.instagram}</div></div>` : ''}
+        ${prof.email ? `<div class="info-row"><div class="info-icon">@</div><div class="info-val">${prof.email}</div></div>` : ''}
+      </div>
+      <div class="tags">${tags}</div>
+      ${hasWA ? `<div class="wa-block"><div id="qw${prof.id}"></div><div class="wa-label"><span class="wa-dot"></span>WhatsApp</div></div>` : ''}
     </div>`;
   }).join('');
 
-  // QR WhatsApp
-  slice.forEach(p => {
-    if (p.whatsapp && limpaNum(p.whatsapp).length >= 10) {
-      const num = limpaNum(p.whatsapp);
-      const msg = encodeURIComponent(`Ola ${p.nome}! Vi seu perfil na academia e gostaria de saber mais.`);
-      const el = document.getElementById(`qr-${p.id}`);
-      if (el) new QRCode(el, {
-        text: `https://wa.me/${num}?text=${msg}`,
-        width: 56, height: 56,
-        colorDark: '#25d366', colorLight: '#ffffff'
-      });
+  slice.forEach(prof => {
+    if (prof.whatsapp && num(prof.whatsapp).length >= 10) {
+      const n = num(prof.whatsapp);
+      const m = encodeURIComponent(`Ola ${prof.nome}! Vi seu perfil e gostaria de saber mais.`);
+      const el = document.getElementById(`qw${prof.id}`);
+      if (el) new QRCode(el, { text:`https://wa.me/${n}?text=${m}`, width:54, height:54, colorDark:'#25d366', colorLight:'#ffffff' });
     }
   });
 
-  document.getElementById('pageInfo').textContent =
-    totalPages > 1 ? `${page+1} / ${totalPages}` : '';
+  document.getElementById('pageTag').textContent = pages > 1 ? `${p+1} / ${pages}` : '';
 }
 
-function startProgress() {
-  clearInterval(progressTimer);
-  progress = 0;
-  document.getElementById('progressBar').style.width = '0%';
-  progressTimer = setInterval(() => {
-    progress += 100 / (INTERVAL_MS / 100);
-    if (progress > 100) progress = 100;
-    document.getElementById('progressBar').style.width = progress + '%';
+function startProg() {
+  clearInterval(timer);
+  prog = 0;
+  document.getElementById('progFill').style.width = '0%';
+  timer = setInterval(() => {
+    prog += 100 / (MS / 100);
+    if (prog > 100) prog = 100;
+    document.getElementById('progFill').style.width = prog + '%';
   }, 100);
 }
 
-function init() {
-  renderPage(0);
+document.getElementById('countNum').textContent = PROFS.length;
 
-  const total = PROFISSIONAIS.length;
-  const pill = document.getElementById('totalPill');
-  pill.innerHTML = `<strong>${total}</strong>profissiona${total === 1 ? 'l' : 'is'}`;
+new QRCode(document.getElementById('qrMain'), {
+  text: 'mailto:{{ academia.email_qr }}',
+  width: 110, height: 110,
+  colorDark: '{{ academia.cor_primaria }}',
+  colorLight: '#ffffff'
+});
 
-  new QRCode(document.getElementById('qr'), {
-    text: 'mailto:{{ academia.email_qr }}',
-    width: 110, height: 110,
-    colorDark: '{{ academia.cor_primaria }}',
-    colorLight: '#ffffff'
-  });
-
-  if (totalPages > 1) {
-    startProgress();
-    setInterval(() => {
-      currentPage = (currentPage + 1) % totalPages;
-      renderPage(currentPage);
-      startProgress();
-    }, INTERVAL_MS);
-  }
+render(0);
+if (pages > 1) {
+  startProg();
+  setInterval(() => { page = (page + 1) % pages; render(page); startProg(); }, MS);
 }
-
-init();
 </script>
 </body>
 </html>
