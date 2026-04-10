@@ -443,6 +443,16 @@ details[open] .chevron{transform:rotate(180deg)}
                 <p class="upload-sub">PNG, JPG ou WEBP — máx 5MB</p>
                 <input type="file" name="logo" accept="image/*" style="display:none">
               </div>
+              {% if academia.logo_url %}
+              <form method="POST" action="{{ url_for('remover_logo', slug=academia.slug) }}"
+                onsubmit="return confirm('Remover a logo? Esta ação não pode ser desfeita.')"
+                style="margin-top:8px">
+                <button type="submit" class="btn-danger">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  Remover logo
+                </button>
+              </form>
+              {% endif %}
             </div>
             <div>
               <label class="field-label">Texto da logo (sem imagem)</label>

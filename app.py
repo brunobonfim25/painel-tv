@@ -180,6 +180,20 @@ def salvar_config(slug):
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 
+
+@app.route("/<slug>/admin/remover-logo", methods=["POST"])
+@login_required
+def remover_logo(slug):
+    query("UPDATE academias SET logo_url='' WHERE slug=%s", (slug,))
+    flash("Logo removida.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/remover-logo", methods=["POST"])
+@login_required
+def remover_logo(slug):
+    query("UPDATE academias SET logo_url='' WHERE slug=%s", (slug,))
+    flash("Logo removida com sucesso.")
+    return redirect(url_for("admin_editor", slug=slug))
 @app.route("/<slug>/admin/profissional/adicionar", methods=["POST"])
 @login_required
 def adicionar_profissional(slug):
@@ -301,3 +315,5 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+
