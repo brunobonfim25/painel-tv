@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -51,7 +51,7 @@ body::before{
   background:linear-gradient(90deg,transparent,var(--g),transparent);
 }
 
-/* ── MAIN ── */
+/* â”€â”€ MAIN â”€â”€ */
 .main{
   flex:1;display:flex;flex-direction:column;
   padding:16px 16px 12px;
@@ -60,7 +60,7 @@ body::before{
   height:100vh;
 }
 
-/* ── HEADER ── */
+/* â”€â”€ HEADER â”€â”€ */
 .hdr{
   display:flex;align-items:center;gap:14px;
   padding-bottom:14px;margin-bottom:14px;
@@ -119,16 +119,16 @@ body::before{
 .prog-track{width:44px;height:2px;background:var(--s3);border-radius:2px;overflow:hidden}
 .prog-bar{height:100%;background:var(--g);width:0%;transition:width .1s linear}
 
-/* ── GRID ── */
+/* â”€â”€ GRID â”€â”€ */
 .grid{
   display:grid;
   gap:10px;
   flex:1;
-  /* altura distribuída igualmente */
-  grid-auto-rows:1fr;
+  /* altura distribuÃ­da igualmente */
+  grid-auto-rows:minmax(0,1fr);max-height:calc(100vh - 80px);
 }
 
-/* ── CARD ── */
+/* â”€â”€ CARD â”€â”€ */
 .card{
   position:relative;overflow:hidden;
   background:var(--card);
@@ -231,7 +231,7 @@ body::before{
 }
 .wa-dot{width:5px;height:5px;border-radius:50%;background:#25d366;animation:ping 2s infinite;flex-shrink:0}
 
-/* ── SIDEBAR ── */
+/* â”€â”€ SIDEBAR â”€â”€ */
 .side{
   width:190px;flex-shrink:0;
   display:flex;flex-direction:column;
@@ -320,7 +320,7 @@ body::before{
         {% if w|length > 1 %}{{ w[0] }}&nbsp;<em>{{ w[1:]|join(' ') }}</em>
         {% else %}{{ academia.nome }}{% endif %}
       </div>
-      <div class="hdr-sub">{{ academia.subtitulo or 'Conheça nosso time' }}</div>
+      <div class="hdr-sub">{{ academia.subtitulo or 'ConheÃ§a nosso time' }}</div>
     </div>
     <div class="hdr-right">
       <div class="live-pill">
@@ -352,7 +352,7 @@ body::before{
 
   {% set w = academia.nome.split() %}
   <div class="s-nome-wrap">
-    <div class="s-eye">Bem-vindo à</div>
+    <div class="s-eye">Bem-vindo Ã </div>
     <div class="s-nome">
       {% if w|length > 1 %}{{ w[0] }}<em>{{ w[1:]|join(' ') }}</em>
       {% else %}{{ academia.nome }}{% endif %}
@@ -364,7 +364,7 @@ body::before{
   <div class="s-cta-wrap">
     <div class="s-cta-lbl">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-      Próximo Passo
+      PrÃ³ximo Passo
     </div>
     <div class="s-cta">{{ academia.cta_texto }}</div>
   </div>
@@ -466,7 +466,7 @@ function render(p) {
   sl.forEach(x => {
     const n = num(x.whatsapp||'');
     if (n.length >= 10) {
-      const msg = encodeURIComponent(`Olá ${x.nome.split(' ')[0]}! Vi seu perfil e gostaria de saber mais.`);
+      const msg = encodeURIComponent(`OlÃ¡ ${x.nome.split(' ')[0]}! Vi seu perfil e gostaria de saber mais.`);
       const el = document.getElementById(`qw${x.id}`);
       if (el) new QRCode(el, {
         text: `https://wa.me/${n}?text=${msg}`,
@@ -476,7 +476,7 @@ function render(p) {
     }
   });
 
-  // Paginação
+  // PaginaÃ§Ã£o
   const pgEl = document.getElementById('pgNum');
   const pager = document.getElementById('pager');
   if (pgs > 1) {
@@ -515,3 +515,4 @@ if (pgs > 1) {
 </script>
 </body>
 </html>
+
