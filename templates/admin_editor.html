@@ -2,196 +2,690 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Editor — {{ academia.nome }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,sans-serif;background:#f4f4f8;color:#111}
-  .topbar{background:#1a1a2e;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-  .topbar h1{font-size:16px;font-weight:700}
-  .topbar a{color:#aac4ff;font-size:13px;text-decoration:none}
-  .topbar a:hover{color:#fff}
-  .container{max-width:900px;margin:0 auto;padding:24px 16px}
-  .card{background:#fff;border-radius:10px;border:1px solid #e0e0e0;padding:20px;margin-bottom:20px}
-  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #eee;color:#1a1a2e}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-  .row.full{grid-template-columns:1fr}
-  label{font-size:12px;color:#555;display:block;margin-bottom:4px;font-weight:600}
-  input[type=text],input[type=email],input[type=password],input[type=number],textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
-  input[type=color]{width:44px;height:32px;border:1px solid #ddd;border-radius:4px;cursor:pointer;padding:2px}
-  input[type=file]{font-size:12px;color:#555}
-  .color-row{display:flex;align-items:center;gap:8px}
-  .color-row label{margin:0;white-space:nowrap}
-  .btn{padding:9px 18px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}
-  .btn-save{background:#1a6fd4;color:#fff}
-  .btn-save:hover{background:#155db5}
-  .btn-danger{background:#e24b4a;color:#fff}
-  .btn-danger:hover{background:#c0392b}
-  .btn-add{background:#1a1a2e;color:#fff;width:100%;margin-top:8px}
-  .btn-add:hover{background:#2a2a4e}
-  .flash{background:#eef7ee;border:1px solid #a8d5a2;border-radius:6px;padding:10px 14px;font-size:13px;color:#276221;margin-bottom:16px}
-  .prof-card{border:1px solid #e0e0e0;border-radius:8px;margin-bottom:12px;overflow:hidden}
-  .prof-header{background:#f8f8f8;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-  .prof-header:hover{background:#f0f0f0}
-  .prof-nome{font-size:14px;font-weight:700;color:#1a1a2e}
-  .prof-cargo{font-size:12px;color:#888;margin-top:2px}
-  .prof-body{padding:16px;border-top:1px solid #eee}
-  .avatar-preview{width:56px;height:56px;border-radius:50%;border:2px solid #ddd;object-fit:cover;display:block;margin-bottom:8px}
-  .avatar-placeholder{width:56px;height:56px;border-radius:50%;background:#1a6fd4;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;margin-bottom:8px}
-  .tv-btn{display:inline-block;padding:9px 18px;background:#f0f0f0;color:#333;border:1px solid #ddd;border-radius:6px;text-decoration:none;font-size:13px;font-weight:700}
-  .tv-btn:hover{background:#e0e0e0}
-  .wa-hint{font-size:11px;color:#888;margin-top:3px}
+:root{
+  --bg:#0a0a0f;
+  --bg2:#0d0d16;
+  --card:rgba(255,255,255,0.04);
+  --card-h:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.08);
+  --border-h:rgba(233,69,96,0.4);
+  --acc:#e94560;
+  --acc-h:#ff5a75;
+  --acc-dim:rgba(233,69,96,0.12);
+  --t1:#ededf5;
+  --t2:#7a7a95;
+  --t3:#44445a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.15)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:fixed;left:0;top:0;
+  width:256px;height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  z-index:100;
+}
+.sb-logo-area{
+  padding:28px 22px 22px;
+  border-bottom:1px solid var(--border);
+}
+.logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.logo-icon{
+  width:36px;height:36px;
+  background:var(--acc);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;
+}
+.logo-icon img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.logo-icon span{color:#fff;font-size:14px;font-weight:800}
+.logo-text{font-size:18px;font-weight:800;letter-spacing:-0.03em;color:var(--t1)}
+.logo-text em{color:var(--acc);font-style:normal}
+.academy-pill{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;
+  font-size:12px;color:var(--t2);
+}
+.academy-pill strong{
+  display:block;font-size:13px;font-weight:600;
+  color:var(--t1);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sb-nav{flex:1;padding:14px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.nav-label{
+  font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--t3);padding:12px 10px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:9px;
+  color:var(--t2);font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+  border:none;background:none;width:100%;text-align:left;font-family:inherit;
+}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:var(--t1)}
+.nav-item.active{background:var(--acc-dim);color:var(--acc);font-weight:600}
+.nav-item svg{flex-shrink:0}
+.sb-footer{
+  padding:14px 12px;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:4px;
+}
+
+/* ── MAIN ── */
+.main{margin-left:256px;flex:1;padding:36px 44px;max-width:900px}
+
+/* ── PAGE HEADER ── */
+.page-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:32px;
+}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-0.03em;color:var(--t1)}
+.page-sub{font-size:13px;color:var(--t2);margin-top:4px}
+.live-btn{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);
+  border-radius:10px;padding:8px 14px;
+  color:#22c55e;font-size:13px;font-weight:600;
+  transition:all .2s;
+}
+.live-btn:hover{background:rgba(34,197,94,0.18)}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#22c55e;animation:pdot 2s infinite;
+}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── TAB BAR ── */
+.tab-bar{
+  display:flex;gap:4px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:12px;padding:4px;
+  width:fit-content;margin-bottom:28px;
+}
+.tab-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 16px;border-radius:9px;
+  border:none;cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:600;transition:.15s;
+}
+.tab-btn.inactive{background:transparent;color:var(--t2)}
+.tab-btn.inactive:hover{background:rgba(255,255,255,0.05);color:var(--t1)}
+.tab-btn.active{background:var(--acc);color:#fff}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:28px;
+  transition:border-color .2s;margin-bottom:16px;
+}
+.card:hover{border-color:rgba(255,255,255,0.11)}
+.divider{height:1px;background:var(--border);margin:24px 0}
+
+/* ── SECTION ── */
+.section-head{margin-bottom:20px}
+.section-title{font-size:15px;font-weight:700;color:var(--t1);letter-spacing:-0.02em}
+.section-desc{font-size:12px;color:var(--t3);margin-top:3px}
+
+/* ── FORM ── */
+.field-label{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:7px;
+}
+.field-input{
+  width:100%;background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;font-size:13.5px;font-family:inherit;
+  color:var(--t1);outline:none;transition:all .2s;
+}
+.field-input::placeholder{color:var(--t3)}
+.field-input:focus{
+  border-color:var(--acc);
+  background:rgba(233,69,96,0.04);
+  box-shadow:0 0 0 3px rgba(233,69,96,0.08);
+}
+textarea.field-input{resize:vertical;min-height:72px}
+.field-input[type=file]{padding:7px 12px;cursor:pointer}
+.field-hint{font-size:11px;color:var(--t3);margin-top:4px;line-height:1.4}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-full{margin-bottom:16px}
+
+/* ── COLOR INPUT ── */
+.color-field{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);border-radius:10px;
+  padding:8px 12px;transition:all .2s;
+}
+.color-field:focus-within{border-color:var(--acc);background:rgba(233,69,96,0.04)}
+.color-swatch{
+  width:26px;height:26px;border-radius:7px;
+  border:none;cursor:pointer;padding:0;flex-shrink:0;
+}
+.color-swatch::-webkit-color-swatch-wrapper{padding:0}
+.color-swatch::-webkit-color-swatch{border:none;border-radius:6px}
+.color-label{font-size:12px;color:var(--t2)}
+
+/* ── UPLOAD ── */
+.upload-zone{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:20px;text-align:center;cursor:pointer;
+  transition:all .2s;background:rgba(255,255,255,0.02);
+}
+.upload-zone:hover{border-color:rgba(233,69,96,0.35);background:rgba(233,69,96,0.03)}
+.upload-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 8px;
+}
+.upload-text{font-size:13px;font-weight:500;color:var(--t2)}
+.upload-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.logo-preview{
+  width:48px;height:48px;border-radius:8px;
+  object-fit:cover;border:1px solid var(--border);
+  display:block;margin:0 auto 8px;
+}
+
+/* ── BUTTONS ── */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--acc);border:none;border-radius:10px;
+  color:#fff;cursor:pointer;font-family:inherit;
+  font-size:13.5px;font-weight:600;padding:10px 20px;
+  transition:all .2s;
+}
+.btn-primary:hover{background:var(--acc-h);transform:translateY(-1px)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:7px;
+  background:transparent;border:1px solid var(--border);
+  border-radius:10px;color:var(--t2);cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:500;
+  padding:10px 18px;transition:all .2s;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.18);color:var(--t1);background:rgba(255,255,255,0.05)}
+.btn-danger{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:1px solid rgba(233,69,96,0.25);
+  border-radius:9px;color:var(--acc);cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:500;
+  padding:7px 14px;transition:all .2s;
+}
+.btn-danger:hover{background:rgba(233,69,96,0.1);border-color:var(--acc)}
+.btn-row{display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:10px}
+
+/* ── FLASH ── */
+.flash{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(34,197,94,0.08);
+  border:1px solid rgba(34,197,94,0.2);
+  border-radius:10px;padding:12px 16px;
+  font-size:13px;color:#22c55e;margin-bottom:20px;
+}
+
+/* ── PROF CARD ── */
+.pro-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  transition:border-color .2s;margin-bottom:10px;
+}
+.pro-card:hover{border-color:rgba(255,255,255,0.11)}
+.pro-header{
+  display:flex;align-items:center;gap:14px;
+  padding:18px 22px;cursor:pointer;user-select:none;
+}
+.pro-avatar{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;color:#fff;
+  flex-shrink:0;overflow:hidden;
+}
+.pro-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pro-name{font-size:14px;font-weight:600;color:var(--t1)}
+.pro-role{font-size:12px;color:var(--t2);margin-top:2px}
+.pro-tags{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.pro-tag{
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:20px;font-size:11px;
+  padding:3px 9px;color:var(--t3);
+}
+.chevron{
+  color:var(--t3);flex-shrink:0;
+  transition:transform .2s;margin-left:10px;
+}
+details[open] .chevron{transform:rotate(180deg)}
+.pro-body{
+  border-top:1px solid var(--border);
+  padding:22px;background:rgba(0,0,0,0.15);
+}
+.pro-photo-row{
+  display:flex;align-items:flex-start;gap:16px;
+  margin-bottom:20px;
+}
+.pro-photo-preview{
+  width:64px;height:64px;border-radius:50%;
+  object-fit:cover;border:1px solid var(--border);flex-shrink:0;
+}
+.pro-photo-placeholder{
+  width:64px;height:64px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:#fff;
+  border:1px solid var(--border);flex-shrink:0;
+}
+
+/* ── ADD CARD ── */
+.add-card{
+  border:2px dashed var(--border);border-radius:14px;
+  overflow:hidden;transition:border-color .2s;
+}
+.add-card:hover{border-color:rgba(233,69,96,0.3)}
+.add-header{
+  display:flex;align-items:center;gap:8px;
+  padding:16px 22px;cursor:pointer;
+  color:var(--acc);font-size:13.5px;font-weight:600;
+  transition:background .15s;user-select:none;
+}
+.add-header:hover{background:rgba(233,69,96,0.05)}
+.add-body{padding:22px;border-top:1px solid var(--border);background:rgba(0,0,0,0.1)}
+
+/* CONFIG SECTION hidden by default */
+.tab-content{display:none}
+.tab-content.active{display:block}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <h1>Editor — {{ academia.nome }}</h1>
-  <div style="display:flex;gap:16px;align-items:center">
-    <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank">Ver TV ao vivo</a>
-    <a href="{{ url_for('admin_logout', slug=academia.slug) }}">Sair</a>
-  </div>
-</div>
+<div class="layout">
 
-<div class="container">
-
-  {% with msgs = get_flashed_messages() %}
-    {% if msgs %}{% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}{% endif %}
-  {% endwith %}
-
-  <div class="card">
-    <h2>Configuracoes da Academia</h2>
-    <form method="POST" action="{{ url_for('salvar_config', slug=academia.slug) }}" enctype="multipart/form-data">
-      <div class="row">
-        <div><label>Nome da academia</label><input type="text" name="nome" value="{{ academia.nome }}" required></div>
-        <div><label>Subtitulo / Unidade</label><input type="text" name="subtitulo" value="{{ academia.subtitulo }}"></div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Logo (PNG ou JPG)</label>
-          {% if academia.logo_url %}<img src="{{ academia.logo_url }}" class="avatar-preview">{% endif %}
-          <input type="file" name="logo" accept="image/*">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo-area">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          {% if academia.logo_url %}
+            <img src="{{ academia.logo_url }}" alt="">
+          {% else %}
+            <span>{{ academia.logo_texto or academia.nome[:2] }}</span>
+          {% endif %}
         </div>
-        <div><label>Texto da logo (se nao tiver imagem)</label><input type="text" name="logo_texto" value="{{ academia.logo_texto }}" maxlength="6"></div>
+        <span class="logo-text">Painel<em>Pro</em></span>
       </div>
-      <div class="row">
-        <div><label>Email do gerente (QR Code lateral)</label><input type="email" name="email_qr" value="{{ academia.email_qr }}"></div>
-        <div><label>Texto do call to action</label><input type="text" name="cta_texto" value="{{ academia.cta_texto }}"></div>
+      <div class="academy-pill">
+        <strong>{{ academia.nome }}</strong>
+        Painel de TV
       </div>
-      <div class="row" style="margin-bottom:16px">
-        <div>
-          <label>Cores</label>
-          <div class="color-row" style="margin-bottom:8px"><input type="color" name="cor_primaria" value="{{ academia.cor_primaria }}"><label>Cor principal</label></div>
-          <div class="color-row" style="margin-bottom:8px"><input type="color" name="cor_destaque" value="{{ academia.cor_destaque }}"><label>Cor destaque</label></div>
-          <div class="color-row"><input type="color" name="cor_tag" value="{{ academia.cor_tag }}"><label>Cor das especialidades</label></div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-save">Salvar configuracoes</button>
-    </form>
-  </div>
+    </div>
 
-  <div class="card">
-    <h2>Profissionais ({{ profissionais|length }})</h2>
+    <nav class="sb-nav">
+      <span class="nav-label">Gerenciar</span>
+      <button class="nav-item" onclick="switchTab('config')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        Configurações
+      </button>
+      <button class="nav-item active" onclick="switchTab('profissionais')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Profissionais
+      </button>
+      <span class="nav-label" style="margin-top:8px">Visualização</span>
+      <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+        Ver TV ao vivo
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.5"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </a>
+    </nav>
 
-    {% for p in profissionais %}
-    <details class="prof-card">
-      <summary class="prof-header">
-        <div>
-          <div class="prof-nome">{{ p.nome }}</div>
-          <div class="prof-cargo">{{ p.cargo }}</div>
+    <div class="sb-footer">
+      <a href="{{ url_for('admin_logout', slug=academia.slug) }}" class="nav-item" style="color:var(--acc)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        Sair
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    {% with msgs = get_flashed_messages() %}
+      {% if msgs %}{% for m in msgs %}
+        <div class="flash">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          {{ m }}
         </div>
-        <span style="font-size:12px;color:#aaa">Clique para editar</span>
-      </summary>
-      <div class="prof-body">
-        <form method="POST" action="{{ url_for('editar_profissional', slug=academia.slug, prof_id=p.id) }}" enctype="multipart/form-data">
-          <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:12px">
-            {% if p.foto_url %}
-              <img src="{{ p.foto_url }}" class="avatar-preview">
-            {% else %}
-              <div class="avatar-placeholder" style="background:{{ p.cor_avatar }}">{{ p.nome.split()|map('first')|list|join('')|upper }}</div>
-            {% endif %}
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" id="pageTitle">Profissionais</h1>
+        <p class="page-sub" id="pageSub">Gerencie a equipe de profissionais da academia</p>
+      </div>
+      <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank" class="live-btn">
+        <span class="live-dot"></span>
+        Ver TV ao vivo
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+      </a>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+      <button class="tab-btn inactive" id="tab-config" onclick="switchTab('config')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        Configurações
+      </button>
+      <button class="tab-btn active" id="tab-profissionais" onclick="switchTab('profissionais')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Profissionais
+      </button>
+    </div>
+
+    <!-- TAB: CONFIGURAÇÕES -->
+    <div class="tab-content" id="content-config">
+      <div class="section-head">
+        <p class="section-title">Informações da academia</p>
+        <p class="section-desc">Personalize como seu painel aparece na TV</p>
+      </div>
+      <div class="card">
+        <form method="POST" action="{{ url_for('salvar_config', slug=academia.slug) }}" enctype="multipart/form-data">
+          <div class="grid-2">
             <div>
-              <label>Trocar foto</label>
-              <input type="file" name="foto" accept="image/*">
-              <div style="margin-top:8px" class="color-row">
-                <input type="color" name="cor_avatar" value="{{ p.cor_avatar }}">
-                <label>Cor do avatar</label>
+              <label class="field-label">Nome da academia</label>
+              <input class="field-input" type="text" name="nome" value="{{ academia.nome }}" required>
+            </div>
+            <div>
+              <label class="field-label">Subtítulo / Unidade</label>
+              <input class="field-input" type="text" name="subtitulo" value="{{ academia.subtitulo }}" placeholder="Ex: Unidade Centro">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="field-label">Email do gerente (QR Code)</label>
+              <input class="field-input" type="email" name="email_qr" value="{{ academia.email_qr }}" placeholder="gerente@academia.com">
+            </div>
+            <div>
+              <label class="field-label">Call to action</label>
+              <input class="field-input" type="text" name="cta_texto" value="{{ academia.cta_texto }}" placeholder="Agende uma avaliação gratuita">
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="grid-2" style="margin-bottom:20px">
+            <div>
+              <label class="field-label">Logo</label>
+              <div class="upload-zone" onclick="this.querySelector('input').click()">
+                {% if academia.logo_url %}
+                  <img src="{{ academia.logo_url }}" class="logo-preview">
+                {% else %}
+                  <div class="upload-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  </div>
+                {% endif %}
+                <p class="upload-text">Clique para enviar</p>
+                <p class="upload-sub">PNG, JPG ou WEBP — máx 5MB</p>
+                <input type="file" name="logo" accept="image/*" style="display:none">
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Texto da logo (sem imagem)</label>
+              <input class="field-input" type="text" name="logo_texto" value="{{ academia.logo_texto }}" maxlength="6" placeholder="Ex: BT">
+              <p class="field-hint">Aparece quando não há imagem de logo</p>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="section-head">
+            <p class="section-title">Cores do painel</p>
+          </div>
+          <div class="grid-3">
+            <div>
+              <label class="field-label">Cor principal</label>
+              <div class="color-field">
+                <input type="color" name="cor_primaria" value="{{ academia.cor_primaria }}" class="color-swatch">
+                <span class="color-label">{{ academia.cor_primaria }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Cor destaque</label>
+              <div class="color-field">
+                <input type="color" name="cor_destaque" value="{{ academia.cor_destaque }}" class="color-swatch">
+                <span class="color-label">{{ academia.cor_destaque }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Cor das tags</label>
+              <div class="color-field">
+                <input type="color" name="cor_tag" value="{{ academia.cor_tag }}" class="color-swatch">
+                <span class="color-label">{{ academia.cor_tag }}</span>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div><label>Nome</label><input type="text" name="nome" value="{{ p.nome }}" required></div>
-            <div><label>Cargo</label><input type="text" name="cargo" value="{{ p.cargo }}"></div>
+          <div style="margin-top:8px">
+            <button type="submit" class="btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salvar configurações
+            </button>
           </div>
-          <div class="row">
-            <div><label>Email</label><input type="email" name="email" value="{{ p.email }}"></div>
-            <div><label>Instagram</label><input type="text" name="instagram" value="{{ p.instagram }}"></div>
-          </div>
-          <div class="row">
-            <div>
-              <label>WhatsApp (com DDI)</label>
-              <input type="text" name="whatsapp" value="{{ p.whatsapp }}" placeholder="5511999999999 (ex: 5521987654321)">
-              <div class="wa-hint">Formato: 55 + DDD + numero SEM espacos ou tracos. Ex: 5521987654321 (ex: 5521987654321)</div>
-            </div>
-            <div><label>Anos de experiencia</label><input type="text" name="anos" value="{{ p.anos }}"></div>
-          </div>
-          <div class="row full">
-            <div><label>Especialidades (separadas por virgula)</label><input type="text" name="especialidades" value="{{ p.especialidades }}"></div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <button type="submit" class="btn btn-save">Salvar alteracoes</button>
-          </div>
-        </form>
-        <form method="POST" action="{{ url_for('remover_profissional', slug=academia.slug, prof_id=p.id) }}"
-          onsubmit="return confirm('Remover {{ p.nome }}?')" style="margin-top:8px">
-          <button type="submit" class="btn btn-danger">Remover</button>
         </form>
       </div>
-    </details>
-    {% endfor %}
+    </div>
 
-    <details style="margin-top:8px">
-      <summary style="cursor:pointer;font-size:14px;font-weight:700;color:#1a6fd4;padding:8px 0;list-style:none">
-        + Adicionar novo profissional
-      </summary>
-      <div style="padding:16px;background:#f8f8f8;border-radius:8px;margin-top:8px;border:1px solid #e0e0e0">
-        <form method="POST" action="{{ url_for('adicionar_profissional', slug=academia.slug) }}" enctype="multipart/form-data">
-          <div style="margin-bottom:12px"><label>Foto do profissional</label><input type="file" name="foto" accept="image/*"></div>
-          <div style="margin-bottom:8px" class="color-row">
-            <input type="color" name="cor_avatar" value="#1a6fd4">
-            <label>Cor do avatar (caso nao tenha foto)</label>
-          </div>
-          <div class="row">
-            <div><label>Nome *</label><input type="text" name="nome" placeholder="Joao Silva" required></div>
-            <div><label>Cargo</label><input type="text" name="cargo" placeholder="Personal Trainer"></div>
-          </div>
-          <div class="row">
-            <div><label>Email</label><input type="email" name="email" placeholder="joao@academia.com"></div>
-            <div><label>Instagram</label><input type="text" name="instagram" placeholder="@joaosilva"></div>
-          </div>
-          <div class="row">
-            <div>
-              <label>WhatsApp (com DDI)</label>
-              <input type="text" name="whatsapp" placeholder="5511999999999 (ex: 5521987654321)">
-              <div class="wa-hint">Formato: 55 + DDD + numero SEM espacos ou tracos. Ex: 5521987654321 (ex: 5521987654321)</div>
-            </div>
-            <div><label>Anos de experiencia</label><input type="text" name="anos" placeholder="5"></div>
-          </div>
-          <div class="row full">
-            <div><label>Especialidades (separadas por virgula)</label><input type="text" name="especialidades" placeholder="Musculacao, Emagrecimento"></div>
-          </div>
-          <button type="submit" class="btn btn-add">Adicionar profissional</button>
-        </form>
+    <!-- TAB: PROFISSIONAIS -->
+    <div class="tab-content active" id="content-profissionais">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="section-head" style="margin-bottom:0">
+          <p class="section-title">Equipe de profissionais</p>
+          <p class="section-desc">{{ profissionais|length }} profissional{{ 'is' if profissionais|length != 1 else '' }} cadastrado{{ 's' if profissionais|length != 1 else '' }}</p>
+        </div>
       </div>
-    </details>
-  </div>
 
-  <div style="text-align:center;margin-top:8px;margin-bottom:32px">
-    <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank" class="tv-btn">Abrir painel da TV em nova aba</a>
-  </div>
+      {% for p in profissionais %}
+      <details class="pro-card">
+        <summary class="pro-header">
+          <div class="pro-avatar" style="background:{{ p.cor_avatar }}">
+            {% if p.foto_url %}
+              <img src="{{ p.foto_url }}" alt="">
+            {% else %}
+              {{ p.nome.split()|map('first')|list|join('')|upper }}
+            {% endif %}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="pro-name">{{ p.nome }}</div>
+            <div class="pro-role">{{ p.cargo or 'Sem cargo' }}</div>
+          </div>
+          <div class="pro-tags">
+            {% for esp in p.especialidades.split(',')[:2] if p.especialidades %}
+              <span class="pro-tag">{{ esp.strip() }}</span>
+            {% endfor %}
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="pro-body">
+          <form method="POST" action="{{ url_for('editar_profissional', slug=academia.slug, prof_id=p.id) }}" enctype="multipart/form-data">
+            <div class="pro-photo-row">
+              {% if p.foto_url %}
+                <img src="{{ p.foto_url }}" class="pro-photo-preview">
+              {% else %}
+                <div class="pro-photo-placeholder" style="background:{{ p.cor_avatar }}">
+                  {{ p.nome.split()|map('first')|list|join('')|upper }}
+                </div>
+              {% endif %}
+              <div style="flex:1">
+                <label class="field-label">Trocar foto</label>
+                <input class="field-input" type="file" name="foto" accept="image/*" style="margin-bottom:10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="color-field" style="width:fit-content">
+                    <input type="color" name="cor_avatar" value="{{ p.cor_avatar }}" class="color-swatch">
+                  </div>
+                  <span class="color-label">Cor do avatar</span>
+                </div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Nome completo</label>
+                <input class="field-input" type="text" name="nome" value="{{ p.nome }}" required>
+              </div>
+              <div>
+                <label class="field-label">Cargo / Função</label>
+                <input class="field-input" type="text" name="cargo" value="{{ p.cargo }}">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Email</label>
+                <input class="field-input" type="email" name="email" value="{{ p.email }}">
+              </div>
+              <div>
+                <label class="field-label">Instagram</label>
+                <input class="field-input" type="text" name="instagram" value="{{ p.instagram }}" placeholder="@usuario">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">WhatsApp</label>
+                <input class="field-input" type="text" name="whatsapp" value="{{ p.whatsapp }}" placeholder="5521987654321">
+                <p class="field-hint">55 + DDD + número, sem espaços</p>
+              </div>
+              <div>
+                <label class="field-label">Anos de experiência</label>
+                <input class="field-input" type="number" name="anos" value="{{ p.anos }}" min="0" max="50">
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Especialidades (separadas por vírgula)</label>
+              <input class="field-input" type="text" name="especialidades" value="{{ p.especialidades }}" placeholder="Musculação, Emagrecimento">
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salvar alterações
+              </button>
+            </div>
+          </form>
+          <form method="POST" action="{{ url_for('remover_profissional', slug=academia.slug, prof_id=p.id) }}"
+            onsubmit="return confirm('Remover {{ p.nome }}? Esta ação não pode ser desfeita.')">
+            <button type="submit" class="btn-danger" style="margin-top:8px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              Remover profissional
+            </button>
+          </form>
+        </div>
+      </details>
+      {% endfor %}
 
+      <!-- ADICIONAR -->
+      <details class="add-card" style="margin-top:4px">
+        <summary class="add-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Novo profissional
+        </summary>
+        <div class="add-body">
+          <form method="POST" action="{{ url_for('adicionar_profissional', slug=academia.slug) }}" enctype="multipart/form-data">
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Foto</label>
+                <input class="field-input" type="file" name="foto" accept="image/*">
+              </div>
+              <div>
+                <label class="field-label">Cor do avatar</label>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                  <div class="color-field" style="width:fit-content">
+                    <input type="color" name="cor_avatar" value="#e94560" class="color-swatch">
+                  </div>
+                  <span class="color-label">Cor quando sem foto</span>
+                </div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Nome *</label>
+                <input class="field-input" type="text" name="nome" placeholder="João Silva" required>
+              </div>
+              <div>
+                <label class="field-label">Cargo</label>
+                <input class="field-input" type="text" name="cargo" placeholder="Personal Trainer">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Email</label>
+                <input class="field-input" type="email" name="email" placeholder="joao@academia.com">
+              </div>
+              <div>
+                <label class="field-label">Instagram</label>
+                <input class="field-input" type="text" name="instagram" placeholder="@joaosilva">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">WhatsApp</label>
+                <input class="field-input" type="text" name="whatsapp" placeholder="5521987654321">
+                <p class="field-hint">55 + DDD + número, sem espaços</p>
+              </div>
+              <div>
+                <label class="field-label">Anos de experiência</label>
+                <input class="field-input" type="number" name="anos" placeholder="5" min="0" max="50">
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Especialidades (separadas por vírgula)</label>
+              <input class="field-input" type="text" name="especialidades" placeholder="Musculação, Emagrecimento, Hipertrofia">
+            </div>
+            <div style="margin-top:4px">
+              <button type="submit" class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Adicionar profissional
+              </button>
+            </div>
+          </form>
+        </div>
+      </details>
+
+    </div><!-- /tab profissionais -->
+
+    <div style="height:60px"></div>
+  </main>
 </div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => {el.classList.remove('active');el.classList.add('inactive')});
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('content-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.remove('inactive');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if(tab === 'config') {
+    document.getElementById('pageTitle').textContent = 'Configurações';
+    document.getElementById('pageSub').textContent = 'Personalize o painel da sua academia';
+  } else {
+    document.getElementById('pageTitle').textContent = 'Profissionais';
+    document.getElementById('pageSub').textContent = 'Gerencie a equipe de profissionais da academia';
+  }
+}
+// sync color hex label
+document.querySelectorAll('.color-swatch').forEach(input => {
+  const label = input.closest('.color-field')?.querySelector('.color-label');
+  if(label) input.addEventListener('input', () => label.textContent = input.value);
+});
+</script>
 </body>
 </html>
-
-
-
