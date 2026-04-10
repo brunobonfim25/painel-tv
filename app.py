@@ -1,32 +1,31 @@
-import os
-import uuid
-from datetime import datetime, timezone
+﻿import os
+import re
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from psycopg2 import pool as pg_pool
 import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
+app.permanent_session_lifetime = timedelta(hours=8)
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
-# Cloudinary config
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
     api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
     secure=True
 )
-
-
-from psycopg2 import pool as pg_pool
 
 _pool = None
 
@@ -43,7 +42,6 @@ def get_pool():
 def get_conn():
     return get_pool().getconn()
 
-
 def query(sql, params=None, fetch=None):
     conn = get_conn()
     try:
@@ -54,9 +52,12 @@ def query(sql, params=None, fetch=None):
                     return cur.fetchone()
                 if fetch == "all":
                     return cur.fetchall()
+                return None
+    except Exception as e:
+        print(f"[DB ERROR] {e}")
+        raise
     finally:
         get_pool().putconn(conn)
-
 
 def init_db():
     query("""CREATE TABLE IF NOT EXISTS academias (
@@ -87,15 +88,11 @@ def init_db():
         cor_avatar TEXT DEFAULT '#1a6fd4',
         ordem INTEGER DEFAULT 0,
         criado_em TIMESTAMP DEFAULT NOW())""")
-    query("ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS whatsapp TEXT DEFAULT ''")
-
 
 def arquivo_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 def upload_imagem(file, pasta="painel_tv"):
-    """Faz upload para o Cloudinary e retorna a URL segura."""
     try:
         resultado = cloudinary.uploader.upload(
             file,
@@ -107,7 +104,6 @@ def upload_imagem(file, pasta="painel_tv"):
         print(f"Erro upload Cloudinary: {e}")
         return ""
 
-
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -116,7 +112,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-
 def master_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -124,9 +119,6 @@ def master_required(f):
             return redirect(url_for("master_login"))
         return f(*args, **kwargs)
     return decorated
-
-
-# ── Painel publico TV ─────────────────────────────────────────────────────────
 
 @app.route("/<slug>/")
 def painel(slug):
@@ -139,9 +131,6 @@ def painel(slug):
     )
     return render_template("painel.html", academia=academia, profissionais=profissionais or [])
 
-
-# ── Admin cliente ─────────────────────────────────────────────────────────────
-
 @app.route("/<slug>/admin", methods=["GET", "POST"])
 def admin_login(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
@@ -149,18 +138,17 @@ def admin_login(slug):
         return "Academia nao encontrada.", 404
     if request.method == "POST":
         if check_password_hash(academia["senha_hash"], request.form.get("senha", "")):
+            session.permanent = True
             session["academia_slug"] = slug
             session["academia_id"] = academia["id"]
             return redirect(url_for("admin_editor", slug=slug))
         flash("Senha incorreta.")
     return render_template("admin_login.html", academia=academia)
 
-
 @app.route("/<slug>/admin/logout")
 def admin_logout(slug):
     session.clear()
     return redirect(url_for("admin_login", slug=slug))
-
 
 @app.route("/<slug>/admin/editor")
 @login_required
@@ -171,7 +159,6 @@ def admin_editor(slug):
         (academia["id"],), fetch="all"
     )
     return render_template("admin_editor.html", academia=academia, profissionais=profissionais or [])
-
 
 @app.route("/<slug>/admin/salvar-config", methods=["POST"])
 @login_required
@@ -193,7 +180,6 @@ def salvar_config(slug):
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 
-
 @app.route("/<slug>/admin/profissional/adicionar", methods=["POST"])
 @login_required
 def adicionar_profissional(slug):
@@ -214,7 +200,6 @@ def adicionar_profissional(slug):
          request.form.get("cor_avatar", "#1a6fd4"), academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
-
 
 @app.route("/<slug>/admin/profissional/<int:prof_id>/editar", methods=["POST"])
 @login_required
@@ -242,7 +227,6 @@ def editar_profissional(slug, prof_id):
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
-
 @app.route("/<slug>/admin/profissional/<int:prof_id>/remover", methods=["POST"])
 @login_required
 def remover_profissional(slug, prof_id):
@@ -251,26 +235,22 @@ def remover_profissional(slug, prof_id):
     flash("Profissional removido.")
     return redirect(url_for("admin_editor", slug=slug))
 
-
-# ── Master dashboard ──────────────────────────────────────────────────────────
-
 @app.route("/master", methods=["GET", "POST"])
 def master_login():
     if session.get("master_logged"):
         return redirect(url_for("master_dashboard"))
     if request.method == "POST":
         if request.form.get("senha") == MASTER_PASSWORD:
+            session.permanent = True
             session["master_logged"] = True
             return redirect(url_for("master_dashboard"))
         flash("Senha incorreta.")
     return render_template("master_login.html")
 
-
 @app.route("/master/logout")
 def master_logout():
     session.pop("master_logged", None)
     return redirect(url_for("master_login"))
-
 
 @app.route("/master/dashboard")
 @master_required
@@ -283,7 +263,7 @@ def master_dashboard():
     """, fetch="all") or []
 
     total_profissionais = sum(a["total_profs"] for a in academias)
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     novos_mes = sum(1 for a in academias
         if a["criado_em"] and a["criado_em"].month == now.month
         and a["criado_em"].year == now.year)
@@ -293,9 +273,6 @@ def master_dashboard():
         total_academias=len(academias),
         total_profissionais=total_profissionais,
         novos_mes=novos_mes)
-
-
-# ── Setup novo cliente ────────────────────────────────────────────────────────
 
 @app.route("/setup", methods=["GET", "POST"])
 @master_required
@@ -307,6 +284,9 @@ def setup():
         if not slug or not nome or not senha:
             flash("Preencha todos os campos.")
             return redirect(url_for("setup"))
+        if not re.match(r'^[a-z0-9-]+$', slug):
+            flash("Slug so pode ter letras minusculas, numeros e hifen.")
+            return redirect(url_for("setup"))
         if query("SELECT id FROM academias WHERE slug=%s", (slug,), fetch="one"):
             flash("Slug ja em uso.")
             return redirect(url_for("setup"))
@@ -314,29 +294,10 @@ def setup():
               (slug, nome, generate_password_hash(senha)))
         flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
-    msgs = session.pop("_flashes", [])
-    msgs_html = "".join(f"<div class='msg'>{m[1]}</div>" for m in msgs)
-    return f"""<style>
-    body{{font-family:Arial;max-width:400px;margin:60px auto;padding:20px}}
-    input{{width:100%;padding:8px;margin:6px 0 14px;border:1px solid #ccc;border-radius:4px}}
-    button{{background:#1a1a2e;color:#fff;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;width:100%}}
-    .msg{{background:#eef;padding:10px;border-radius:4px;margin-bottom:14px}}
-    </style>
-    <h2>Criar nova academia</h2>{msgs_html}
-    <form method="POST">
-    <label>Slug (URL)</label><input name="slug" placeholder="bt" required>
-    <label>Nome da academia</label><input name="nome" placeholder="BT Academia" required>
-    <label>Senha do admin</label><input type="password" name="senha" required>
-    <button type="submit">Criar Academia</button></form>"""
-
+    return render_template("setup.html")
 
 with app.app_context():
     init_db()
 
 if __name__ == "__main__":
     app.run(debug=False)
-
-
-
-
-
