@@ -408,7 +408,7 @@ function render(p) {
   const cols = Math.min(sl.length, COLS);
 
   g.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  g.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  g.style.gridTemplateRows = `repeat(${rows}, minmax(180px,1fr))`;
 
   g.innerHTML = sl.map((x, i) => {
     const tags = (x.especialidades||'').split(',')
@@ -515,4 +515,6 @@ if (pgs > 1) {
 </script>
 </body>
 </html>
+
+
 
