@@ -45,27 +45,34 @@
         }
 
         .logo-circle {
-            width: 52px;
-            height: 52px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Quando tem imagem: mostra no tamanho real */
+        .logo-circle img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Quando NÃO tem imagem: mostra iniciais em círculo */
+        .logo-circle-text {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
+            border: 2px solid var(--green);
+            background: var(--card-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
             font-size: 18px;
             color: var(--green);
-            background: var(--card-bg);
-            overflow: hidden;
-            flex-shrink: 0;
-            position: relative;
-            border: 2px solid var(--green);
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3), inset 0 0 8px rgba(34, 197, 94, 0.1);
-        }
-
-        .logo-circle img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
         }
 
         .header-info {
@@ -363,6 +370,20 @@
         }
 
         .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo img {
+            max-width: 160px;
+            max-height: 90px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.3));
+            animation: logoGlow 3s ease-in-out infinite alternate;
+        }
+
+        .sidebar-logo-text {
             width: 90px;
             height: 90px;
             border-radius: 16px;
@@ -374,20 +395,13 @@
             font-weight: 800;
             color: var(--green);
             background: var(--card-bg);
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.1);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
             animation: logoGlow 3s ease-in-out infinite alternate;
         }
 
         @keyframes logoGlow {
-            0% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.2), 0 0 30px rgba(34, 197, 94, 0.05); }
-            100% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.4), 0 0 50px rgba(34, 197, 94, 0.15); }
-        }
-
-        .sidebar-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            0% { filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.2)); }
+            100% { filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.5)); }
         }
 
         .sidebar-welcome {
@@ -528,7 +542,7 @@
                 {% if academia.logo_url %}
                     <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
                 {% else %}
-                    {{ academia.logo_texto | default(academia.nome[:2] | upper) }}
+                    <div class="logo-circle-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
                 {% endif %}
             </div>
             <div class="header-info">
@@ -615,7 +629,7 @@
                 {% if academia.logo_url %}
                     <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
                 {% else %}
-                    {{ academia.logo_texto | default(academia.nome[:2] | upper) }}
+                    <div class="sidebar-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
                 {% endif %}
             </div>
 
