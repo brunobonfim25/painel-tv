@@ -60,6 +60,7 @@ def query(sql, params=None, fetch=None):
         get_pool().putconn(conn)
 
 def init_db():
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
         slug TEXT UNIQUE NOT NULL,
@@ -86,6 +87,7 @@ def init_db():
         especialidades TEXT DEFAULT '',
         foto_url TEXT DEFAULT '',
         cor_avatar TEXT DEFAULT '#1a6fd4',
+        qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
         criado_em TIMESTAMP DEFAULT NOW())""")
 
@@ -252,15 +254,18 @@ def adicionar_profissional(slug):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    qr_tipo = request.form.get("qr_tipo", "whatsapp")
+    if qr_tipo not in ("whatsapp", "instagram"):
+        qr_tipo = "whatsapp"
     query("""INSERT INTO profissionais
-        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, ordem)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, qr_tipo, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar", "#1a6fd4"), academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -281,15 +286,18 @@ def editar_profissional(slug, prof_id):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    qr_tipo = request.form.get("qr_tipo", "whatsapp")
+    if qr_tipo not in ("whatsapp", "instagram"):
+        qr_tipo = "whatsapp"
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
-        anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s
+        anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s, qr_tipo=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar", "#1a6fd4"), prof_id, academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 

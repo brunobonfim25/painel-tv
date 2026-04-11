@@ -587,6 +587,14 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
             <div class="grid-full">
+              <label class="field-label">QR Code no painel — direcionar para</label>
+              <select class="field-input" name="qr_tipo">
+                <option value="whatsapp" {% if p.qr_tipo == 'whatsapp' or not p.qr_tipo %}selected{% endif %}>WhatsApp</option>
+                <option value="instagram" {% if p.qr_tipo == 'instagram' %}selected{% endif %}>Instagram</option>
+              </select>
+              <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
+            </div>
+            <div class="grid-full">
               <label class="field-label">Especialidades (separadas por vírgula)</label>
               <input class="field-input" type="text" name="especialidades" value="{{ p.especialidades }}" placeholder="Musculação, Emagrecimento">
             </div>
@@ -661,6 +669,14 @@ details[open] .chevron{transform:rotate(180deg)}
                 <label class="field-label">Anos de experiência</label>
                 <input class="field-input" type="number" name="anos" placeholder="5" min="0" max="50">
               </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">QR Code no painel — direcionar para</label>
+              <select class="field-input" name="qr_tipo">
+                <option value="whatsapp" selected>WhatsApp</option>
+                <option value="instagram">Instagram</option>
+              </select>
+              <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
             </div>
             <div class="grid-full">
               <label class="field-label">Especialidades (separadas por vírgula)</label>
