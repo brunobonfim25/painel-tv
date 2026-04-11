@@ -104,6 +104,18 @@ def upload_imagem(file, pasta="painel_tv"):
         print(f"Erro upload Cloudinary: {e}")
         return ""
 
+def upload_logo(file, pasta="painel_tv/logos"):
+    try:
+        resultado = cloudinary.uploader.upload(
+            file,
+            folder=pasta,
+            transformation=[{"height": 200, "crop": "fit"}]
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print(f"Erro upload logo Cloudinary: {e}")
+        return ""
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -168,7 +180,7 @@ def salvar_config(slug):
     if "logo" in request.files:
         file = request.files["logo"]
         if file and file.filename and arquivo_permitido(file.filename):
-            logo_url = upload_imagem(file, pasta="painel_tv/logos")
+            logo_url = upload_logo(file)
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
