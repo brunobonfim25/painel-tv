@@ -48,7 +48,6 @@
             width: 52px;
             height: 52px;
             border-radius: 50%;
-            border: 2px solid var(--green);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -58,6 +57,9 @@
             background: var(--card-bg);
             overflow: hidden;
             flex-shrink: 0;
+            position: relative;
+            border: 2px solid var(--green);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3), inset 0 0 8px rgba(34, 197, 94, 0.1);
         }
 
         .logo-circle img {
@@ -152,25 +154,76 @@
 
         .card-photo-wrap {
             position: relative;
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Anel verde 3D girando */
+        .card-photo-wrap::before {
+            content: '';
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                #22c55e 15%,
+                #4ade80 30%,
+                transparent 50%,
+                #166534 65%,
+                #22c55e 80%,
+                transparent 100%
+            );
+            animation: rotateBorder 4s linear infinite;
+            z-index: 0;
+        }
+
+        /* Glow externo */
+        .card-photo-wrap::after {
+            content: '';
+            position: absolute;
+            width: 114px;
+            height: 114px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                transparent 0%,
+                rgba(34, 197, 94, 0.3) 25%,
+                transparent 50%,
+                rgba(34, 197, 94, 0.15) 75%,
+                transparent 100%
+            );
+            animation: rotateBorder 4s linear infinite reverse;
+            filter: blur(4px);
+            z-index: 0;
+        }
+
+        @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .card-photo {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            border: 3px solid var(--card-border);
+            border: 3px solid var(--card-bg);
             object-fit: cover;
             background: #1a251a;
+            position: relative;
+            z-index: 1;
         }
 
         .card-photo-placeholder {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            border: 3px solid var(--card-border);
+            border: 3px solid var(--card-bg);
             background: linear-gradient(135deg, #1a251a, #0f170f);
             display: flex;
             align-items: center;
@@ -178,6 +231,8 @@
             font-size: 36px;
             font-weight: 700;
             color: var(--green);
+            position: relative;
+            z-index: 1;
         }
 
         .badge-exp {
@@ -192,6 +247,7 @@
             padding: 3px 10px;
             border-radius: 12px;
             white-space: nowrap;
+            z-index: 2;
         }
 
         .card-cargo {
@@ -319,6 +375,13 @@
             color: var(--green);
             background: var(--card-bg);
             overflow: hidden;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.1);
+            animation: logoGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.2), 0 0 30px rgba(34, 197, 94, 0.05); }
+            100% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.4), 0 0 50px rgba(34, 197, 94, 0.15); }
         }
 
         .sidebar-logo img {
