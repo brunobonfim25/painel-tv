@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ prof.nome }} — {{ academia.nome }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  background:#0a0a0f;
+  color:#ededf5;
+  font-family:'Inter',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.card{
+  width:100%;max-width:360px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:24px;
+  padding:32px 24px;
+  text-align:center;
+}
+.avatar{
+  width:80px;height:80px;border-radius:50%;
+  object-fit:cover;border:3px solid rgba(255,255,255,0.1);
+  margin:0 auto 12px;display:block;
+}
+.avatar-placeholder{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:#fff;
+  margin:0 auto 12px;
+}
+.academia{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7a95;margin-bottom:16px}
+.nome{font-size:20px;font-weight:800;color:#ededf5;margin-bottom:4px}
+.cargo{font-size:13px;color:#7a7a95;margin-bottom:28px}
+.divider{height:1px;background:rgba(255,255,255,0.07);margin-bottom:20px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px 20px;border-radius:14px;
+  font-size:15px;font-weight:700;text-decoration:none;
+  transition:all .2s;margin-bottom:12px;
+}
+.btn:last-child{margin-bottom:0}
+.btn-whatsapp{background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.25);color:#25d366}
+.btn-whatsapp:hover{background:rgba(37,211,102,0.2);border-color:#25d366}
+.btn-instagram{background:rgba(225,48,108,0.12);border:1px solid rgba(225,48,108,0.25);color:#e1306c}
+.btn-instagram:hover{background:rgba(225,48,108,0.2);border-color:#e1306c}
+.btn svg{width:20px;height:20px;flex-shrink:0}
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="academia">{{ academia.nome }}</p>
+
+    {% if prof.foto_url %}
+      <img class="avatar" src="{{ prof.foto_url }}" alt="{{ prof.nome }}">
+    {% else %}
+      <div class="avatar-placeholder" style="background:{{ prof.cor_avatar }}">
+        {{ prof.nome[0] | upper }}
+      </div>
+    {% endif %}
+
+    <div class="nome">{{ prof.nome }}</div>
+    <div class="cargo">{{ prof.cargo }}</div>
+
+    <div class="divider"></div>
+
+    {% if prof.whatsapp %}
+    {% set wa = prof.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
+    <a class="btn btn-whatsapp" href="https://wa.me/{{ wa }}" target="_blank">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.849L0 24l6.335-1.502A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.893 0-3.667-.502-5.197-1.378l-.373-.22-3.862.915.977-3.763-.242-.387A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      WhatsApp
+    </a>
+    {% endif %}
+
+    {% if prof.instagram %}
+    {% set insta = prof.instagram | replace('@','') %}
+    <a class="btn btn-instagram" href="https://instagram.com/{{ insta }}" target="_blank">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+      Instagram
+    </a>
+    {% endif %}
+  </div>
+</body>
+</html>

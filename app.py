@@ -256,7 +256,7 @@ def adicionar_profissional(slug):
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
-    if qr_tipo not in ("whatsapp", "instagram"):
+    if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
     query("""INSERT INTO profissionais
         (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, qr_tipo, ordem)
@@ -288,7 +288,7 @@ def editar_profissional(slug, prof_id):
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
-    if qr_tipo not in ("whatsapp", "instagram"):
+    if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
@@ -370,6 +370,17 @@ def setup():
         flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
     return render_template("setup.html")
+
+@app.route("/<slug>/prof/<int:prof_id>/links")
+def prof_links(slug, prof_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    if not academia:
+        return render_template("404.html"), 404
+    prof = query("SELECT * FROM profissionais WHERE id=%s AND academia_id=%s",
+                 (prof_id, academia["id"]), fetch="one")
+    if not prof:
+        return render_template("404.html"), 404
+    return render_template("prof_links.html", academia=academia, prof=prof)
 
 @app.errorhandler(404)
 def not_found(e):

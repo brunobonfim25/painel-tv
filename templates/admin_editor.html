@@ -591,6 +591,7 @@ details[open] .chevron{transform:rotate(180deg)}
               <select class="field-input" name="qr_tipo">
                 <option value="whatsapp" {% if p.qr_tipo == 'whatsapp' or not p.qr_tipo %}selected{% endif %}>WhatsApp</option>
                 <option value="instagram" {% if p.qr_tipo == 'instagram' %}selected{% endif %}>Instagram</option>
+                <option value="ambos" {% if p.qr_tipo == 'ambos' %}selected{% endif %}>WhatsApp + Instagram</option>
               </select>
               <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
             </div>
@@ -675,6 +676,7 @@ details[open] .chevron{transform:rotate(180deg)}
               <select class="field-input" name="qr_tipo">
                 <option value="whatsapp" selected>WhatsApp</option>
                 <option value="instagram">Instagram</option>
+                <option value="ambos">WhatsApp + Instagram</option>
               </select>
               <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
             </div>
