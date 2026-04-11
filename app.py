@@ -135,7 +135,7 @@ def login_required(f):
             return redirect(url_for("admin_login", slug=kwargs.get("slug")))
         last = session.get("last_activity")
         now = datetime.utcnow().timestamp()
-        if last and now - last > SESSION_TIMEOUT.total_seconds():
+        if last and isinstance(last, (int, float)) and now - last > SESSION_TIMEOUT.total_seconds():
             session.clear()
             flash("Sessão expirada. Faça login novamente.")
             return redirect(url_for("admin_login", slug=kwargs.get("slug")))
