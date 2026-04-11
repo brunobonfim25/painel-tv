@@ -134,11 +134,12 @@ def login_required(f):
         if session.get("academia_slug") != kwargs.get("slug"):
             return redirect(url_for("admin_login", slug=kwargs.get("slug")))
         last = session.get("last_activity")
-        if last and datetime.utcnow() - last > SESSION_TIMEOUT:
+        now = datetime.utcnow().timestamp()
+        if last and now - last > SESSION_TIMEOUT.total_seconds():
             session.clear()
             flash("Sessão expirada. Faça login novamente.")
             return redirect(url_for("admin_login", slug=kwargs.get("slug")))
-        session["last_activity"] = datetime.utcnow()
+        session["last_activity"] = now
         return f(*args, **kwargs)
     return decorated
 
@@ -171,7 +172,7 @@ def admin_login(slug):
             session.permanent = True
             session["academia_slug"] = slug
             session["academia_id"] = academia["id"]
-            session["last_activity"] = datetime.utcnow()
+            session["last_activity"] = datetime.utcnow().timestamp()
             return redirect(url_for("admin_editor", slug=slug))
         flash("Senha incorreta.")
     return render_template("admin_login.html", academia=academia)
