@@ -61,6 +61,7 @@ def query(sql, params=None, fetch=None):
 
 def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
         slug TEXT UNIQUE NOT NULL,
@@ -73,6 +74,7 @@ def init_db():
         cor_tag TEXT DEFAULT '#1a1a2e',
         cta_texto TEXT DEFAULT 'Agende uma avaliacao',
         email_qr TEXT DEFAULT '',
+        fonte TEXT DEFAULT 'Syne',
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -204,14 +206,19 @@ def salvar_config(slug):
                 flash("A logo não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             logo_url = upload_logo(file)
+    fontes_validas = {"Syne","Montserrat","Poppins","Oswald","Bebas Neue","Space Grotesk"}
+    fonte = request.form.get("fonte", "Syne")
+    if fonte not in fontes_validas:
+        fonte = "Syne"
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
-        cta_texto=%s, email_qr=%s WHERE slug=%s""",
+        cta_texto=%s, email_qr=%s, fonte=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
-         request.form.get("cta_texto"), request.form.get("email_qr"), slug))
+         request.form.get("cta_texto"), request.form.get("email_qr"),
+         fonte, slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 

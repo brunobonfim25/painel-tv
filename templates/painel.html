@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=1920, initial-scale=1.0">
     <title>{{ academia.nome }} — Equipe de Profissionais</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg:        #0f1117;
@@ -22,6 +22,7 @@
             --sidebar:   #0d1018;
         }
 
+        :root{ --fonte-titulo: '{{ academia.fonte | default("Syne") }}', sans-serif; }
         *{ margin:0; padding:0; box-sizing:border-box; }
 
         body{
@@ -68,7 +69,7 @@
             color: var(--cyan); margin-bottom: 3px;
         }
         .header-name{
-            font-family: 'Syne', sans-serif;
+            font-family: var(--fonte-titulo);
             font-size: 26px; font-weight: 800;
             color: var(--text); letter-spacing: -0.02em;
         }
@@ -208,7 +209,7 @@
             color: var(--cyan); margin-top: 2px; text-align: center;
         }
         .card-nome{
-            font-family: 'Syne', sans-serif;
+            font-family: var(--fonte-titulo);
             font-size: 16px; font-weight: 800;
             color: var(--text); text-align: center;
             line-height: 1.2; letter-spacing: -0.01em;
@@ -291,7 +292,7 @@
             border: 1.5px solid var(--cyan);
             background: var(--card);
             display: flex; align-items:center; justify-content:center;
-            font-family: 'Syne', sans-serif;
+            font-family: var(--fonte-titulo);
             font-size: 34px; font-weight: 800; color: var(--cyan);
             box-shadow: 0 0 24px var(--cyan-glow);
             animation: glow 3s ease-in-out infinite alternate;
@@ -313,7 +314,7 @@
             color: var(--muted);
         }
         .sidebar-welcome-name{
-            font-family: 'Syne', sans-serif;
+            font-family: var(--fonte-titulo);
             font-size: 20px; font-weight: 800;
             color: var(--text); margin-top: 5px;
             letter-spacing: -0.02em;
@@ -365,7 +366,7 @@
             stroke: var(--cyan); fill: none; stroke-width: 1.5;
         }
         .sidebar-counter-num{
-            font-family: 'Syne', sans-serif;
+            font-family: var(--fonte-titulo);
             font-size: 42px; font-weight: 800; color: var(--cyan);
             letter-spacing: -0.03em;
         }

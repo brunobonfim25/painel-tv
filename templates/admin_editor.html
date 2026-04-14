@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Editor — {{ academia.nome }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=Montserrat:wght@700;800&family=Poppins:wght@700;800&family=Oswald:wght@700&family=Bebas+Neue&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0a0f;
@@ -494,7 +494,36 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
           </div>
-          <div style="margin-top:8px">
+          <div class="divider"></div>
+          <div class="section-head">
+            <p class="section-title">Tipografia</p>
+            <p class="section-desc">Fonte usada nos nomes e títulos do painel de TV</p>
+          </div>
+          <div class="grid-3" style="margin-bottom:8px">
+            {% set fontes = [
+              ('Syne',         'Syne — Geométrico bold'),
+              ('Montserrat',   'Montserrat — Esportivo'),
+              ('Poppins',      'Poppins — Arredondado'),
+              ('Oswald',       'Oswald — Atlético condensado'),
+              ('Bebas Neue',   'Bebas Neue — Impactante'),
+              ('Space Grotesk','Space Grotesk — Tech')
+            ] %}
+            {% for valor, label in fontes %}
+            <label style="cursor:pointer">
+              <input type="radio" name="fonte" value="{{ valor }}"
+                {% if (academia.fonte or 'Syne') == valor %}checked{% endif %}
+                style="display:none" class="fonte-radio">
+              <div class="fonte-card" data-fonte="{{ valor }}"
+                style="border:2px solid {% if (academia.fonte or 'Syne') == valor %}var(--acc){% else %}var(--border){% endif %};
+                       background:{% if (academia.fonte or 'Syne') == valor %}var(--acc-dim){% else %}var(--card){% endif %};
+                       border-radius:12px;padding:14px 12px;transition:all .2s;text-align:center;">
+                <div style="font-size:20px;font-weight:800;color:var(--t1);font-family:'{{ valor }}',sans-serif;margin-bottom:4px">Aa</div>
+                <div style="font-size:11px;color:var(--t2);font-weight:500">{{ label }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          <div style="margin-top:16px">
             <button type="submit" class="btn-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Salvar configurações
@@ -747,6 +776,18 @@ function switchTab(tab) {
   document.getElementById('pageTitle').textContent = title;
   document.getElementById('pageSub').textContent = sub;
 }
+// seletor de fonte visual
+document.querySelectorAll('.fonte-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.fonte-card').forEach(card => {
+      card.style.border = '2px solid rgba(255,255,255,0.08)';
+      card.style.background = 'rgba(255,255,255,0.04)';
+    });
+    const card = this.closest('label').querySelector('.fonte-card');
+    card.style.border = '2px solid var(--acc)';
+    card.style.background = 'var(--acc-dim)';
+  });
+});
 // sync color hex label
 document.querySelectorAll('.color-swatch').forEach(input => {
   const label = input.closest('.color-field')?.querySelector('.color-label');
