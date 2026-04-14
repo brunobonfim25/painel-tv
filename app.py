@@ -206,7 +206,7 @@ def salvar_config(slug):
                 flash("A logo não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             logo_url = upload_logo(file)
-    fontes_validas = {"Syne","Montserrat","Poppins","Oswald","Bebas Neue","Space Grotesk"}
+    fontes_validas = {"Syne","Montserrat","Poppins","Oswald","Bebas Neue","Space Grotesk","Encode Sans","Raleway"}
     fonte = request.form.get("fonte", "Syne")
     if fonte not in fontes_validas:
         fonte = "Syne"
