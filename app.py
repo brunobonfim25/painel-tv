@@ -62,6 +62,7 @@ def query(sql, params=None, fetch=None):
 def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
         slug TEXT UNIQUE NOT NULL,
@@ -210,15 +211,16 @@ def salvar_config(slug):
     fonte = request.form.get("fonte", "Syne")
     if fonte not in fontes_validas:
         fonte = "Syne"
+    exibir_nome = request.form.get("exibir_nome") == "on"
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
-        cta_texto=%s, email_qr=%s, fonte=%s WHERE slug=%s""",
+        cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
          request.form.get("cta_texto"), request.form.get("email_qr"),
-         fonte, slug))
+         fonte, exibir_nome, slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 

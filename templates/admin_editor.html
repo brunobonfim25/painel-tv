@@ -467,6 +467,13 @@ details[open] .chevron{transform:rotate(180deg)}
               <p class="field-hint">Aparece quando não há imagem de logo</p>
             </div>
           </div>
+          <div style="margin: 16px 0;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--t1)">
+              <input type="checkbox" name="exibir_nome" {{ 'checked' if academia.exibir_nome != false }} style="width:18px;height:18px;accent-color:var(--acc);cursor:pointer">
+              Exibir nome da academia no painel TV
+            </label>
+            <p class="field-hint" style="margin-top:4px">Desmarque para exibir apenas a logo/marca no header do painel</p>
+          </div>
           <div class="divider"></div>
           <div class="section-head">
             <p class="section-title">Cores do painel</p>

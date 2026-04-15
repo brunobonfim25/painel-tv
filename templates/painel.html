@@ -60,6 +60,13 @@
 
         .header-logo img { width: 100%; height: 100%; object-fit: cover; }
 
+        .header-logo.logo-only {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            font-size: 20px;
+        }
+
         .header-title {
             display: flex;
             flex-direction: column;
@@ -431,19 +438,21 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <div class="header-logo">
+            <div class="header-logo {{ 'logo-only' if academia.exibir_nome == false }}">
                 {% if academia.logo_url %}
                     <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
                 {% else %}
                     {{ academia.logo_texto | default(academia.nome[:2] | upper) }}
                 {% endif %}
             </div>
+            {% if academia.exibir_nome != false %}
             <div class="header-title">
                 <span class="header-name">{{ academia.nome }}</span>
                 {% if academia.subtitulo %}
                     <span class="header-subtitle">{{ academia.subtitulo }}</span>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         <div class="header-center">
             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
