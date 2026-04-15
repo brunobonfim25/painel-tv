@@ -114,23 +114,22 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            padding: 3px;                   /* anel = padding colorido */
-            background: conic-gradient(
-                from 0deg,
-                transparent 0%, var(--accent) 25%,
-                transparent 50%, var(--accent) 75%, transparent 100%
-            );
-            animation: spin 6s linear infinite;
+            padding: 3px;
+            background: var(--accent);
+            animation: ring-pulse 3s ease-in-out infinite;
             flex-shrink: 0;
         }
-        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes ring-pulse {
+            0%,100% { box-shadow: 0 0 0 0 var(--accent-mid); }
+            50%      { box-shadow: 0 0 0 6px transparent; }
+        }
 
         .photo-inner {
             width: 100%; height: 100%;
             border-radius: 50%;
             overflow: hidden;
             background: var(--card);
-            border: 3px solid var(--card); /* gap entre foto e anel */
+            border: 3px solid var(--card);
         }
         .photo-inner img {
             width: 100%; height: 100%;
