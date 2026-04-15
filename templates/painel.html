@@ -458,14 +458,14 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <div class="header-logo {{ 'logo-only' if academia.exibir_nome == false }}">
+            <div class="header-logo {{ 'logo-only' if not academia.nome or academia.exibir_nome == false }}">
                 {% if academia.logo_url %}
-                    <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
+                    <img src="{{ academia.logo_url }}" alt="{{ academia.nome or 'Logo' }}">
                 {% else %}
-                    {{ academia.logo_texto | default(academia.nome[:2] | upper) }}
+                    {{ academia.logo_texto | default((academia.nome or 'AA')[:2] | upper) }}
                 {% endif %}
             </div>
-            {% if academia.exibir_nome != false %}
+            {% if academia.nome and academia.exibir_nome != false %}
             <div class="header-title">
                 <span class="header-name">{{ academia.nome }}</span>
                 {% if academia.subtitulo %}

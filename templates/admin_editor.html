@@ -418,7 +418,8 @@ details[open] .chevron{transform:rotate(180deg)}
           <div class="grid-2">
             <div>
               <label class="field-label">Nome da academia</label>
-              <input class="field-input" type="text" name="nome" value="{{ academia.nome }}" required>
+              <input class="field-input" type="text" name="nome" value="{{ academia.nome }}" placeholder="Deixe vazio para exibir apenas a logo">
+              <p class="field-hint">Opcional — sem nome, apenas a logo aparece no painel</p>
             </div>
             <div>
               <label class="field-label">Subtítulo / Unidade</label>
