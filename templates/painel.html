@@ -3,415 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, initial-scale=1.0">
-    <title>{{ academia.nome }} — Equipe de Profissionais</title>
+    <title>{{ academia.nome }} — Equipe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Space+Grotesk:wght@700&family=Encode+Sans:wght@700;800;900&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Encode+Sans:wght@600;700;800;900&family=Raleway:wght@600;700;800;900&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
     <style>
         {% set accent = academia.cor_destaque if academia.cor_destaque else '#56B78F' %}
         {% set fonte  = academia.fonte if academia.fonte else 'Encode Sans' %}
-
         :root {
-            --accent:      {{ accent }};
-            --accent-dim:  {{ accent }}1a;
-            --accent-mid:  {{ accent }}44;
-            --bg:          #0c0e14;
-            --card:        #13161f;
-            --card-border: rgba(255,255,255,0.09);
-            --text:        #f1f5f9;
-            --muted:       #7a8599;
-            --sidebar:     #0a0c11;
-            --fonte:       '{{ fonte }}', 'Inter', sans-serif;
+            --a:     {{ accent }};
+            --a-dim: {{ accent }}1a;
+            --a-mid: {{ accent }}40;
+            --bg:    #0c0e14;
+            --card:  #151922;
+            --brd:   rgba(255,255,255,0.08);
+            --t1:    #f1f5f9;
+            --t2:    #94a3b8;
+            --sb:    #0a0c11;
+            --f:     '{{ fonte }}', 'Inter', sans-serif;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;overflow:hidden;width:1920px;height:1080px}
 
-        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        /* ═══ HEADER ═══ */
+        .hdr{height:80px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:var(--sb);border-bottom:1px solid var(--brd)}
+        .hdr-l{display:flex;align-items:center;gap:16px}
+        .hdr-logo{height:50px}
+        .hdr-logo img{height:50px;width:auto}
+        .hdr-logo-txt{width:50px;height:50px;border-radius:12px;border:2px solid var(--a);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:var(--f);font-size:18px;font-weight:800;color:var(--a)}
+        .hdr-eye{font-size:11px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--a)}
+        .hdr-name{font-family:var(--f);font-size:28px;font-weight:800;color:var(--t1);line-height:1.1}
+        .hdr-sub{font-size:13px;color:var(--t2);margin-top:2px}
+        .live{display:flex;align-items:center;gap:8px;background:var(--a-dim);border:1px solid var(--a);border-radius:99px;padding:8px 20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--a)}
+        .live-d{width:8px;height:8px;border-radius:50%;background:var(--a);animation:blink 2s infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            width: 1920px;
-            height: 1080px;
-        }
+        /* ═══ LAYOUT ═══ */
+        .wrap{display:flex;height:1000px}
 
-        /* ── HEADER ─────────────────────── */
-        .header {
-            height: 88px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 44px;
-            background: var(--sidebar);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        .h-left { display:flex; align-items:center; gap:20px; }
-        .h-logo { height:52px; display:flex; align-items:center; }
-        .h-logo img { height:52px; width:auto; object-fit:contain; }
-        .h-logo-text {
-            width:52px; height:52px; border-radius:12px;
-            border:2px solid var(--accent); background:var(--card);
-            display:flex; align-items:center; justify-content:center;
-            font-family:var(--fonte); font-size:18px; font-weight:800; color:var(--accent);
-        }
-        .h-eyebrow {
-            font-size:11px; font-weight:700; letter-spacing:0.22em;
-            text-transform:uppercase; color:var(--accent); margin-bottom:3px;
-        }
-        .h-name {
-            font-family:var(--fonte); font-size:28px; font-weight:800;
-            color:var(--text); letter-spacing:-0.02em; line-height:1;
-        }
-        .h-sub { font-size:13px; color:var(--muted); margin-top:3px; }
-        .live {
-            display:flex; align-items:center; gap:9px;
-            background:var(--accent-dim); border:1px solid var(--accent);
-            border-radius:100px; padding:9px 22px;
-            font-size:12px; font-weight:700; letter-spacing:0.15em; color:var(--accent);
-        }
-        .live-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+        /* ═══ GRID ═══ */
+        .grid{flex:1;display:grid;gap:20px;padding:20px;overflow:hidden;align-content:start}
 
-        /* ── LAYOUT ─────────────────────── */
-        .layout {
-            display: flex;
-            height: calc(1080px - 88px); /* 992px */
-        }
+        /* ═══ CARD ═══ */
+        .card{background:var(--card);border:1px solid var(--brd);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px;position:relative}
+        .card::before{content:'';position:absolute;top:0;left:10%;right:10%;height:3px;background:linear-gradient(90deg,transparent,var(--a),transparent);border-radius:0 0 3px 3px}
 
-        /* ── GRID ───────────────────────── */
-        .grid {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: 460px;          /* altura fixa — cabe 2 linhas */
-            gap: 16px;
-            padding: 18px 20px;
-            overflow: hidden;
-            align-content: start;
-        }
+        /* foto */
+        .foto{width:140px;height:140px;border-radius:50%;padding:4px;background:var(--a);flex-shrink:0;box-shadow:0 0 30px var(--a-dim)}
+        .foto-in{width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid var(--card)}
+        .foto-in img{width:100%;height:100%;object-fit:cover;display:block}
+        .foto-in .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--f);font-size:42px;font-weight:800;color:#fff}
 
-        /* ── CARD ───────────────────────── */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            overflow: hidden;               /* clipa tudo */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 26px 18px 20px;
-            gap: 8px;
-            position: relative;
-        }
-        /* faixa de destaque no topo */
-        .card::before {
-            content:'';
-            position:absolute; top:0; left:0; right:0; height:3px;
-            background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-        }
+        .badge{background:var(--a);color:#000;font-size:13px;font-weight:800;padding:4px 16px;border-radius:99px;margin-top:8px}
+        .cargo{font-size:16px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--a);margin-top:8px}
+        .nome{font-family:var(--f);font-size:32px;font-weight:800;color:var(--t1);text-align:center;line-height:1.15;margin-top:6px}
 
-        /* ── FOTO ───────────────────────── */
-        .photo-wrap {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            padding: 3px;
-            background: var(--accent);
-            animation: ring-pulse 3s ease-in-out infinite;
-            flex-shrink: 0;
-        }
-        @keyframes ring-pulse {
-            0%,100% { box-shadow: 0 0 0 0 var(--accent-mid); }
-            50%      { box-shadow: 0 0 0 6px transparent; }
-        }
+        /* contatos */
+        .info{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:10px;padding:0 10px}
+        .info-row{display:flex;align-items:center;gap:10px;font-size:16px;color:var(--t2)}
+        .info-row svg{width:18px;height:18px;flex-shrink:0;stroke:var(--a);fill:none;stroke-width:2}
 
-        .photo-inner {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            background: var(--card);
-            border: 3px solid var(--card);
-        }
-        .photo-inner img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .photo-placeholder {
-            width: 100%; height: 100%;
-            display: flex; align-items:center; justify-content:center;
-            font-family:var(--fonte); font-size:38px; font-weight:800; color:#fff;
-        }
+        /* tags */
+        .tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+        .tag{font-size:14px;font-weight:600;padding:6px 16px;border:1px solid var(--a);border-radius:99px;color:var(--a);background:var(--a-dim)}
 
-        .badge-anos {
-            background:var(--accent); color:#000;
-            font-size:11px; font-weight:800; letter-spacing:0.06em;
-            padding:3px 12px; border-radius:100px;
-            margin-top:-4px; /* aproxima da foto */
-        }
+        /* qr */
+        .qr{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px}
+        .qr img{width:110px;height:110px;border-radius:12px;border:2px solid var(--a-mid)}
+        .qr-lbl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--a)}
+        .qr-lbl svg{width:14px;height:14px;stroke:var(--a);fill:none;stroke-width:2}
+        .qr-dot{width:6px;height:6px;border-radius:50%;background:var(--a);animation:blink 2s infinite}
 
-        /* ── TEXTOS ─────────────────────── */
-        .card-cargo {
-            font-size:11px; font-weight:700; letter-spacing:0.22em;
-            text-transform:uppercase; color:var(--accent);
-        }
-        .card-nome {
-            font-family:var(--fonte);
-            font-size:21px; font-weight:800;
-            color:var(--text); text-align:center;
-            line-height:1.2; letter-spacing:-0.01em;
-        }
+        /* ═══ SIDEBAR ═══ */
+        .sb{width:280px;flex-shrink:0;background:var(--sb);border-left:1px solid var(--brd);display:flex;flex-direction:column;align-items:center;padding:28px 20px;gap:20px}
+        .sb-logo img{max-width:160px;max-height:80px;object-fit:contain}
+        .sb-logo-txt{width:80px;height:80px;border-radius:16px;border:2px solid var(--a);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:var(--f);font-size:30px;font-weight:800;color:var(--a)}
+        .sb-div{width:100%;height:1px;background:var(--brd)}
+        .sb-wel{text-align:center}
+        .sb-wel small{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:4px}
+        .sb-wel strong{font-family:var(--f);font-size:22px;font-weight:800;color:var(--t1);line-height:1.2;display:block}
+        .sb-cta{text-align:center}
+        .sb-cta small{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:4px}
+        .sb-cta span{font-family:var(--f);font-size:16px;font-weight:700;color:var(--a);line-height:1.4;display:block}
+        .sb-qr{position:relative}
+        .sb-qr img{width:160px;height:160px;border-radius:16px;border:2px solid var(--a-mid)}
+        .sb-qr em{position:absolute;right:-22px;top:50%;transform:translateY(-50%) rotate(90deg);font-style:normal;font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--a);text-transform:uppercase;white-space:nowrap}
+        .sb-cnt{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:18px 24px;text-align:center;width:100%;margin-top:auto}
+        .sb-cnt-row{display:flex;align-items:center;justify-content:center;gap:10px}
+        .sb-cnt-row svg{width:28px;height:28px;stroke:var(--a);fill:none;stroke-width:1.5}
+        .sb-cnt-n{font-family:var(--f);font-size:48px;font-weight:800;color:var(--a);line-height:1}
+        .sb-cnt-l{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--t2);margin-top:3px}
 
-        /* ── CONTATOS ───────────────────── */
-        .contatos { width:100%; display:flex; flex-direction:column; gap:5px; }
-        .contato {
-            display:flex; align-items:center; gap:8px;
-            font-size:13px; color:var(--muted);
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        }
-        .contato svg { width:14px; height:14px; flex-shrink:0; stroke:var(--accent); fill:none; stroke-width:2; }
+        /* ═══ SCROLL ═══ */
+        @keyframes scrollUp{0%,44%{transform:translateY(0)}50%,94%{transform:translateY(-50%)}100%{transform:translateY(0)}}
 
-        /* ── TAGS ───────────────────────── */
-        .tags { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
-        .tag {
-            font-size:11px; font-weight:600;
-            padding:4px 13px;
-            border:1px solid var(--accent);
-            border-radius:100px;
-            color:var(--accent);
-            background:var(--accent-dim);
-        }
+        /* ═══ RESPONSIVE CARD SIZES ═══ */
+        /* Adjustments for fewer professionals - JS will set columns and row height */
+        .grid.cols-1{grid-template-columns:1fr;max-width:600px;margin:0 auto}
+        .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+        .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+        .grid.cols-4{grid-template-columns:repeat(4,1fr)}
 
-        /* ── QR ─────────────────────────── */
-        .qr-wrap { display:flex; flex-direction:column; align-items:center; gap:5px; }
-        .qr-img { width:80px; height:80px; border-radius:10px; border:1.5px solid var(--accent-mid); }
-        .qr-label {
-            display:flex; align-items:center; gap:5px;
-            font-size:10px; font-weight:700; letter-spacing:0.13em; color:var(--accent);
-        }
-        .qr-label svg { width:12px; height:12px; stroke:var(--accent); fill:none; stroke-width:2; }
-        .qr-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
-
-        /* ── SIDEBAR ────────────────────── */
-        .sidebar {
-            width: 272px; flex-shrink:0;
-            background:var(--sidebar);
-            border-left:1px solid rgba(255,255,255,0.06);
-            display:flex; flex-direction:column; align-items:center;
-            padding:28px 20px; gap:20px;
-        }
-        .sb-logo { display:flex; align-items:center; justify-content:center; }
-        .sb-logo img { max-width:160px; max-height:80px; object-fit:contain; }
-        .sb-logo-text {
-            width:84px; height:84px; border-radius:16px;
-            border:2px solid var(--accent); background:var(--card);
-            display:flex; align-items:center; justify-content:center;
-            font-family:var(--fonte); font-size:32px; font-weight:800; color:var(--accent);
-        }
-        .sb-divider { width:100%; height:1px; background:rgba(255,255,255,0.06); }
-        .sb-welcome { text-align:center; }
-        .sb-welcome-label {
-            font-size:10px; font-weight:700; letter-spacing:0.2em;
-            text-transform:uppercase; color:var(--muted); margin-bottom:5px;
-        }
-        .sb-welcome-name {
-            font-family:var(--fonte); font-size:20px; font-weight:800;
-            color:var(--text); line-height:1.25;
-        }
-        .sb-cta { text-align:center; }
-        .sb-cta-label {
-            font-size:10px; font-weight:700; letter-spacing:0.15em;
-            text-transform:uppercase; color:var(--muted); margin-bottom:5px;
-        }
-        .sb-cta-text {
-            font-family:var(--fonte); font-size:15px; font-weight:700;
-            color:var(--accent); line-height:1.4;
-        }
-        .sb-qr-wrap { position:relative; }
-        .sb-qr { width:144px; height:144px; border-radius:14px; border:2px solid var(--accent-mid); }
-        .sb-qr-tag {
-            position:absolute; right:-20px; top:50%;
-            transform:translateY(-50%) rotate(90deg);
-            font-size:9px; font-weight:700; letter-spacing:0.2em;
-            color:var(--accent); text-transform:uppercase; white-space:nowrap;
-        }
-        .sb-counter {
-            background:var(--card); border:1px solid var(--card-border);
-            border-radius:18px; padding:18px 24px;
-            text-align:center; width:100%; margin-top:auto;
-        }
-        .sb-counter-row { display:flex; align-items:center; justify-content:center; gap:10px; }
-        .sb-counter-row svg { width:26px; height:26px; stroke:var(--accent); fill:none; stroke-width:1.5; }
-        .sb-num {
-            font-family:var(--fonte); font-size:46px; font-weight:800;
-            color:var(--accent); line-height:1;
-        }
-        .sb-label {
-            font-size:10px; font-weight:700; letter-spacing:0.2em;
-            text-transform:uppercase; color:var(--muted); margin-top:4px;
-        }
-
-        /* ── SCROLL ─────────────────────── */
-        @keyframes scrollUp {
-            0%,44%  { transform:translateY(0); }
-            50%,94% { transform:translateY(-50%); }
-            100%    { transform:translateY(0); }
-        }
+        /* Large cards (1-2 per row) get even bigger elements */
+        .grid.cols-1 .foto, .grid.cols-2 .foto{width:180px;height:180px}
+        .grid.cols-1 .nome, .grid.cols-2 .nome{font-size:38px}
+        .grid.cols-1 .cargo, .grid.cols-2 .cargo{font-size:18px}
+        .grid.cols-1 .info-row, .grid.cols-2 .info-row{font-size:18px}
+        .grid.cols-1 .tag, .grid.cols-2 .tag{font-size:16px;padding:8px 20px}
+        .grid.cols-1 .qr img, .grid.cols-2 .qr img{width:130px;height:130px}
     </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-    <div class="h-left">
-        <div class="h-logo">
-            {% if academia.logo_url %}
-                <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
-            {% else %}
-                <div class="h-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
-            {% endif %}
+<div class="hdr">
+    <div class="hdr-l">
+        <div class="hdr-logo">
+            {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="">{% else %}<div class="hdr-logo-txt">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>{% endif %}
         </div>
         <div>
-            <div class="h-eyebrow">Equipe de Profissionais</div>
-            <div class="h-name">{{ academia.nome }}</div>
-            {% if academia.subtitulo %}
-                <div class="h-sub">{{ academia.subtitulo }}</div>
-            {% endif %}
+            <div class="hdr-eye">Equipe de Profissionais</div>
+            <div class="hdr-name">{{ academia.nome }}</div>
+            {% if academia.subtitulo %}<div class="hdr-sub">{{ academia.subtitulo }}</div>{% endif %}
         </div>
     </div>
-    <div class="live"><span class="live-dot"></span>AO VIVO</div>
+    <div class="live"><span class="live-d"></span>AO VIVO</div>
 </div>
 
-<!-- LAYOUT -->
-<div class="layout">
-
-    <!-- GRID -->
-    <div class="grid" id="profGrid">
-        {% set qr_color = (accent | replace('#','')) %}
+<div class="wrap">
+    <div class="grid" id="g">
+        {% set qrc = (accent | replace('#','')) %}
         {% for p in profissionais %}
         <div class="card">
-
-            <!-- foto com anel giratório -->
-            <div class="photo-wrap">
-                <div class="photo-inner">
-                    {% if p.foto_url %}
-                        <img src="{{ p.foto_url }}" alt="{{ p.nome }}">
-                    {% else %}
-                        <div class="photo-placeholder" style="background:{{ p.cor_avatar | default('#1a2a2a') }}">
-                            {{ p.nome[0] | upper }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {% if p.anos %}<span class="badge-anos">{{ p.anos }} anos exp.</span>{% endif %}
-
-            {% if p.cargo %}<div class="card-cargo">{{ p.cargo }}</div>{% endif %}
-
-            <div class="card-nome">{{ p.nome }}</div>
-
+            <div class="foto"><div class="foto-in">
+                {% if p.foto_url %}<img src="{{ p.foto_url }}" alt="">{% else %}<div class="ini" style="background:{{ p.cor_avatar|default('#1a2a2a') }}">{{ p.nome[0]|upper }}</div>{% endif %}
+            </div></div>
+            {% if p.anos %}<span class="badge">{{ p.anos }} anos exp.</span>{% endif %}
+            {% if p.cargo %}<div class="cargo">{{ p.cargo }}</div>{% endif %}
+            <div class="nome">{{ p.nome }}</div>
             {% if p.instagram or p.email %}
-            <div class="contatos">
-                {% if p.instagram %}
-                <div class="contato">
-                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                    {{ p.instagram }}
-                </div>
-                {% endif %}
-                {% if p.email %}
-                <div class="contato">
-                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-                    {{ p.email }}
-                </div>
-                {% endif %}
+            <div class="info">
+                {% if p.instagram %}<div class="info-row"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>{{ p.instagram }}</div>{% endif %}
+                {% if p.email %}<div class="info-row"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>{{ p.email }}</div>{% endif %}
             </div>
             {% endif %}
+            {% if p.especialidades %}<div class="tags">{% for e in p.especialidades.split(',')[:3] %}<span class="tag">{{ e.strip() }}</span>{% endfor %}</div>{% endif %}
 
-            {% if p.especialidades %}
-            <div class="tags">
-                {% for esp in p.especialidades.split(',')[:3] %}
-                    <span class="tag">{{ esp.strip() }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- QR -->
             {% if p.qr_tipo == 'ambos' and (p.whatsapp or p.instagram) %}
-            <div class="qr-wrap">
-                {% set links_url = url_for('prof_links', slug=academia.slug, prof_id=p.id, _external=True) %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data={{ links_url | urlencode }}" alt="QR">
-                <div class="qr-label"><span class="qr-dot"></span>CONTATO</div>
+            <div class="qr">
+                {% set u = url_for('prof_links', slug=academia.slug, prof_id=p.id, _external=True) %}
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qrc }}&bgcolor=151922&data={{ u|urlencode }}">
+                <div class="qr-lbl"><span class="qr-dot"></span>CONTATO</div>
             </div>
             {% elif p.qr_tipo == 'instagram' and p.instagram %}
-            <div class="qr-wrap">
-                {% set insta = p.instagram | replace('@','') %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data=https://instagram.com/{{ insta }}" alt="QR">
-                <div class="qr-label"><span class="qr-dot"></span>
-                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                    INSTAGRAM
-                </div>
+            <div class="qr">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qrc }}&bgcolor=151922&data=https://instagram.com/{{ p.instagram|replace('@','') }}">
+                <div class="qr-lbl"><span class="qr-dot"></span><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>INSTAGRAM</div>
             </div>
             {% elif p.whatsapp %}
-            <div class="qr-wrap">
-                {% set wa = p.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data=https://wa.me/{{ wa }}" alt="QR">
-                <div class="qr-label"><span class="qr-dot"></span>
-                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                    WHATSAPP
-                </div>
+            <div class="qr">
+                {% set w = p.whatsapp|replace('(','') |replace(')','') |replace('-','') |replace(' ','') %}
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qrc }}&bgcolor=151922&data=https://wa.me/{{ w }}">
+                <div class="qr-lbl"><span class="qr-dot"></span><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WHATSAPP</div>
             </div>
             {% endif %}
-
         </div>
         {% endfor %}
     </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
+    <div class="sb">
         <div class="sb-logo">
-            {% if academia.logo_url %}
-                <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
-            {% else %}
-                <div class="sb-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
-            {% endif %}
+            {% if academia.logo_url %}<img src="{{ academia.logo_url }}" alt="">{% else %}<div class="sb-logo-txt">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>{% endif %}
         </div>
-        <div class="sb-divider"></div>
-        <div class="sb-welcome">
-            <div class="sb-welcome-label">Bem-vindo à</div>
-            <div class="sb-welcome-name">{{ academia.nome }}</div>
-        </div>
-        <div class="sb-cta">
-            <div class="sb-cta-label">🎯 Próximo passo</div>
-            <div class="sb-cta-text">{{ academia.cta_texto | default('Agende sua avaliação gratuita!') }}</div>
-        </div>
+        <div class="sb-div"></div>
+        <div class="sb-wel"><small>Bem-vindo à</small><strong>{{ academia.nome }}</strong></div>
+        <div class="sb-cta"><small>🎯 Próximo passo</small><span>{{ academia.cta_texto | default('Agende sua avaliação!') }}</span></div>
         {% if academia.email_qr %}
-        <div class="sb-qr-wrap">
-            <img class="sb-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ qr_color }}&bgcolor=0a0c11&data={{ academia.email_qr }}" alt="QR">
-            <span class="sb-qr-tag">ESCANEAR</span>
+        <div class="sb-qr">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ qrc }}&bgcolor=0a0c11&data={{ academia.email_qr }}">
+            <em>Escanear</em>
         </div>
         {% endif %}
-        <div class="sb-counter">
-            <div class="sb-counter-row">
+        <div class="sb-cnt">
+            <div class="sb-cnt-row">
                 <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span class="sb-num">{{ profissionais | length }}</span>
+                <span class="sb-cnt-n">{{ profissionais|length }}</span>
             </div>
-            <div class="sb-label">Profissionais</div>
+            <div class="sb-cnt-l">Profissionais</div>
         </div>
     </div>
-
 </div>
 
 <script>
-    const grid  = document.getElementById('profGrid');
-    const total = {{ profissionais | length }};
+(function(){
+    const g = document.getElementById('g');
+    const n = {{ profissionais|length }};
 
-    if (total > 8) {
-        // duplica para scroll infinito
-        [...grid.children].forEach(c => grid.appendChild(c.cloneNode(true)));
-        const dur = total * 4;
-        grid.style.animation = `scrollUp ${dur}s linear infinite`;
+    // Decide optimal columns based on number of professionals
+    let cols;
+    if (n <= 2)      cols = 2;
+    else if (n <= 6)  cols = 3;
+    else              cols = 4;
+
+    // If only 1, show 1 column
+    if (n === 1) cols = 1;
+
+    g.classList.add('cols-' + cols);
+
+    const rows = Math.ceil(n / cols);
+    const totalGap = (rows - 1) * 20;
+    const availableH = g.clientHeight - 40; // subtract top+bottom padding
+    const rh = Math.floor((availableH - totalGap) / rows);
+    g.style.gridAutoRows = rh + 'px';
+
+    // Scale font sizes dynamically based on card height for maximum readability
+    const cards = g.querySelectorAll('.card');
+    if (rh > 600) {
+        // Very tall cards - bump everything up
+        cards.forEach(c => {
+            const nome = c.querySelector('.nome');
+            const cargo = c.querySelector('.cargo');
+            const foto = c.querySelector('.foto');
+            if (nome) nome.style.fontSize = '42px';
+            if (cargo) cargo.style.fontSize = '20px';
+            if (foto) { foto.style.width = '180px'; foto.style.height = '180px'; }
+        });
+    } else if (rh > 400) {
+        // Medium-tall cards
+        cards.forEach(c => {
+            const nome = c.querySelector('.nome');
+            const cargo = c.querySelector('.cargo');
+            const foto = c.querySelector('.foto');
+            if (nome) nome.style.fontSize = '36px';
+            if (cargo) cargo.style.fontSize = '18px';
+            if (foto) { foto.style.width = '160px'; foto.style.height = '160px'; }
+        });
     }
 
-    setTimeout(() => location.reload(), 300000);
+    // Scroll animation for many professionals (more than 2 rows of 4)
+    if (n > 8) {
+        [...g.children].forEach(c => g.appendChild(c.cloneNode(true)));
+        g.style.animation = `scrollUp ${n * 4}s linear infinite`;
+    }
+})();
+
+// Auto-reload every 5 minutes
+setTimeout(() => location.reload(), 300000);
 </script>
 
 </body>
