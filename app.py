@@ -60,6 +60,8 @@ def query(sql, params=None, fetch=None):
         get_pool().putconn(conn)
 
 def init_db():
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
         slug TEXT UNIQUE NOT NULL,
@@ -72,6 +74,7 @@ def init_db():
         cor_tag TEXT DEFAULT '#1a1a2e',
         cta_texto TEXT DEFAULT 'Agende uma avaliacao',
         email_qr TEXT DEFAULT '',
+        fonte TEXT DEFAULT 'Syne',
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -86,11 +89,20 @@ def init_db():
         especialidades TEXT DEFAULT '',
         foto_url TEXT DEFAULT '',
         cor_avatar TEXT DEFAULT '#1a6fd4',
+        qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
         criado_em TIMESTAMP DEFAULT NOW())""")
 
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
 def arquivo_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def tamanho_valido(file):
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    return size <= MAX_FILE_SIZE
 
 def upload_imagem(file, pasta="painel_tv"):
     try:
@@ -104,11 +116,32 @@ def upload_imagem(file, pasta="painel_tv"):
         print(f"Erro upload Cloudinary: {e}")
         return ""
 
+def upload_logo(file, pasta="painel_tv/logos"):
+    try:
+        resultado = cloudinary.uploader.upload(
+            file,
+            folder=pasta,
+            transformation=[{"height": 200, "crop": "fit"}]
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print(f"Erro upload logo Cloudinary: {e}")
+        return ""
+
+SESSION_TIMEOUT = timedelta(hours=2)
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if session.get("academia_slug") != kwargs.get("slug"):
             return redirect(url_for("admin_login", slug=kwargs.get("slug")))
+        last = session.get("last_activity")
+        now = datetime.utcnow().timestamp()
+        if last and isinstance(last, (int, float)) and now - last > SESSION_TIMEOUT.total_seconds():
+            session.clear()
+            flash("Sessão expirada. Faça login novamente.")
+            return redirect(url_for("admin_login", slug=kwargs.get("slug")))
+        session["last_activity"] = now
         return f(*args, **kwargs)
     return decorated
 
@@ -141,6 +174,7 @@ def admin_login(slug):
             session.permanent = True
             session["academia_slug"] = slug
             session["academia_id"] = academia["id"]
+            session["last_activity"] = datetime.utcnow().timestamp()
             return redirect(url_for("admin_editor", slug=slug))
         flash("Senha incorreta.")
     return render_template("admin_login.html", academia=academia)
@@ -168,18 +202,47 @@ def salvar_config(slug):
     if "logo" in request.files:
         file = request.files["logo"]
         if file and file.filename and arquivo_permitido(file.filename):
-            logo_url = upload_imagem(file, pasta="painel_tv/logos")
+            if not tamanho_valido(file):
+                flash("A logo não pode ter mais de 5MB.")
+                return redirect(url_for("admin_editor", slug=slug))
+            logo_url = upload_logo(file)
+    fontes_validas = {"Syne","Montserrat","Poppins","Oswald","Bebas Neue","Space Grotesk","Encode Sans","Raleway"}
+    fonte = request.form.get("fonte", "Syne")
+    if fonte not in fontes_validas:
+        fonte = "Syne"
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
-        cta_texto=%s, email_qr=%s WHERE slug=%s""",
+        cta_texto=%s, email_qr=%s, fonte=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
-         request.form.get("cta_texto"), request.form.get("email_qr"), slug))
+         request.form.get("cta_texto"), request.form.get("email_qr"),
+         fonte, slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 
+
+@app.route("/<slug>/admin/trocar-senha", methods=["POST"])
+@login_required
+def trocar_senha(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    senha_atual = request.form.get("senha_atual", "")
+    senha_nova = request.form.get("senha_nova", "")
+    senha_confirmacao = request.form.get("senha_confirmacao", "")
+    if not check_password_hash(academia["senha_hash"], senha_atual):
+        flash("Senha atual incorreta.")
+        return redirect(url_for("admin_editor", slug=slug) + "#config")
+    if len(senha_nova) < 6:
+        flash("A nova senha deve ter pelo menos 6 caracteres.")
+        return redirect(url_for("admin_editor", slug=slug) + "#config")
+    if senha_nova != senha_confirmacao:
+        flash("As senhas não coincidem.")
+        return redirect(url_for("admin_editor", slug=slug) + "#config")
+    query("UPDATE academias SET senha_hash=%s WHERE slug=%s",
+          (generate_password_hash(senha_nova), slug))
+    flash("Senha alterada com sucesso!")
+    return redirect(url_for("admin_editor", slug=slug))
 
 @app.route("/<slug>/admin/remover-logo", methods=["POST"])
 @login_required
@@ -195,16 +258,22 @@ def adicionar_profissional(slug):
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
+            if not tamanho_valido(file):
+                flash("A foto não pode ter mais de 5MB.")
+                return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    qr_tipo = request.form.get("qr_tipo", "whatsapp")
+    if qr_tipo not in ("whatsapp", "instagram", "ambos"):
+        qr_tipo = "whatsapp"
     query("""INSERT INTO profissionais
-        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, ordem)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, qr_tipo, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar", "#1a6fd4"), academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -221,16 +290,22 @@ def editar_profissional(slug, prof_id):
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
+            if not tamanho_valido(file):
+                flash("A foto não pode ter mais de 5MB.")
+                return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    qr_tipo = request.form.get("qr_tipo", "whatsapp")
+    if qr_tipo not in ("whatsapp", "instagram", "ambos"):
+        qr_tipo = "whatsapp"
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
-        anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s
+        anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s, qr_tipo=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url,
-         request.form.get("cor_avatar", "#1a6fd4"), prof_id, academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -302,6 +377,30 @@ def setup():
         flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
     return render_template("setup.html")
+
+@app.route("/<slug>/prof/<int:prof_id>/links")
+def prof_links(slug, prof_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    if not academia:
+        return render_template("404.html"), 404
+    prof = query("SELECT * FROM profissionais WHERE id=%s AND academia_id=%s",
+                 (prof_id, academia["id"]), fetch="one")
+    if not prof:
+        return render_template("404.html"), 404
+    return render_template("prof_links.html", academia=academia, prof=prof)
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template("500.html"), 500
+
+@app.errorhandler(413)
+def file_too_large(e):
+    flash("Arquivo muito grande. O limite é 5MB.")
+    return redirect(request.referrer or "/")
 
 with app.app_context():
     init_db()

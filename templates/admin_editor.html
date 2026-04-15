@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Editor — {{ academia.nome }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@700&family=Bebas+Neue&family=Space+Grotesk:wght@700&family=Encode+Sans:wght@700;800;900&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0a0f;
@@ -346,6 +346,10 @@ details[open] .chevron{transform:rotate(180deg)}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Profissionais
       </button>
+      <button class="nav-item" onclick="switchTab('seguranca')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Segurança
+      </button>
       <span class="nav-label" style="margin-top:8px">Visualização</span>
       <a href="{{ url_for('painel', slug=academia.slug) }}" target="_blank" class="nav-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
@@ -397,6 +401,10 @@ details[open] .chevron{transform:rotate(180deg)}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Profissionais
       </button>
+      <button class="tab-btn inactive" id="tab-seguranca" onclick="switchTab('seguranca')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Segurança
+      </button>
     </div>
 
     <!-- TAB: CONFIGURAÇÕES -->
@@ -444,14 +452,13 @@ details[open] .chevron{transform:rotate(180deg)}
                 <input type="file" name="logo" accept="image/*" style="display:none">
               </div>
               {% if academia.logo_url %}
-              <form method="POST" action="{{ url_for('remover_logo', slug=academia.slug) }}"
-                onsubmit="return confirm('Remover a logo? Esta ação não pode ser desfeita.')"
-                style="margin-top:8px">
-                <button type="submit" class="btn-danger">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                  Remover logo
-                </button>
-              </form>
+              <button type="button" class="btn-danger" style="margin-top:8px"
+                onclick="if(confirm('Remover a logo? Esta ação não pode ser desfeita.')){
+                  fetch('{{ url_for('remover_logo', slug=academia.slug) }}', {method:'POST'}).then(()=>location.reload())
+                }">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                Remover logo
+              </button>
               {% endif %}
             </div>
             <div>
@@ -487,7 +494,38 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
           </div>
-          <div style="margin-top:8px">
+          <div class="divider"></div>
+          <div class="section-head">
+            <p class="section-title">Tipografia</p>
+            <p class="section-desc">Fonte usada nos nomes e títulos do painel de TV</p>
+          </div>
+          <div class="grid-3" style="margin-bottom:8px">
+            {% set fontes = [
+              ('Encode Sans',  'Encode Sans — Bodytech oficial'),
+              ('Raleway',      'Raleway — Bodytech apoio'),
+              ('Syne',         'Syne — Geométrico bold'),
+              ('Montserrat',   'Montserrat — Esportivo'),
+              ('Poppins',      'Poppins — Arredondado'),
+              ('Oswald',       'Oswald — Atlético condensado'),
+              ('Bebas Neue',   'Bebas Neue — Impactante'),
+              ('Space Grotesk','Space Grotesk — Tech')
+            ] %}
+            {% for valor, label in fontes %}
+            <label style="cursor:pointer">
+              <input type="radio" name="fonte" value="{{ valor }}"
+                {% if (academia.fonte or 'Syne') == valor %}checked{% endif %}
+                style="display:none" class="fonte-radio">
+              <div class="fonte-card" data-fonte="{{ valor }}"
+                style="border:2px solid {% if (academia.fonte or 'Syne') == valor %}var(--acc){% else %}var(--border){% endif %};
+                       background:{% if (academia.fonte or 'Syne') == valor %}var(--acc-dim){% else %}var(--card){% endif %};
+                       border-radius:12px;padding:14px 12px;transition:all .2s;text-align:center;">
+                <div style="font-size:20px;font-weight:800;color:var(--t1);font-family:'{{ valor }}',sans-serif;margin-bottom:4px">Aa</div>
+                <div style="font-size:11px;color:var(--t2);font-weight:500">{{ label }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          <div style="margin-top:16px">
             <button type="submit" class="btn-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Salvar configurações
@@ -580,6 +618,15 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
             <div class="grid-full">
+              <label class="field-label">QR Code no painel — direcionar para</label>
+              <select class="field-input" name="qr_tipo">
+                <option value="whatsapp" {% if p.qr_tipo == 'whatsapp' or not p.qr_tipo %}selected{% endif %}>WhatsApp</option>
+                <option value="instagram" {% if p.qr_tipo == 'instagram' %}selected{% endif %}>Instagram</option>
+                <option value="ambos" {% if p.qr_tipo == 'ambos' %}selected{% endif %}>WhatsApp + Instagram</option>
+              </select>
+              <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
+            </div>
+            <div class="grid-full">
               <label class="field-label">Especialidades (separadas por vírgula)</label>
               <input class="field-input" type="text" name="especialidades" value="{{ p.especialidades }}" placeholder="Musculação, Emagrecimento">
             </div>
@@ -656,6 +703,15 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
             <div class="grid-full">
+              <label class="field-label">QR Code no painel — direcionar para</label>
+              <select class="field-input" name="qr_tipo">
+                <option value="whatsapp" selected>WhatsApp</option>
+                <option value="instagram">Instagram</option>
+                <option value="ambos">WhatsApp + Instagram</option>
+              </select>
+              <p class="field-hint">Escolha para onde o QR leva quando escaneado na TV</p>
+            </div>
+            <div class="grid-full">
               <label class="field-label">Especialidades (separadas por vírgula)</label>
               <input class="field-input" type="text" name="especialidades" placeholder="Musculação, Emagrecimento, Hipertrofia">
             </div>
@@ -671,6 +727,36 @@ details[open] .chevron{transform:rotate(180deg)}
 
     </div><!-- /tab profissionais -->
 
+    <!-- TAB: SEGURANÇA -->
+    <div class="tab-content" id="content-seguranca">
+      <div class="section-head">
+        <p class="section-title">Alterar senha de acesso</p>
+        <p class="section-desc">Troque a senha do painel administrativo desta academia</p>
+      </div>
+      <div class="card" style="max-width:480px">
+        <form method="POST" action="{{ url_for('trocar_senha', slug=academia.slug) }}">
+          <div class="grid-full">
+            <label class="field-label">Senha atual</label>
+            <input class="field-input" type="password" name="senha_atual" required placeholder="••••••••">
+          </div>
+          <div class="grid-full" style="margin-top:14px">
+            <label class="field-label">Nova senha</label>
+            <input class="field-input" type="password" name="senha_nova" required placeholder="Mínimo 6 caracteres" minlength="6">
+          </div>
+          <div class="grid-full" style="margin-top:14px">
+            <label class="field-label">Confirmar nova senha</label>
+            <input class="field-input" type="password" name="senha_confirmacao" required placeholder="Repita a nova senha">
+          </div>
+          <div style="margin-top:20px">
+            <button type="submit" class="btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Alterar senha
+            </button>
+          </div>
+        </form>
+      </div>
+    </div><!-- /tab seguranca -->
+
     <div style="height:60px"></div>
   </main>
 </div>
@@ -683,18 +769,42 @@ function switchTab(tab) {
   document.getElementById('content-' + tab).classList.add('active');
   document.getElementById('tab-' + tab).classList.remove('inactive');
   document.getElementById('tab-' + tab).classList.add('active');
-  if(tab === 'config') {
-    document.getElementById('pageTitle').textContent = 'Configurações';
-    document.getElementById('pageSub').textContent = 'Personalize o painel da sua academia';
-  } else {
-    document.getElementById('pageTitle').textContent = 'Profissionais';
-    document.getElementById('pageSub').textContent = 'Gerencie a equipe de profissionais da academia';
-  }
+  const titles = {
+    config: ['Configurações', 'Personalize o painel da sua academia'],
+    profissionais: ['Profissionais', 'Gerencie a equipe de profissionais da academia'],
+    seguranca: ['Segurança', 'Altere a senha de acesso ao painel']
+  };
+  const [title, sub] = titles[tab] || titles['profissionais'];
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSub').textContent = sub;
 }
+// seletor de fonte visual
+document.querySelectorAll('.fonte-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.fonte-card').forEach(card => {
+      card.style.border = '2px solid rgba(255,255,255,0.08)';
+      card.style.background = 'rgba(255,255,255,0.04)';
+    });
+    const card = this.closest('label').querySelector('.fonte-card');
+    card.style.border = '2px solid var(--acc)';
+    card.style.background = 'var(--acc-dim)';
+  });
+});
 // sync color hex label
 document.querySelectorAll('.color-swatch').forEach(input => {
   const label = input.closest('.color-field')?.querySelector('.color-label');
   if(label) input.addEventListener('input', () => label.textContent = input.value);
+});
+// logo upload feedback
+document.querySelectorAll('.upload-zone input[type=file]').forEach(input => {
+  input.addEventListener('change', function() {
+    const zone = this.closest('.upload-zone');
+    if(this.files.length) {
+      zone.querySelector('.upload-text').textContent = this.files[0].name;
+      zone.querySelector('.upload-sub').textContent = 'Arquivo selecionado — clique "Salvar" para enviar';
+      zone.style.borderColor = '#22c55e';
+    }
+  });
 });
 </script>
 </body>
