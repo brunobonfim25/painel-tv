@@ -5,28 +5,27 @@
     <meta name="viewport" content="width=1920, initial-scale=1.0">
     <title>{{ academia.nome }} — Equipe de Profissionais</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Space+Grotesk:wght@700&family=Encode+Sans:wght@700;800;900&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Montserrat:wght@700;800;900&family=Poppins:wght@700;800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Space+Grotesk:wght@700&family=Encode+Sans:wght@700;800;900&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
+        {% set accent = academia.cor_destaque if academia.cor_destaque else '#56B78F' %}
+        {% set fonte  = academia.fonte if academia.fonte else 'Encode Sans' %}
 
-        {% set accent = academia.cor_destaque if academia.cor_destaque else '#06b6d4' %}
-        :root{
-            --bg:        #0f1117;
-            --bg2:       #13161f;
-            --card:      #181c27;
-            --card-h:    #1d2133;
-            --border:    rgba(255,255,255,0.07);
-            --cyan:      {{ accent }};
-            --cyan-dim:  {{ accent }}26;
-            --cyan-glow: {{ accent }}59;
-            --cyan-dark: {{ accent }};
-            --text:      #f1f5f9;
-            --muted:     #64748b;
-            --sidebar:   #0d1018;
-            --fonte-titulo: '{{ academia.fonte | default("Syne") }}', sans-serif;
+        :root {
+            --accent:     {{ accent }};
+            --accent-dim: {{ accent }}22;
+            --accent-glow:{{ accent }}44;
+            --bg:         #0c0e14;
+            --card:       #13161f;
+            --card-border:rgba(255,255,255,0.08);
+            --text:       #f1f5f9;
+            --muted:      #8892a4;
+            --sidebar:    #0a0c11;
+            --fonte:      '{{ fonte }}', 'Inter', sans-serif;
         }
-        *{ margin:0; padding:0; box-sizing:border-box; }
 
-        body{
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
             background: var(--bg);
             color: var(--text);
             font-family: 'Inter', sans-serif;
@@ -35,541 +34,481 @@
             height: 1080px;
         }
 
-        /* ===== HEADER ===== */
-        .header{
+        /* ══════════════════════════════
+           HEADER
+        ══════════════════════════════ */
+        .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 36px;
+            padding: 0 48px;
+            height: 90px;
             background: var(--sidebar);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
-        .header-left{ display:flex; align-items:center; gap:18px; }
+        .header-left { display:flex; align-items:center; gap:20px; }
 
-        .logo-wrap{
-            height: 48px;
-            display: flex;
-            align-items: center;
-        }
-        .logo-wrap img{ height:48px; width:auto; object-fit:contain; }
-        .logo-initials{
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            border: 1.5px solid var(--cyan);
+        .logo-wrap { height:56px; display:flex; align-items:center; }
+        .logo-wrap img { height:56px; width:auto; object-fit:contain; }
+        .logo-initials {
+            width:56px; height:56px; border-radius:14px;
+            border: 2px solid var(--accent);
             background: var(--card);
-            display: flex; align-items:center; justify-content:center;
-            font-weight: 800; font-size: 18px; color: var(--cyan);
-            box-shadow: 0 0 16px var(--cyan-glow);
+            display:flex; align-items:center; justify-content:center;
+            font-family: var(--fonte); font-size:20px; font-weight:800;
+            color: var(--accent);
         }
 
-        .header-text{}
-        .header-eyebrow{
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--cyan); margin-bottom: 3px;
+        .header-eyebrow {
+            font-size:11px; font-weight:700;
+            letter-spacing:0.25em; text-transform:uppercase;
+            color: var(--accent); margin-bottom:4px;
         }
-        .header-name{
-            font-family: var(--fonte-titulo);
-            font-size: 26px; font-weight: 800;
-            color: var(--text); letter-spacing: -0.02em;
+        .header-name {
+            font-family: var(--fonte);
+            font-size:30px; font-weight:800;
+            color: var(--text); letter-spacing:-0.02em; line-height:1;
         }
-        .header-sub{ font-size: 12px; color: var(--muted); margin-top: 1px; }
+        .header-sub { font-size:13px; color:var(--muted); margin-top:3px; }
 
-        .ao-vivo{
-            display: flex; align-items:center; gap: 8px;
-            background: var(--cyan-dim);
-            border: 1px solid rgba(6,182,212,0.3);
-            border-radius: 100px;
-            padding: 8px 20px;
-            font-size: 12px; font-weight: 700;
-            letter-spacing: 0.15em; color: var(--cyan);
+        .live-badge {
+            display:flex; align-items:center; gap:10px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius:100px; padding:10px 24px;
+            font-size:13px; font-weight:700;
+            letter-spacing:0.15em; color:var(--accent);
         }
-        .ao-vivo-dot{
-            width: 8px; height: 8px;
-            background: var(--cyan); border-radius: 50%;
-            animation: blink 2s infinite;
+        .live-dot {
+            width:9px; height:9px; border-radius:50%;
+            background:var(--accent); animation:blink 2s infinite;
         }
-        @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.25} }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-        /* ===== LAYOUT ===== */
-        .layout{
+        /* ══════════════════════════════
+           LAYOUT
+        ══════════════════════════════ */
+        .layout {
             display: flex;
-            height: calc(1080px - 85px);
+            height: calc(1080px - 90px);
         }
 
-        /* ===== GRID ===== */
-        .main-grid{
+        /* ══════════════════════════════
+           GRID
+        ══════════════════════════════ */
+        .grid {
             flex: 1;
-            padding: 16px 20px;
-            overflow: hidden;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: min-content;
-            gap: 14px;
+            gap: 18px;
+            padding: 20px 24px;
             align-content: start;
+            overflow: hidden;
         }
 
-        /* ===== CARD ===== */
-        .card{
+        /* ══════════════════════════════
+           CARD
+        ══════════════════════════════ */
+        .card {
             background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px 16px 18px;
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 28px 20px 22px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             position: relative;
             overflow: hidden;
-            transition: border-color .3s;
         }
-        .card::before{
+        /* linha de destaque no topo do card */
+        .card::after {
             content:'';
-            position:absolute; top:0; left:0; right:0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-            opacity: 0.6;
+            position:absolute; top:0; left:20%; right:20%; height:2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
         }
 
-        /* FOTO */
-        .card-photo-wrap{
-            position: relative;
-            width: 108px; height: 108px;
-            flex-shrink: 0;
-            display: flex; align-items:center; justify-content:center;
+        /* ── FOTO ── */
+        .photo-ring {
+            position:relative;
+            width:130px; height:130px;
+            flex-shrink:0;
         }
-        .card-photo-wrap::before{
+        .photo-ring::before {
             content:'';
-            position: absolute;
-            width: 108px; height: 108px;
-            border-radius: 50%;
+            position:absolute; inset:0; border-radius:50%;
             background: conic-gradient(
                 from 0deg,
-                transparent 0%,
-                var(--cyan) 20%,
-                #22d3ee 35%,
-                transparent 50%,
-                var(--cyan-dark) 70%,
-                var(--cyan) 85%,
-                transparent 100%
+                transparent 0%, var(--accent) 20%,
+                #fff4 35%, transparent 50%,
+                var(--accent) 70%, transparent 100%
             );
-            animation: spin 5s linear infinite;
-            z-index: 0;
+            animation: spin 6s linear infinite;
         }
-        .card-photo-wrap::after{
-            content:'';
-            position: absolute;
-            width: 112px; height: 112px;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 180deg,
-                transparent 0%,
-                var(--cyan-glow) 25%,
-                transparent 50%,
-                rgba(6,182,212,0.1) 75%,
-                transparent 100%
-            );
-            animation: spin 5s linear infinite reverse;
-            filter: blur(5px);
-            z-index: 0;
-        }
-        @keyframes spin{ to{ transform: rotate(360deg); } }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
-        .card-photo{
-            width: 98px; height: 98px;
-            border-radius: 50%;
-            border: 3px solid var(--card);
-            object-fit: cover;
-            position: relative; z-index: 1;
+        .photo-img, .photo-placeholder {
+            position:absolute; inset:6px; border-radius:50%;
+            border:3px solid var(--card);
+            object-fit:cover;
         }
-        .card-photo-placeholder{
-            width: 98px; height: 98px;
-            border-radius: 50%;
-            border: 3px solid var(--card);
-            display: flex; align-items:center; justify-content:center;
-            font-size: 34px; font-weight: 800; color: #fff;
-            position: relative; z-index: 1;
+        .photo-placeholder {
+            display:flex; align-items:center; justify-content:center;
+            font-family: var(--fonte); font-size:42px; font-weight:800;
+            color:#fff;
         }
 
-        .badge-anos{
-            position: absolute; bottom: 0; left: 50%;
-            transform: translateX(-50%);
-            background: var(--cyan);
-            color: #000;
-            font-size: 9px; font-weight: 800;
-            padding: 3px 10px; border-radius: 100px;
-            white-space: nowrap; z-index: 2;
-            letter-spacing: 0.05em;
+        .badge-anos {
+            position:absolute; bottom:2px; left:50%;
+            transform:translateX(-50%);
+            background: var(--accent); color:#000;
+            font-size:11px; font-weight:800;
+            padding:3px 12px; border-radius:100px;
+            white-space:nowrap; z-index:2;
+            letter-spacing:0.05em;
         }
 
-        /* INFO */
-        .card-cargo{
-            font-size: 9px; font-weight: 700;
-            letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--cyan); margin-top: 2px; text-align: center;
+        /* ── TEXTOS ── */
+        .card-cargo {
+            font-size:11px; font-weight:700;
+            letter-spacing:0.22em; text-transform:uppercase;
+            color:var(--accent); margin-top:4px;
         }
-        .card-nome{
-            font-family: var(--fonte-titulo);
-            font-size: 16px; font-weight: 800;
-            color: var(--text); text-align: center;
-            line-height: 1.2; letter-spacing: -0.01em;
-        }
-
-        /* CONTATOS */
-        .card-contatos{
-            display: flex; flex-direction: column;
-            align-items: flex-start; gap: 4px;
-            width: 100%; padding: 0 6px;
-        }
-        .card-contato{
-            display: flex; align-items: center; gap: 7px;
-            font-size: 11px; color: var(--muted);
-        }
-        .card-contato svg{
-            width: 13px; height: 13px;
-            stroke: var(--cyan); fill: none; stroke-width: 2;
-            flex-shrink: 0;
+        .card-nome {
+            font-family: var(--fonte);
+            font-size:22px; font-weight:800;
+            color:var(--text); text-align:center;
+            line-height:1.15; letter-spacing:-0.01em;
         }
 
-        /* TAGS */
-        .card-tags{
-            display: flex; flex-wrap: wrap;
-            gap: 5px; justify-content: center;
+        /* ── CONTATOS ── */
+        .card-contatos {
+            display:flex; flex-direction:column;
+            gap:5px; width:100%; padding:0 4px;
         }
-        .tag{
-            font-size: 10px; padding: 3px 10px;
-            border: 1px solid rgba(6,182,212,0.25);
-            border-radius: 100px;
-            color: var(--cyan); white-space: nowrap;
-            background: var(--cyan-dim);
+        .contato-row {
+            display:flex; align-items:center; gap:8px;
+            font-size:13px; color:var(--muted);
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-
-        /* QR */
-        .card-qr-section{
-            display: flex; flex-direction: column;
-            align-items: center; gap: 5px;
-            padding-top: 4px;
-        }
-        .card-qr{
-            width: 76px; height: 76px;
-            border-radius: 10px;
-            border: 1.5px solid rgba(6,182,212,0.3);
-            background: var(--bg2);
-        }
-        .card-qr-label{
-            display: flex; align-items: center; gap: 5px;
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 0.1em; color: var(--cyan);
-        }
-        .card-qr-label svg{ width: 12px; height: 12px; }
-        .qr-dot{
-            width: 6px; height: 6px;
-            background: var(--cyan); border-radius: 50%;
-            animation: blink 2s infinite;
+        .contato-row svg {
+            width:15px; height:15px; flex-shrink:0;
+            stroke:var(--accent); fill:none; stroke-width:2;
         }
 
-        /* ===== SIDEBAR ===== */
-        .sidebar{
-            width: 270px;
+        /* ── TAGS ── */
+        .card-tags {
+            display:flex; flex-wrap:wrap;
+            gap:6px; justify-content:center;
+        }
+        .tag {
+            font-size:11px; font-weight:600;
+            padding:4px 12px;
+            border:1px solid var(--accent);
+            border-radius:100px;
+            color:var(--accent);
+            background: var(--accent-dim);
+        }
+
+        /* ── QR ── */
+        .qr-section {
+            display:flex; flex-direction:column;
+            align-items:center; gap:6px;
+            margin-top:2px;
+        }
+        .qr-img {
+            width:86px; height:86px;
+            border-radius:10px;
+            border:2px solid var(--accent-dim);
+        }
+        .qr-label {
+            display:flex; align-items:center; gap:6px;
+            font-size:11px; font-weight:700;
+            letter-spacing:0.12em; color:var(--accent);
+        }
+        .qr-label svg { width:13px; height:13px; stroke:var(--accent); fill:none; stroke-width:2; }
+        .qr-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
+
+        /* ══════════════════════════════
+           SIDEBAR
+        ══════════════════════════════ */
+        .sidebar {
+            width: 280px;
             background: var(--sidebar);
-            border-left: 1px solid var(--border);
-            display: flex; flex-direction: column;
-            align-items: center;
-            padding: 24px 20px;
-            gap: 20px;
-            flex-shrink: 0; overflow: hidden;
+            border-left: 1px solid rgba(255,255,255,0.06);
+            display:flex; flex-direction:column;
+            align-items:center;
+            padding:28px 22px;
+            gap:22px;
+            flex-shrink:0;
         }
 
-        .sidebar-logo img{
-            max-width: 160px; max-height: 90px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 14px var(--cyan-glow));
-            animation: glow 3s ease-in-out infinite alternate;
+        .sb-logo img {
+            max-width:170px; max-height:80px; object-fit:contain;
         }
-        .sidebar-logo-text{
-            width: 88px; height: 88px;
-            border-radius: 18px;
-            border: 1.5px solid var(--cyan);
-            background: var(--card);
-            display: flex; align-items:center; justify-content:center;
-            font-family: var(--fonte-titulo);
-            font-size: 34px; font-weight: 800; color: var(--cyan);
-            box-shadow: 0 0 24px var(--cyan-glow);
-            animation: glow 3s ease-in-out infinite alternate;
-        }
-        @keyframes glow{
-            0%{ filter: drop-shadow(0 0 8px rgba(6,182,212,0.2)); }
-            100%{ filter: drop-shadow(0 0 22px rgba(6,182,212,0.55)); }
+        .sb-logo-text {
+            width:90px; height:90px; border-radius:18px;
+            border:2px solid var(--accent); background:var(--card);
+            display:flex; align-items:center; justify-content:center;
+            font-family:var(--fonte); font-size:36px; font-weight:800;
+            color:var(--accent);
         }
 
-        .sidebar-divider{
-            width: 100%; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        .sb-divider {
+            width:100%; height:1px;
+            background:rgba(255,255,255,0.06);
         }
 
-        .sidebar-welcome{ text-align: center; }
-        .sidebar-welcome-label{
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 0.18em; text-transform: uppercase;
-            color: var(--muted);
+        .sb-welcome { text-align:center; }
+        .sb-welcome-label {
+            font-size:10px; font-weight:700;
+            letter-spacing:0.2em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:6px;
         }
-        .sidebar-welcome-name{
-            font-family: var(--fonte-titulo);
-            font-size: 20px; font-weight: 800;
-            color: var(--text); margin-top: 5px;
-            letter-spacing: -0.02em;
-        }
-
-        .sidebar-cta{ text-align: center; }
-        .sidebar-cta-eyebrow{
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 0.15em; text-transform: uppercase;
-            color: var(--muted); margin-bottom: 6px;
-        }
-        .sidebar-cta-text{
-            font-size: 15px; font-weight: 700;
-            color: var(--cyan); line-height: 1.4;
+        .sb-welcome-name {
+            font-family:var(--fonte);
+            font-size:22px; font-weight:800;
+            color:var(--text); line-height:1.2;
         }
 
-        .sidebar-qr-wrap{
-            position: relative;
-            display: flex; align-items:center; justify-content:center;
+        .sb-cta { text-align:center; }
+        .sb-cta-label {
+            font-size:10px; font-weight:700;
+            letter-spacing:0.15em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:6px;
         }
-        .sidebar-qr{
-            width: 136px; height: 136px;
-            border-radius: 14px;
-            border: 1.5px solid rgba(6,182,212,0.3);
-            background: var(--bg2);
-        }
-        .sidebar-qr-badge{
-            position: absolute; right: -20px; top: 50%;
-            transform: translateY(-50%) rotate(90deg);
-            font-size: 9px; font-weight: 700;
-            letter-spacing: 0.2em; color: var(--cyan);
-            text-transform: uppercase; white-space: nowrap;
+        .sb-cta-text {
+            font-family:var(--fonte);
+            font-size:16px; font-weight:700;
+            color:var(--accent); line-height:1.4;
         }
 
-        .sidebar-counter{
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 18px 28px;
-            text-align: center;
-            width: 100%; margin-top: auto;
+        .sb-qr-wrap { position:relative; }
+        .sb-qr {
+            width:150px; height:150px;
+            border-radius:14px;
+            border:2px solid var(--accent-dim);
         }
-        .sidebar-counter-row{
-            display: flex; align-items: center;
-            justify-content: center; gap: 10px;
-        }
-        .sidebar-counter-row svg{
-            width: 26px; height: 26px;
-            stroke: var(--cyan); fill: none; stroke-width: 1.5;
-        }
-        .sidebar-counter-num{
-            font-family: var(--fonte-titulo);
-            font-size: 42px; font-weight: 800; color: var(--cyan);
-            letter-spacing: -0.03em;
-        }
-        .sidebar-counter-label{
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--muted); margin-top: 4px;
+        .sb-qr-tag {
+            position:absolute; right:-22px; top:50%;
+            transform:translateY(-50%) rotate(90deg);
+            font-size:9px; font-weight:700;
+            letter-spacing:0.2em; color:var(--accent);
+            text-transform:uppercase; white-space:nowrap;
         }
 
-        /* ===== SCROLL ===== */
-        .main-grid.scroll-mode{
-            animation: scrollUp var(--scroll-duration, 30s) linear infinite;
+        .sb-counter {
+            background:var(--card); border:1px solid var(--card-border);
+            border-radius:18px; padding:20px 28px;
+            text-align:center; width:100%; margin-top:auto;
         }
-        @keyframes scrollUp{
-            0%   { transform: translateY(0); }
-            45%  { transform: translateY(0); }
-            50%  { transform: translateY(-50%); }
-            95%  { transform: translateY(-50%); }
-            100% { transform: translateY(0); }
+        .sb-counter-row {
+            display:flex; align-items:center; justify-content:center; gap:12px;
         }
-        .main-grid.expanded{
-            grid-auto-rows: auto;
-            overflow: hidden;
+        .sb-counter-row svg { width:28px; height:28px; stroke:var(--accent); fill:none; stroke-width:1.5; }
+        .sb-counter-num {
+            font-family:var(--fonte);
+            font-size:48px; font-weight:800; color:var(--accent);
+            line-height:1;
+        }
+        .sb-counter-label {
+            font-size:11px; font-weight:700;
+            letter-spacing:0.2em; text-transform:uppercase;
+            color:var(--muted); margin-top:4px;
+        }
+
+        /* ══════════════════════════════
+           SCROLL (muitos personais)
+        ══════════════════════════════ */
+        @keyframes scrollUp {
+            0%,45%  { transform:translateY(0); }
+            50%,95% { transform:translateY(-50%); }
+            100%    { transform:translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-left">
-            <div class="logo-wrap">
-                {% if academia.logo_url %}
-                    <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
-                {% else %}
-                    <div class="logo-initials">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
-                {% endif %}
-            </div>
-            <div class="header-text">
-                <div class="header-eyebrow">Equipe de Profissionais</div>
-                <div class="header-name">{{ academia.nome }}</div>
-                {% if academia.subtitulo %}
-                    <div class="header-sub">{{ academia.subtitulo }}</div>
-                {% endif %}
-            </div>
+<!-- HEADER -->
+<div class="header">
+    <div class="header-left">
+        <div class="logo-wrap">
+            {% if academia.logo_url %}
+                <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
+            {% else %}
+                <div class="logo-initials">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
+            {% endif %}
         </div>
-        <div class="ao-vivo">
-            <span class="ao-vivo-dot"></span>
-            AO VIVO
+        <div>
+            <div class="header-eyebrow">Equipe de Profissionais</div>
+            <div class="header-name">{{ academia.nome }}</div>
+            {% if academia.subtitulo %}
+                <div class="header-sub">{{ academia.subtitulo }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="live-badge">
+        <span class="live-dot"></span>
+        AO VIVO
+    </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+    <!-- GRID DE CARDS -->
+    <div class="grid" id="profGrid">
+        {% for p in profissionais %}
+        <div class="card">
+
+            <!-- Foto -->
+            <div class="photo-ring">
+                {% if p.foto_url %}
+                    <img class="photo-img" src="{{ p.foto_url }}" alt="{{ p.nome }}">
+                {% else %}
+                    <div class="photo-placeholder" style="background:{{ p.cor_avatar | default('#1a2a1a') }}">
+                        {{ p.nome[0] | upper }}
+                    </div>
+                {% endif %}
+                {% if p.anos %}
+                    <span class="badge-anos">{{ p.anos }} anos</span>
+                {% endif %}
+            </div>
+
+            <!-- Cargo -->
+            {% if p.cargo %}
+            <div class="card-cargo">{{ p.cargo }}</div>
+            {% endif %}
+
+            <!-- Nome — destaque principal -->
+            <div class="card-nome">{{ p.nome }}</div>
+
+            <!-- Contatos -->
+            {% if p.instagram or p.email %}
+            <div class="card-contatos">
+                {% if p.instagram %}
+                <div class="contato-row">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+                    <span>{{ p.instagram }}</span>
+                </div>
+                {% endif %}
+                {% if p.email %}
+                <div class="contato-row">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                    <span>{{ p.email }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Especialidades -->
+            {% if p.especialidades %}
+            <div class="card-tags">
+                {% for esp in p.especialidades.split(',')[:3] %}
+                    <span class="tag">{{ esp.strip() }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- QR Code -->
+            {% set qr_color = (accent | replace('#','')) %}
+            {% if p.qr_tipo == 'ambos' and (p.whatsapp or p.instagram) %}
+            <div class="qr-section">
+                {% set links_url = url_for('prof_links', slug=academia.slug, prof_id=p.id, _external=True) %}
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data={{ links_url | urlencode }}" alt="QR">
+                <div class="qr-label">
+                    <span class="qr-dot"></span>
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+                    CONTATO
+                </div>
+            </div>
+            {% elif p.qr_tipo == 'instagram' and p.instagram %}
+            <div class="qr-section">
+                {% set insta = p.instagram | replace('@','') %}
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data=https://instagram.com/{{ insta }}" alt="QR">
+                <div class="qr-label">
+                    <span class="qr-dot"></span>
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+                    INSTAGRAM
+                </div>
+            </div>
+            {% elif p.whatsapp %}
+            <div class="qr-section">
+                {% set wa = p.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data=https://wa.me/{{ wa }}" alt="QR">
+                <div class="qr-label">
+                    <span class="qr-dot"></span>
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    WHATSAPP
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sb-logo">
+            {% if academia.logo_url %}
+                <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
+            {% else %}
+                <div class="sb-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
+            {% endif %}
+        </div>
+
+        <div class="sb-divider"></div>
+
+        <div class="sb-welcome">
+            <div class="sb-welcome-label">Bem-vindo à</div>
+            <div class="sb-welcome-name">{{ academia.nome }}</div>
+        </div>
+
+        <div class="sb-cta">
+            <div class="sb-cta-label">🎯 Próximo passo</div>
+            <div class="sb-cta-text">{{ academia.cta_texto | default('Agende sua avaliação gratuita!') }}</div>
+        </div>
+
+        {% if academia.email_qr %}
+        <div class="sb-qr-wrap">
+            <img class="sb-qr"
+                 src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ qr_color }}&bgcolor=0a0c11&data={{ academia.email_qr }}"
+                 alt="QR">
+            <span class="sb-qr-tag">ESCANEAR</span>
+        </div>
+        {% endif %}
+
+        <div class="sb-counter">
+            <div class="sb-counter-row">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span class="sb-counter-num">{{ profissionais | length }}</span>
+            </div>
+            <div class="sb-counter-label">Profissionais</div>
         </div>
     </div>
 
-    <!-- LAYOUT -->
-    <div class="layout">
+</div>
 
-        <!-- GRID -->
-        <div class="main-grid" id="profGrid">
-            {% for p in profissionais %}
-            <div class="card">
+<script>
+    const grid  = document.getElementById('profGrid');
+    const cards = grid.querySelectorAll('.card');
+    const n     = cards.length;
 
-                <!-- Foto -->
-                <div class="card-photo-wrap">
-                    {% if p.foto_url %}
-                        <img class="card-photo" src="{{ p.foto_url }}" alt="{{ p.nome }}">
-                    {% else %}
-                        <div class="card-photo-placeholder" style="background:{{ p.cor_avatar | default('#0e7490') }}">
-                            {{ p.nome[0] | upper }}
-                        </div>
-                    {% endif %}
-                    {% if p.anos %}
-                        <span class="badge-anos">{{ p.anos }} anos</span>
-                    {% endif %}
-                </div>
+    if (n > 8) {
+        // duplica os cards para scroll infinito suave
+        grid.style.gridAutoRows = 'auto';
+        const clone = grid.cloneNode(true);
+        [...clone.children].forEach(c => grid.appendChild(c.cloneNode(true)));
+        const dur = n * 5;
+        grid.style.animation = `scrollUp ${dur}s linear infinite`;
+    }
 
-                <!-- Cargo -->
-                {% if p.cargo %}
-                <div class="card-cargo">{{ p.cargo }}</div>
-                {% endif %}
-
-                <!-- Nome -->
-                <div class="card-nome">{{ p.nome }}</div>
-
-                <!-- Contatos -->
-                <div class="card-contatos">
-                    {% if p.instagram %}
-                    <div class="card-contato">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                        <span>{{ p.instagram }}</span>
-                    </div>
-                    {% endif %}
-                    {% if p.email %}
-                    <div class="card-contato">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-                        <span>{{ p.email }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Especialidades -->
-                {% if p.especialidades %}
-                <div class="card-tags">
-                    {% for esp in p.especialidades.split(',') %}
-                        <span class="tag">{{ esp.strip() }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- QR Code -->
-                {% if p.qr_tipo == 'ambos' and (p.whatsapp or p.instagram) %}
-                <div class="card-qr-section">
-                    {% set links_url = url_for('prof_links', slug=academia.slug, prof_id=p.id, _external=True) %}
-                    <img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ (academia.cor_destaque or '#06b6d4') | replace('#','') }}&bgcolor=0f1117&data={{ links_url | urlencode }}" alt="QR">
-                    <div class="card-qr-label">
-                        <span class="qr-dot"></span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                        CONTATO
-                    </div>
-                </div>
-                {% elif p.qr_tipo == 'instagram' and p.instagram %}
-                <div class="card-qr-section">
-                    {% set insta = p.instagram | replace('@','') %}
-                    <img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ (academia.cor_destaque or '#06b6d4') | replace('#','') }}&bgcolor=0f1117&data=https://instagram.com/{{ insta }}" alt="QR">
-                    <div class="card-qr-label">
-                        <span class="qr-dot"></span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                        INSTAGRAM
-                    </div>
-                </div>
-                {% elif p.whatsapp %}
-                <div class="card-qr-section">
-                    {% set wa = p.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
-                    <img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ (academia.cor_destaque or '#06b6d4') | replace('#','') }}&bgcolor=0f1117&data=https://wa.me/{{ wa }}" alt="QR">
-                    <div class="card-qr-label">
-                        <span class="qr-dot"></span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                        WHATSAPP
-                    </div>
-                </div>
-                {% endif %}
-
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-logo">
-                {% if academia.logo_url %}
-                    <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
-                {% else %}
-                    <div class="sidebar-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
-                {% endif %}
-            </div>
-
-            <div class="sidebar-divider"></div>
-
-            <div class="sidebar-welcome">
-                <div class="sidebar-welcome-label">Bem-vindo à</div>
-                <div class="sidebar-welcome-name">{{ academia.nome }}</div>
-            </div>
-
-            <div class="sidebar-cta">
-                <div class="sidebar-cta-eyebrow">🎯 Próximo passo</div>
-                <div class="sidebar-cta-text">{{ academia.cta_texto | default('Agende sua avaliação gratuita!') }}</div>
-            </div>
-
-            <div class="sidebar-qr-wrap">
-                <img class="sidebar-qr"
-                     src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ (academia.cor_destaque or '#06b6d4') | replace('#','') }}&bgcolor=0d1018&data={{ academia.email_qr | default('#') }}"
-                     alt="QR">
-                <span class="sidebar-qr-badge">ESCANEAR</span>
-            </div>
-
-            <div class="sidebar-counter">
-                <div class="sidebar-counter-row">
-                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span class="sidebar-counter-num">{{ profissionais | length }}</span>
-                </div>
-                <div class="sidebar-counter-label">Profissionais</div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        const grid = document.getElementById('profGrid');
-        const cards = grid.querySelectorAll('.card');
-
-        if (cards.length > 8) {
-            grid.classList.add('expanded');
-            const totalRows = Math.ceil(cards.length / 4);
-            grid.style.gridTemplateRows = `repeat(${totalRows}, 420px)`;
-            const visibleHeight = grid.parentElement.clientHeight;
-            const totalHeight = totalRows * 434;
-            if (totalHeight > visibleHeight) {
-                grid.style.animation = `scrollUp ${totalRows * 8}s linear infinite`;
-            }
-        }
-
-        setTimeout(() => location.reload(), 300000);
-    </script>
+    // auto-reload a cada 5 minutos
+    setTimeout(() => location.reload(), 300000);
+</script>
 
 </body>
 </html>
