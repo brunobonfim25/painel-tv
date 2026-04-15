@@ -11,16 +11,16 @@
         {% set fonte  = academia.fonte if academia.fonte else 'Encode Sans' %}
 
         :root {
-            --accent:     {{ accent }};
-            --accent-dim: {{ accent }}22;
-            --accent-glow:{{ accent }}44;
-            --bg:         #0c0e14;
-            --card:       #13161f;
-            --card-border:rgba(255,255,255,0.08);
-            --text:       #f1f5f9;
-            --muted:      #8892a4;
-            --sidebar:    #0a0c11;
-            --fonte:      '{{ fonte }}', 'Inter', sans-serif;
+            --accent:      {{ accent }};
+            --accent-dim:  {{ accent }}1a;
+            --accent-mid:  {{ accent }}44;
+            --bg:          #0c0e14;
+            --card:        #13161f;
+            --card-border: rgba(255,255,255,0.09);
+            --text:        #f1f5f9;
+            --muted:       #7a8599;
+            --sidebar:     #0a0c11;
+            --fonte:       '{{ fonte }}', 'Inter', sans-serif;
         }
 
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -34,296 +34,227 @@
             height: 1080px;
         }
 
-        /* ══════════════════════════════
-           HEADER
-        ══════════════════════════════ */
+        /* ── HEADER ─────────────────────── */
         .header {
+            height: 88px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 48px;
-            height: 90px;
+            padding: 0 44px;
             background: var(--sidebar);
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-
-        .header-left { display:flex; align-items:center; gap:20px; }
-
-        .logo-wrap { height:56px; display:flex; align-items:center; }
-        .logo-wrap img { height:56px; width:auto; object-fit:contain; }
-        .logo-initials {
-            width:56px; height:56px; border-radius:14px;
-            border: 2px solid var(--accent);
-            background: var(--card);
+        .h-left { display:flex; align-items:center; gap:20px; }
+        .h-logo { height:52px; display:flex; align-items:center; }
+        .h-logo img { height:52px; width:auto; object-fit:contain; }
+        .h-logo-text {
+            width:52px; height:52px; border-radius:12px;
+            border:2px solid var(--accent); background:var(--card);
             display:flex; align-items:center; justify-content:center;
-            font-family: var(--fonte); font-size:20px; font-weight:800;
-            color: var(--accent);
+            font-family:var(--fonte); font-size:18px; font-weight:800; color:var(--accent);
         }
-
-        .header-eyebrow {
-            font-size:11px; font-weight:700;
-            letter-spacing:0.25em; text-transform:uppercase;
-            color: var(--accent); margin-bottom:4px;
+        .h-eyebrow {
+            font-size:11px; font-weight:700; letter-spacing:0.22em;
+            text-transform:uppercase; color:var(--accent); margin-bottom:3px;
         }
-        .header-name {
-            font-family: var(--fonte);
-            font-size:30px; font-weight:800;
-            color: var(--text); letter-spacing:-0.02em; line-height:1;
+        .h-name {
+            font-family:var(--fonte); font-size:28px; font-weight:800;
+            color:var(--text); letter-spacing:-0.02em; line-height:1;
         }
-        .header-sub { font-size:13px; color:var(--muted); margin-top:3px; }
-
-        .live-badge {
-            display:flex; align-items:center; gap:10px;
-            background: var(--accent-dim);
-            border: 1px solid var(--accent);
-            border-radius:100px; padding:10px 24px;
-            font-size:13px; font-weight:700;
-            letter-spacing:0.15em; color:var(--accent);
+        .h-sub { font-size:13px; color:var(--muted); margin-top:3px; }
+        .live {
+            display:flex; align-items:center; gap:9px;
+            background:var(--accent-dim); border:1px solid var(--accent);
+            border-radius:100px; padding:9px 22px;
+            font-size:12px; font-weight:700; letter-spacing:0.15em; color:var(--accent);
         }
-        .live-dot {
-            width:9px; height:9px; border-radius:50%;
-            background:var(--accent); animation:blink 2s infinite;
-        }
+        .live-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-        /* ══════════════════════════════
-           LAYOUT
-        ══════════════════════════════ */
+        /* ── LAYOUT ─────────────────────── */
         .layout {
             display: flex;
-            height: calc(1080px - 90px);
+            height: calc(1080px - 88px); /* 992px */
         }
 
-        /* ══════════════════════════════
-           GRID
-        ══════════════════════════════ */
+        /* ── GRID ───────────────────────── */
         .grid {
             flex: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 18px;
-            padding: 20px 24px;
-            align-content: start;
+            grid-auto-rows: 460px;          /* altura fixa — cabe 2 linhas */
+            gap: 16px;
+            padding: 18px 20px;
             overflow: hidden;
+            align-content: start;
         }
 
-        /* ══════════════════════════════
-           CARD
-        ══════════════════════════════ */
+        /* ── CARD ───────────────────────── */
         .card {
             background: var(--card);
             border: 1px solid var(--card-border);
-            border-radius: 22px;
-            padding: 28px 20px 22px;
+            border-radius: 20px;
+            overflow: hidden;               /* clipa tudo */
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            padding: 26px 18px 20px;
+            gap: 8px;
             position: relative;
-            overflow: hidden;
         }
-        /* linha de destaque no topo do card */
-        .card::after {
+        /* faixa de destaque no topo */
+        .card::before {
             content:'';
-            position:absolute; top:0; left:20%; right:20%; height:2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            position:absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
         }
 
-        /* ── FOTO ── */
-        .photo-ring {
-            position:relative;
-            width:130px; height:130px;
-            flex-shrink:0;
-        }
-        .photo-ring::before {
-            content:'';
-            position:absolute; inset:0; border-radius:50%;
+        /* ── FOTO ───────────────────────── */
+        .photo-wrap {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            padding: 3px;                   /* anel = padding colorido */
             background: conic-gradient(
                 from 0deg,
-                transparent 0%, var(--accent) 20%,
-                #fff4 35%, transparent 50%,
-                var(--accent) 70%, transparent 100%
+                transparent 0%, var(--accent) 25%,
+                transparent 50%, var(--accent) 75%, transparent 100%
             );
             animation: spin 6s linear infinite;
+            flex-shrink: 0;
         }
         @keyframes spin { to { transform:rotate(360deg); } }
 
-        .photo-img, .photo-placeholder {
-            position:absolute; inset:6px; border-radius:50%;
-            border:3px solid var(--card);
-            object-fit:cover;
+        .photo-inner {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--card);
+            border: 3px solid var(--card); /* gap entre foto e anel */
+        }
+        .photo-inner img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
         }
         .photo-placeholder {
-            display:flex; align-items:center; justify-content:center;
-            font-family: var(--fonte); font-size:42px; font-weight:800;
-            color:#fff;
+            width: 100%; height: 100%;
+            display: flex; align-items:center; justify-content:center;
+            font-family:var(--fonte); font-size:38px; font-weight:800; color:#fff;
         }
 
         .badge-anos {
-            position:absolute; bottom:2px; left:50%;
-            transform:translateX(-50%);
-            background: var(--accent); color:#000;
-            font-size:11px; font-weight:800;
+            background:var(--accent); color:#000;
+            font-size:11px; font-weight:800; letter-spacing:0.06em;
             padding:3px 12px; border-radius:100px;
-            white-space:nowrap; z-index:2;
-            letter-spacing:0.05em;
+            margin-top:-4px; /* aproxima da foto */
         }
 
-        /* ── TEXTOS ── */
+        /* ── TEXTOS ─────────────────────── */
         .card-cargo {
-            font-size:11px; font-weight:700;
-            letter-spacing:0.22em; text-transform:uppercase;
-            color:var(--accent); margin-top:4px;
+            font-size:11px; font-weight:700; letter-spacing:0.22em;
+            text-transform:uppercase; color:var(--accent);
         }
         .card-nome {
-            font-family: var(--fonte);
-            font-size:22px; font-weight:800;
+            font-family:var(--fonte);
+            font-size:21px; font-weight:800;
             color:var(--text); text-align:center;
-            line-height:1.15; letter-spacing:-0.01em;
+            line-height:1.2; letter-spacing:-0.01em;
         }
 
-        /* ── CONTATOS ── */
-        .card-contatos {
-            display:flex; flex-direction:column;
-            gap:5px; width:100%; padding:0 4px;
-        }
-        .contato-row {
+        /* ── CONTATOS ───────────────────── */
+        .contatos { width:100%; display:flex; flex-direction:column; gap:5px; }
+        .contato {
             display:flex; align-items:center; gap:8px;
             font-size:13px; color:var(--muted);
             white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-        .contato-row svg {
-            width:15px; height:15px; flex-shrink:0;
-            stroke:var(--accent); fill:none; stroke-width:2;
-        }
+        .contato svg { width:14px; height:14px; flex-shrink:0; stroke:var(--accent); fill:none; stroke-width:2; }
 
-        /* ── TAGS ── */
-        .card-tags {
-            display:flex; flex-wrap:wrap;
-            gap:6px; justify-content:center;
-        }
+        /* ── TAGS ───────────────────────── */
+        .tags { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
         .tag {
             font-size:11px; font-weight:600;
-            padding:4px 12px;
+            padding:4px 13px;
             border:1px solid var(--accent);
             border-radius:100px;
             color:var(--accent);
-            background: var(--accent-dim);
+            background:var(--accent-dim);
         }
 
-        /* ── QR ── */
-        .qr-section {
-            display:flex; flex-direction:column;
-            align-items:center; gap:6px;
-            margin-top:2px;
-        }
-        .qr-img {
-            width:86px; height:86px;
-            border-radius:10px;
-            border:2px solid var(--accent-dim);
-        }
+        /* ── QR ─────────────────────────── */
+        .qr-wrap { display:flex; flex-direction:column; align-items:center; gap:5px; }
+        .qr-img { width:80px; height:80px; border-radius:10px; border:1.5px solid var(--accent-mid); }
         .qr-label {
-            display:flex; align-items:center; gap:6px;
-            font-size:11px; font-weight:700;
-            letter-spacing:0.12em; color:var(--accent);
+            display:flex; align-items:center; gap:5px;
+            font-size:10px; font-weight:700; letter-spacing:0.13em; color:var(--accent);
         }
-        .qr-label svg { width:13px; height:13px; stroke:var(--accent); fill:none; stroke-width:2; }
-        .qr-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
+        .qr-label svg { width:12px; height:12px; stroke:var(--accent); fill:none; stroke-width:2; }
+        .qr-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); animation:blink 2s infinite; }
 
-        /* ══════════════════════════════
-           SIDEBAR
-        ══════════════════════════════ */
+        /* ── SIDEBAR ────────────────────── */
         .sidebar {
-            width: 280px;
-            background: var(--sidebar);
-            border-left: 1px solid rgba(255,255,255,0.06);
-            display:flex; flex-direction:column;
-            align-items:center;
-            padding:28px 22px;
-            gap:22px;
-            flex-shrink:0;
+            width: 272px; flex-shrink:0;
+            background:var(--sidebar);
+            border-left:1px solid rgba(255,255,255,0.06);
+            display:flex; flex-direction:column; align-items:center;
+            padding:28px 20px; gap:20px;
         }
-
-        .sb-logo img {
-            max-width:170px; max-height:80px; object-fit:contain;
-        }
+        .sb-logo { display:flex; align-items:center; justify-content:center; }
+        .sb-logo img { max-width:160px; max-height:80px; object-fit:contain; }
         .sb-logo-text {
-            width:90px; height:90px; border-radius:18px;
+            width:84px; height:84px; border-radius:16px;
             border:2px solid var(--accent); background:var(--card);
             display:flex; align-items:center; justify-content:center;
-            font-family:var(--fonte); font-size:36px; font-weight:800;
-            color:var(--accent);
+            font-family:var(--fonte); font-size:32px; font-weight:800; color:var(--accent);
         }
-
-        .sb-divider {
-            width:100%; height:1px;
-            background:rgba(255,255,255,0.06);
-        }
-
+        .sb-divider { width:100%; height:1px; background:rgba(255,255,255,0.06); }
         .sb-welcome { text-align:center; }
         .sb-welcome-label {
-            font-size:10px; font-weight:700;
-            letter-spacing:0.2em; text-transform:uppercase;
-            color:var(--muted); margin-bottom:6px;
+            font-size:10px; font-weight:700; letter-spacing:0.2em;
+            text-transform:uppercase; color:var(--muted); margin-bottom:5px;
         }
         .sb-welcome-name {
-            font-family:var(--fonte);
-            font-size:22px; font-weight:800;
-            color:var(--text); line-height:1.2;
+            font-family:var(--fonte); font-size:20px; font-weight:800;
+            color:var(--text); line-height:1.25;
         }
-
         .sb-cta { text-align:center; }
         .sb-cta-label {
-            font-size:10px; font-weight:700;
-            letter-spacing:0.15em; text-transform:uppercase;
-            color:var(--muted); margin-bottom:6px;
+            font-size:10px; font-weight:700; letter-spacing:0.15em;
+            text-transform:uppercase; color:var(--muted); margin-bottom:5px;
         }
         .sb-cta-text {
-            font-family:var(--fonte);
-            font-size:16px; font-weight:700;
+            font-family:var(--fonte); font-size:15px; font-weight:700;
             color:var(--accent); line-height:1.4;
         }
-
         .sb-qr-wrap { position:relative; }
-        .sb-qr {
-            width:150px; height:150px;
-            border-radius:14px;
-            border:2px solid var(--accent-dim);
-        }
+        .sb-qr { width:144px; height:144px; border-radius:14px; border:2px solid var(--accent-mid); }
         .sb-qr-tag {
-            position:absolute; right:-22px; top:50%;
+            position:absolute; right:-20px; top:50%;
             transform:translateY(-50%) rotate(90deg);
-            font-size:9px; font-weight:700;
-            letter-spacing:0.2em; color:var(--accent);
-            text-transform:uppercase; white-space:nowrap;
+            font-size:9px; font-weight:700; letter-spacing:0.2em;
+            color:var(--accent); text-transform:uppercase; white-space:nowrap;
         }
-
         .sb-counter {
             background:var(--card); border:1px solid var(--card-border);
-            border-radius:18px; padding:20px 28px;
+            border-radius:18px; padding:18px 24px;
             text-align:center; width:100%; margin-top:auto;
         }
-        .sb-counter-row {
-            display:flex; align-items:center; justify-content:center; gap:12px;
+        .sb-counter-row { display:flex; align-items:center; justify-content:center; gap:10px; }
+        .sb-counter-row svg { width:26px; height:26px; stroke:var(--accent); fill:none; stroke-width:1.5; }
+        .sb-num {
+            font-family:var(--fonte); font-size:46px; font-weight:800;
+            color:var(--accent); line-height:1;
         }
-        .sb-counter-row svg { width:28px; height:28px; stroke:var(--accent); fill:none; stroke-width:1.5; }
-        .sb-counter-num {
-            font-family:var(--fonte);
-            font-size:48px; font-weight:800; color:var(--accent);
-            line-height:1;
-        }
-        .sb-counter-label {
-            font-size:11px; font-weight:700;
-            letter-spacing:0.2em; text-transform:uppercase;
-            color:var(--muted); margin-top:4px;
+        .sb-label {
+            font-size:10px; font-weight:700; letter-spacing:0.2em;
+            text-transform:uppercase; color:var(--muted); margin-top:4px;
         }
 
-        /* ══════════════════════════════
-           SCROLL (muitos personais)
-        ══════════════════════════════ */
+        /* ── SCROLL ─────────────────────── */
         @keyframes scrollUp {
-            0%,45%  { transform:translateY(0); }
-            50%,95% { transform:translateY(-50%); }
+            0%,44%  { transform:translateY(0); }
+            50%,94% { transform:translateY(-50%); }
             100%    { transform:translateY(0); }
         }
     </style>
@@ -332,114 +263,99 @@
 
 <!-- HEADER -->
 <div class="header">
-    <div class="header-left">
-        <div class="logo-wrap">
+    <div class="h-left">
+        <div class="h-logo">
             {% if academia.logo_url %}
                 <img src="{{ academia.logo_url }}" alt="{{ academia.nome }}">
             {% else %}
-                <div class="logo-initials">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
+                <div class="h-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
             {% endif %}
         </div>
         <div>
-            <div class="header-eyebrow">Equipe de Profissionais</div>
-            <div class="header-name">{{ academia.nome }}</div>
+            <div class="h-eyebrow">Equipe de Profissionais</div>
+            <div class="h-name">{{ academia.nome }}</div>
             {% if academia.subtitulo %}
-                <div class="header-sub">{{ academia.subtitulo }}</div>
+                <div class="h-sub">{{ academia.subtitulo }}</div>
             {% endif %}
         </div>
     </div>
-    <div class="live-badge">
-        <span class="live-dot"></span>
-        AO VIVO
-    </div>
+    <div class="live"><span class="live-dot"></span>AO VIVO</div>
 </div>
 
 <!-- LAYOUT -->
 <div class="layout">
 
-    <!-- GRID DE CARDS -->
+    <!-- GRID -->
     <div class="grid" id="profGrid">
+        {% set qr_color = (accent | replace('#','')) %}
         {% for p in profissionais %}
         <div class="card">
 
-            <!-- Foto -->
-            <div class="photo-ring">
-                {% if p.foto_url %}
-                    <img class="photo-img" src="{{ p.foto_url }}" alt="{{ p.nome }}">
-                {% else %}
-                    <div class="photo-placeholder" style="background:{{ p.cor_avatar | default('#1a2a1a') }}">
-                        {{ p.nome[0] | upper }}
-                    </div>
-                {% endif %}
-                {% if p.anos %}
-                    <span class="badge-anos">{{ p.anos }} anos</span>
-                {% endif %}
+            <!-- foto com anel giratório -->
+            <div class="photo-wrap">
+                <div class="photo-inner">
+                    {% if p.foto_url %}
+                        <img src="{{ p.foto_url }}" alt="{{ p.nome }}">
+                    {% else %}
+                        <div class="photo-placeholder" style="background:{{ p.cor_avatar | default('#1a2a2a') }}">
+                            {{ p.nome[0] | upper }}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Cargo -->
-            {% if p.cargo %}
-            <div class="card-cargo">{{ p.cargo }}</div>
-            {% endif %}
+            {% if p.anos %}<span class="badge-anos">{{ p.anos }} anos exp.</span>{% endif %}
 
-            <!-- Nome — destaque principal -->
+            {% if p.cargo %}<div class="card-cargo">{{ p.cargo }}</div>{% endif %}
+
             <div class="card-nome">{{ p.nome }}</div>
 
-            <!-- Contatos -->
             {% if p.instagram or p.email %}
-            <div class="card-contatos">
+            <div class="contatos">
                 {% if p.instagram %}
-                <div class="contato-row">
+                <div class="contato">
                     <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                    <span>{{ p.instagram }}</span>
+                    {{ p.instagram }}
                 </div>
                 {% endif %}
                 {% if p.email %}
-                <div class="contato-row">
+                <div class="contato">
                     <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-                    <span>{{ p.email }}</span>
+                    {{ p.email }}
                 </div>
                 {% endif %}
             </div>
             {% endif %}
 
-            <!-- Especialidades -->
             {% if p.especialidades %}
-            <div class="card-tags">
+            <div class="tags">
                 {% for esp in p.especialidades.split(',')[:3] %}
                     <span class="tag">{{ esp.strip() }}</span>
                 {% endfor %}
             </div>
             {% endif %}
 
-            <!-- QR Code -->
-            {% set qr_color = (accent | replace('#','')) %}
+            <!-- QR -->
             {% if p.qr_tipo == 'ambos' and (p.whatsapp or p.instagram) %}
-            <div class="qr-section">
+            <div class="qr-wrap">
                 {% set links_url = url_for('prof_links', slug=academia.slug, prof_id=p.id, _external=True) %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data={{ links_url | urlencode }}" alt="QR">
-                <div class="qr-label">
-                    <span class="qr-dot"></span>
-                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-                    CONTATO
-                </div>
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data={{ links_url | urlencode }}" alt="QR">
+                <div class="qr-label"><span class="qr-dot"></span>CONTATO</div>
             </div>
             {% elif p.qr_tipo == 'instagram' and p.instagram %}
-            <div class="qr-section">
+            <div class="qr-wrap">
                 {% set insta = p.instagram | replace('@','') %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data=https://instagram.com/{{ insta }}" alt="QR">
-                <div class="qr-label">
-                    <span class="qr-dot"></span>
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data=https://instagram.com/{{ insta }}" alt="QR">
+                <div class="qr-label"><span class="qr-dot"></span>
                     <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
                     INSTAGRAM
                 </div>
             </div>
             {% elif p.whatsapp %}
-            <div class="qr-section">
+            <div class="qr-wrap">
                 {% set wa = p.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
-                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color={{ qr_color }}&bgcolor=13161f&data=https://wa.me/{{ wa }}" alt="QR">
-                <div class="qr-label">
-                    <span class="qr-dot"></span>
+                <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color={{ qr_color }}&bgcolor=13161f&data=https://wa.me/{{ wa }}" alt="QR">
+                <div class="qr-label"><span class="qr-dot"></span>
                     <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                     WHATSAPP
                 </div>
@@ -459,34 +375,27 @@
                 <div class="sb-logo-text">{{ academia.logo_texto | default(academia.nome[:2] | upper) }}</div>
             {% endif %}
         </div>
-
         <div class="sb-divider"></div>
-
         <div class="sb-welcome">
             <div class="sb-welcome-label">Bem-vindo à</div>
             <div class="sb-welcome-name">{{ academia.nome }}</div>
         </div>
-
         <div class="sb-cta">
             <div class="sb-cta-label">🎯 Próximo passo</div>
             <div class="sb-cta-text">{{ academia.cta_texto | default('Agende sua avaliação gratuita!') }}</div>
         </div>
-
         {% if academia.email_qr %}
         <div class="sb-qr-wrap">
-            <img class="sb-qr"
-                 src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ qr_color }}&bgcolor=0a0c11&data={{ academia.email_qr }}"
-                 alt="QR">
+            <img class="sb-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color={{ qr_color }}&bgcolor=0a0c11&data={{ academia.email_qr }}" alt="QR">
             <span class="sb-qr-tag">ESCANEAR</span>
         </div>
         {% endif %}
-
         <div class="sb-counter">
             <div class="sb-counter-row">
                 <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span class="sb-counter-num">{{ profissionais | length }}</span>
+                <span class="sb-num">{{ profissionais | length }}</span>
             </div>
-            <div class="sb-counter-label">Profissionais</div>
+            <div class="sb-label">Profissionais</div>
         </div>
     </div>
 
@@ -494,19 +403,15 @@
 
 <script>
     const grid  = document.getElementById('profGrid');
-    const cards = grid.querySelectorAll('.card');
-    const n     = cards.length;
+    const total = {{ profissionais | length }};
 
-    if (n > 8) {
-        // duplica os cards para scroll infinito suave
-        grid.style.gridAutoRows = 'auto';
-        const clone = grid.cloneNode(true);
-        [...clone.children].forEach(c => grid.appendChild(c.cloneNode(true)));
-        const dur = n * 5;
+    if (total > 8) {
+        // duplica para scroll infinito
+        [...grid.children].forEach(c => grid.appendChild(c.cloneNode(true)));
+        const dur = total * 4;
         grid.style.animation = `scrollUp ${dur}s linear infinite`;
     }
 
-    // auto-reload a cada 5 minutos
     setTimeout(() => location.reload(), 300000);
 </script>
 
