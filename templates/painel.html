@@ -332,16 +332,22 @@
         }
 
         /* ===== QR CARD ===== */
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            width: 100%;
+        }
+
         .card-qr {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
             border-radius: 6px;
             border: 2px solid var(--accent);
             background: #fff;
-            z-index: 2;
+            flex-shrink: 0;
         }
 
         /* ===== WHATSAPP ===== */
@@ -585,14 +591,18 @@
             var hasContact = (tipo === 'whatsapp' && p.whatsapp) ||
                              (tipo === 'instagram' && p.instagram) ||
                              (tipo === 'ambos' && (p.whatsapp || p.instagram));
-            var qrCode = hasContact
+            var qrImg = hasContact
                 ? '<img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=' + encodeURIComponent(linkUrl) + '" alt="QR">'
+                : '';
+
+            var bottom = (whatsapp || qrImg)
+                ? '<div class="card-bottom">' + whatsapp + qrImg + '</div>'
                 : '';
 
             return '<div class="card">' +
                 '<div class="card-photo-wrap">' + photo + badge + '</div>' +
                 '<div class="card-nome">' + name + '</div>' +
-                cargo + contatos + tags + whatsapp + qrCode +
+                cargo + contatos + tags + bottom +
                 '</div>';
         }
 
