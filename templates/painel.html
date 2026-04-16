@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ academia.nome or 'Painel' }} — Equipe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,9 +19,7 @@
             background: #f0f2f5;
             color: #1a1a2e;
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            width: 1920px;
-            height: 1080px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -142,9 +140,11 @@
             height: 100%;
             padding: 14px 20px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-auto-rows: auto;
+            align-content: start;
             gap: 12px;
+            overflow-y: auto;
             opacity: 0;
             transform: translateX(30px);
             transition: opacity 0.6s ease, transform 0.6s ease;
@@ -162,6 +162,19 @@
             transform: translateX(-30px);
         }
 
+        @media (min-width: 1200px) {
+            .page { grid-template-columns: repeat(5, 1fr); }
+        }
+        @media (min-width: 900px) and (max-width: 1199px) {
+            .page { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (min-width: 600px) and (max-width: 899px) {
+            .page { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 599px) {
+            .page { grid-template-columns: repeat(2, 1fr); }
+        }
+
         /* ===== CARD ===== */
         .card {
             background: #fff;
@@ -169,13 +182,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 12px 10px;
+            gap: 6px;
+            padding: 14px 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border: 1px solid #eaeaef;
             position: relative;
-            overflow: hidden;
         }
 
         .card::before {
@@ -575,7 +586,7 @@
 
             let tags = '';
             if (p.especialidades) {
-                const items = p.especialidades.split(',').slice(0, 3);
+                const items = p.especialidades.split(',');
                 tags = '<div class="card-tags">' +
                     items.map(function(t) { return '<span class="tag">' + esc(t.trim()) + '</span>'; }).join('') +
                     '</div>';
