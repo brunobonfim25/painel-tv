@@ -63,6 +63,7 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
     query("""ALTER TABLE academias ALTER COLUMN nome DROP NOT NULL""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
@@ -216,12 +217,12 @@ def salvar_config(slug):
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
-        cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s WHERE slug=%s""",
+        cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s, texto_header=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
          request.form.get("cta_texto"), request.form.get("email_qr"),
-         fonte, exibir_nome, slug))
+         fonte, exibir_nome, request.form.get("texto_header", "EQUIPE DE PROFISSIONAIS"), slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 

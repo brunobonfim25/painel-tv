@@ -426,10 +426,10 @@
         }
 
         .footer-qr {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 6px;
-            border: 1px solid #eee;
+            border: 2px solid var(--accent);
         }
     </style>
 </head>
@@ -456,7 +456,7 @@
         </div>
         <div class="header-center">
             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            EQUIPE DE PROFISSIONAIS
+            {{ academia.texto_header | default('EQUIPE DE PROFISSIONAIS') }}
         </div>
         <div class="header-right">
             <span class="page-indicator" id="pageIndicator"></span>
@@ -482,7 +482,9 @@
             {% if academia.cta_texto %}
                 <span class="footer-cta-text">{{ academia.cta_texto }}</span>
             {% endif %}
-            <img class="footer-qr" id="footerQr" alt="QR Code" style="display:none">
+            {% if academia.email_qr %}
+                <img class="footer-qr" id="footerQr" alt="QR Code">
+            {% endif %}
         </div>
     </div>
 
@@ -643,12 +645,14 @@
         }
 
         // QR Code
-        var emailQr = {{ academia.email_qr | tojson }};
-        if (emailQr) {
-            var qrImg = document.getElementById('footerQr');
-            var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(emailQr);
-            qrImg.src = qrUrl;
-            qrImg.style.display = 'block';
+        var qrImg = document.getElementById('footerQr');
+        if (qrImg) {
+            var emailQr = {{ academia.email_qr | tojson }};
+            if (emailQr) {
+                qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(emailQr);
+            } else {
+                qrImg.style.display = 'none';
+            }
         }
 
         // Auto-reload every 5 minutes

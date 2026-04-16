@@ -428,13 +428,22 @@ details[open] .chevron{transform:rotate(180deg)}
           </div>
           <div class="grid-2">
             <div>
-              <label class="field-label">Email do gerente (QR Code)</label>
-              <input class="field-input" type="email" name="email_qr" value="{{ academia.email_qr }}" placeholder="gerente@academia.com">
+              <label class="field-label">Texto do header (painel TV)</label>
+              <input class="field-input" type="text" name="texto_header" value="{{ academia.texto_header | default('EQUIPE DE PROFISSIONAIS') }}" placeholder="Ex: EQUIPE DE PROFISSIONAIS">
+              <p class="field-hint">Texto central exibido no topo do painel TV</p>
             </div>
             <div>
               <label class="field-label">Call to action</label>
               <input class="field-input" type="text" name="cta_texto" value="{{ academia.cta_texto }}" placeholder="Agende uma avaliação gratuita">
             </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="field-label">Link do QR Code</label>
+              <input class="field-input" type="text" name="email_qr" value="{{ academia.email_qr }}" placeholder="https://linktr.ee/suaacademia">
+              <p class="field-hint">Link, email ou URL que o QR code vai apontar</p>
+            </div>
+            <div></div>
           </div>
           <div class="divider"></div>
           <div class="grid-2" style="margin-bottom:20px">
