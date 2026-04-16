@@ -1,98 +1,175 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR" class="h-full">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ prof.nome }} — {{ academia.nome }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100vh;
-  background:#0a0a0f;
-  color:#ededf5;
-  font-family:'Inter',sans-serif;
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;
-}
-.card{
-  width:100%;max-width:360px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:24px;
-  padding:32px 24px;
-  text-align:center;
-}
-.avatar{
-  width:80px;height:80px;border-radius:50%;
-  object-fit:cover;border:3px solid rgba(255,255,255,0.1);
-  margin:0 auto 12px;display:block;
-}
-.avatar-placeholder{
-  width:80px;height:80px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;font-weight:800;color:#fff;
-  margin:0 auto 12px;
-}
-.academia{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7a95;margin-bottom:16px}
-.nome{font-size:20px;font-weight:800;color:#ededf5;margin-bottom:4px}
-.cargo{font-size:13px;color:#7a7a95;margin-bottom:28px}
-.divider{height:1px;background:rgba(255,255,255,0.07);margin-bottom:20px}
-.btn{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  width:100%;padding:14px 20px;border-radius:14px;
-  font-size:15px;font-weight:700;text-decoration:none;
-  transition:all .2s;margin-bottom:12px;
-}
-.btn:last-child{margin-bottom:0}
-.btn-whatsapp{background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.25);color:#06b6d4}
-.btn-whatsapp:hover{background:rgba(6,182,212,0.18);border-color:#06b6d4}
-.btn-instagram{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);color:#22d3ee}
-.btn-instagram:hover{background:rgba(6,182,212,0.14);border-color:#22d3ee}
-.btn-email{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);color:#67e8f9;font-size:13px}
-.btn-email:hover{background:rgba(6,182,212,0.14);border-color:#67e8f9}
-.btn svg{width:20px;height:20px;flex-shrink:0}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ prof.nome }} — {{ academia.nome }}</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .anim-fade { animation: fadeUp 0.7s ease forwards; }
+    .anim-scale { animation: scaleIn 0.6s ease forwards; }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .delay-4 { animation-delay: 0.4s; opacity: 0; }
+    .delay-5 { animation-delay: 0.5s; opacity: 0; }
+    .delay-6 { animation-delay: 0.6s; opacity: 0; }
+    .delay-7 { animation-delay: 0.7s; opacity: 0; }
+
+    .contact-btn {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .contact-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .spec-tag {
+      transition: all 0.3s ease;
+    }
+    .spec-tag:hover {
+      transform: scale(1.05);
+    }
+    .stat-card {
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
 </head>
-<body>
-  <div class="card">
-    <p class="academia">{{ academia.nome }}</p>
+<body class="h-full" style="font-family: 'Outfit', sans-serif;">
+  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background: #0f1923;">
+    <div class="w-full min-h-full flex flex-col items-center justify-start pb-10">
 
-    {% if prof.foto_url %}
-      <img class="avatar" src="{{ prof.foto_url }}" alt="{{ prof.nome }}">
-    {% else %}
-      <div class="avatar-placeholder" style="background:{{ prof.cor_avatar }}">
-        {{ prof.nome[0] | upper }}
+      <!-- Hero Section -->
+      <div class="w-full relative overflow-hidden" style="background: linear-gradient(135deg, #0f1923 0%, #1a2d3d 50%, #0f1923 100%);">
+        <div class="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style="background: {{ academia.cor_destaque | default('#e63946') }}; filter: blur(60px); transform: translate(30%, -30%);"></div>
+        <div class="absolute bottom-0 left-0 w-36 h-36 rounded-full opacity-10" style="background: {{ academia.cor_destaque | default('#e63946') }}; filter: blur(50px); transform: translate(-30%, 30%);"></div>
+
+        <div class="relative z-10 flex flex-col items-center pt-10 pb-8 px-5">
+          <!-- Avatar -->
+          <div class="anim-scale delay-1 mb-5">
+            <div class="w-36 h-36 rounded-full p-1" style="background: linear-gradient(135deg, {{ academia.cor_destaque | default('#e63946') }}, #ff6b6b);">
+              <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style="background: #1a2d3d;">
+                {% if prof.foto_url %}
+                  <img src="{{ prof.foto_url }}" alt="{{ prof.nome }}" class="w-full h-full object-cover">
+                {% else %}
+                  <span class="text-5xl font-bold" style="color: {{ academia.cor_destaque | default('#e63946') }};">{{ prof.nome[0] | upper }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Name & Title -->
+          <h1 class="anim-fade delay-2 text-2xl font-bold tracking-tight text-center" style="color: #f1faee;">{{ prof.nome }}</h1>
+          <p class="anim-fade delay-3 text-sm font-medium mt-1 tracking-widest uppercase" style="color: {{ academia.cor_destaque | default('#e63946') }};">{{ prof.cargo }}</p>
+          {% if academia.nome %}
+          <p class="anim-fade delay-3 text-xs mt-2 font-light tracking-wide" style="color: #a8dadc;">{{ academia.nome }}</p>
+          {% endif %}
+        </div>
       </div>
-    {% endif %}
 
-    <div class="nome">{{ prof.nome }}</div>
-    <div class="cargo">{{ prof.cargo }}</div>
+      <!-- Stats -->
+      {% if prof.anos %}
+      <div class="w-full max-w-md px-5 -mt-1">
+        <div class="flex justify-center">
+          <div class="stat-card anim-fade delay-3 rounded-2xl p-4 text-center" style="background: #1a2d3d; border: 1px solid #2a3f52; min-width: 120px;">
+            <p class="text-2xl font-bold" style="color: {{ academia.cor_destaque | default('#e63946') }};">{{ prof.anos }}</p>
+            <p class="text-xs mt-1 font-light" style="color: #a8dadc;">Anos de Experiência</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
-    <div class="divider"></div>
+      <!-- Specialties -->
+      {% if prof.especialidades %}
+      <div class="w-full max-w-md px-5 mt-5">
+        <div class="anim-fade delay-5">
+          <h2 class="text-sm font-semibold uppercase tracking-widest mb-3 px-1" style="color: {{ academia.cor_destaque | default('#e63946') }};"><i data-lucide="target" style="width:14px; height:14px; display:inline-block; vertical-align: -2px; margin-right: 6px;"></i>Especialidades</h2>
+          <div class="flex flex-wrap gap-2">
+            {% for esp in prof.especialidades.split(',') %}
+            <span class="spec-tag px-4 py-2 rounded-full text-xs font-medium" style="background: rgba(230,57,70,0.15); color: #ff6b6b; border: 1px solid rgba(230,57,70,0.3);">{{ esp.strip() }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
-    {% if prof.whatsapp %}
-    {% set wa = prof.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
-    <a class="btn btn-whatsapp" href="https://wa.me/{{ wa }}" target="_blank">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.849L0 24l6.335-1.502A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.893 0-3.667-.502-5.197-1.378l-.373-.22-3.862.915.977-3.763-.242-.387A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      WhatsApp
-    </a>
-    {% endif %}
+      <!-- Contact Buttons -->
+      {% if prof.whatsapp or prof.instagram or prof.email %}
+      <div class="w-full max-w-md px-5 mt-8">
+        <div class="anim-fade delay-6">
+          <h2 class="text-sm font-semibold uppercase tracking-widest mb-4 px-1" style="color: {{ academia.cor_destaque | default('#e63946') }};"><i data-lucide="phone" style="width:14px; height:14px; display:inline-block; vertical-align: -2px; margin-right: 6px;"></i>Fale Comigo</h2>
+          <div class="flex flex-col gap-3">
 
-    {% if prof.instagram %}
-    {% set insta = prof.instagram | replace('@','') %}
-    <a class="btn btn-instagram" href="https://instagram.com/{{ insta }}" target="_blank">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-      Instagram
-    </a>
-    {% endif %}
+            {% if prof.whatsapp %}
+            {% set wa = prof.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
+            <a href="https://wa.me/55{{ wa }}?text=Olá! Vi seu cartão e gostaria de saber mais." target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: #25D366; color: #fff; text-decoration: none;">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.2);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.506 3.934 1.395 5.608L.045 23.955l6.523-1.311A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.89 0-3.694-.468-5.32-1.352l-.38-.216-3.872.779.82-3.77-.24-.393A9.793 9.793 0 012.18 12C2.18 6.586 6.586 2.18 12 2.18S21.82 6.586 21.82 12 17.414 21.82 12 21.82z"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">WhatsApp</p>
+                <p class="text-xs opacity-80 font-light">Resposta rápida</p>
+              </div>
+              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.7;"></i>
+            </a>
+            {% endif %}
 
-    {% if prof.email %}
-    <a class="btn btn-email" href="mailto:{{ prof.email }}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-      {{ prof.email }}
-    </a>
-    {% endif %}
+            {% if prof.instagram %}
+            {% set insta = prof.instagram | replace('@','') %}
+            <a href="https://instagram.com/{{ insta }}" target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: linear-gradient(135deg, #833AB4, #E1306C, #F77737); color: #fff; text-decoration: none;">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.2);">
+                <i data-lucide="instagram" style="width:22px; height:22px;"></i>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Instagram</p>
+                <p class="text-xs opacity-80 font-light">@{{ insta }}</p>
+              </div>
+              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.7;"></i>
+            </a>
+            {% endif %}
+
+            {% if prof.email %}
+            <a href="mailto:{{ prof.email }}?subject=Contato pelo Cartão Digital" target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: #2a3f52; color: #f1faee; text-decoration: none; border: 1px solid #3a5268;">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(230,57,70,0.2);">
+                <i data-lucide="mail" style="width:22px; height:22px; color: {{ academia.cor_destaque | default('#e63946') }};"></i>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">E-mail</p>
+                <p class="text-xs opacity-70 font-light">{{ prof.email }}</p>
+              </div>
+              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.5;"></i>
+            </a>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Footer -->
+      <div class="anim-fade delay-7 mt-10 mb-4 text-center">
+        <p class="text-xs font-light" style="color: #3a5268;">Cartão Digital Profissional</p>
+      </div>
+
+    </div>
   </div>
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 </html>
