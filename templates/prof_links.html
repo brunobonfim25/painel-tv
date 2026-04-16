@@ -49,6 +49,8 @@ body{
 .btn-whatsapp:hover{background:rgba(6,182,212,0.18);border-color:#06b6d4}
 .btn-instagram{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);color:#22d3ee}
 .btn-instagram:hover{background:rgba(6,182,212,0.14);border-color:#22d3ee}
+.btn-email{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);color:#67e8f9;font-size:13px}
+.btn-email:hover{background:rgba(6,182,212,0.14);border-color:#67e8f9}
 .btn svg{width:20px;height:20px;flex-shrink:0}
 </style>
 </head>
@@ -82,6 +84,13 @@ body{
     <a class="btn btn-instagram" href="https://instagram.com/{{ insta }}" target="_blank">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
       Instagram
+    </a>
+    {% endif %}
+
+    {% if prof.email %}
+    <a class="btn btn-email" href="mailto:{{ prof.email }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+      {{ prof.email }}
     </a>
     {% endif %}
   </div>
