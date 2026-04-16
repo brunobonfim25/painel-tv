@@ -581,7 +581,10 @@
             }
 
             var linkUrl = window.location.origin + '/{{ academia.slug }}/prof/' + p.id + '/links';
-            var hasContact = p.whatsapp || p.instagram || p.email;
+            var tipo = p.qr_tipo || 'whatsapp';
+            var hasContact = (tipo === 'whatsapp' && p.whatsapp) ||
+                             (tipo === 'instagram' && p.instagram) ||
+                             (tipo === 'ambos' && (p.whatsapp || p.instagram));
             var qrCode = hasContact
                 ? '<img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=' + encodeURIComponent(linkUrl) + '" alt="QR">'
                 : '';
