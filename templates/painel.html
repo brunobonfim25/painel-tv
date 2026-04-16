@@ -331,6 +331,19 @@
             white-space: nowrap;
         }
 
+        /* ===== QR CARD ===== */
+        .card-qr {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 52px;
+            height: 52px;
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            background: #fff;
+            z-index: 2;
+        }
+
         /* ===== WHATSAPP ===== */
         .card-whatsapp {
             display: flex;
@@ -482,9 +495,7 @@
             {% if academia.cta_texto %}
                 <span class="footer-cta-text">{{ academia.cta_texto }}</span>
             {% endif %}
-            {% if academia.email_qr %}
-                <img class="footer-qr" id="footerQr" alt="QR Code">
-            {% endif %}
+            <img class="footer-qr" id="footerQr" alt="QR Code">
         </div>
     </div>
 
@@ -565,10 +576,17 @@
                     '</svg>WhatsApp</div>';
             }
 
+            var qrData = p.whatsapp
+                ? 'https://wa.me/55' + p.whatsapp.replace(/\D/g, '')
+                : (p.email ? 'mailto:' + p.email : '');
+            var qrCode = qrData
+                ? '<img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=' + encodeURIComponent(qrData) + '" alt="QR">'
+                : '';
+
             return '<div class="card">' +
                 '<div class="card-photo-wrap">' + photo + badge + '</div>' +
                 '<div class="card-nome">' + name + '</div>' +
-                cargo + contatos + tags + whatsapp +
+                cargo + contatos + tags + whatsapp + qrCode +
                 '</div>';
         }
 
@@ -647,12 +665,8 @@
         // QR Code
         var qrImg = document.getElementById('footerQr');
         if (qrImg) {
-            var emailQr = {{ academia.email_qr | tojson }};
-            if (emailQr) {
-                qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(emailQr);
-            } else {
-                qrImg.style.display = 'none';
-            }
+            var emailQr = {{ academia.email_qr | tojson }} || window.location.href;
+            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(emailQr);
         }
 
         // Auto-reload every 5 minutes
