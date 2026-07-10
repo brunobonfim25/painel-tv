@@ -165,6 +165,16 @@ textarea.field-input{resize:vertical;min-height:72px}
 .field-input[type=file]{padding:7px 12px;cursor:pointer}
 .field-hint{font-size:11px;color:var(--t3);margin-top:4px;line-height:1.4}
 
+.password-field{position:relative}
+.password-field .field-input{padding-right:40px}
+.password-toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--t3);cursor:pointer;
+  padding:6px;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;transition:color .2s;
+}
+.password-toggle:hover{color:var(--t1)}
+
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-full{margin-bottom:16px}
@@ -754,15 +764,30 @@ details[open] .chevron{transform:rotate(180deg)}
         <form method="POST" action="{{ url_for('trocar_senha', slug=academia.slug) }}">
           <div class="grid-full">
             <label class="field-label">Senha atual</label>
-            <input class="field-input" type="password" name="senha_atual" required placeholder="••••••••">
+            <div class="password-field">
+              <input class="field-input" type="password" name="senha_atual" required placeholder="••••••••">
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Mostrar senha">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div class="grid-full" style="margin-top:14px">
             <label class="field-label">Nova senha</label>
-            <input class="field-input" type="password" name="senha_nova" required placeholder="Mínimo 6 caracteres" minlength="6">
+            <div class="password-field">
+              <input class="field-input" type="password" name="senha_nova" required placeholder="Mínimo 6 caracteres" minlength="6">
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Mostrar senha">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div class="grid-full" style="margin-top:14px">
             <label class="field-label">Confirmar nova senha</label>
-            <input class="field-input" type="password" name="senha_confirmacao" required placeholder="Repita a nova senha">
+            <div class="password-field">
+              <input class="field-input" type="password" name="senha_confirmacao" required placeholder="Repita a nova senha">
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Mostrar senha">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div style="margin-top:20px">
             <button type="submit" class="btn-primary">
@@ -779,6 +804,14 @@ details[open] .chevron{transform:rotate(180deg)}
 </div>
 
 <script>
+function togglePassword(btn) {
+  const input = btn.previousElementSibling;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.innerHTML = showing
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M6.61 6.61A18.5 18.5 0 0 0 1 12s4 8 11 8a9.26 9.26 0 0 0 5.39-1.61"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+}
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => {el.classList.remove('active');el.classList.add('inactive')});
