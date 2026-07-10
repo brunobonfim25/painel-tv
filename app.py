@@ -12,13 +12,15 @@ import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 app.permanent_session_lifetime = timedelta(hours=8)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
+MAX_VIDEO_SIZE = 40 * 1024 * 1024
 
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
@@ -61,6 +63,7 @@ def query(sql, params=None, fetch=None):
 
 def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT ''""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -95,6 +98,7 @@ def init_db():
         anos TEXT DEFAULT '',
         especialidades TEXT DEFAULT '',
         foto_url TEXT DEFAULT '',
+        video_url TEXT DEFAULT '',
         cor_avatar TEXT DEFAULT '#1a6fd4',
         qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
@@ -105,11 +109,14 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 def arquivo_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def tamanho_valido(file):
+def video_permitido(f):
+    return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
+def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     file.seek(0, 2)
     size = file.tell()
     file.seek(0)
-    return size <= MAX_FILE_SIZE
+    return size <= max_size
 
 def upload_imagem(file, pasta="painel_tv"):
     try:
@@ -121,6 +128,19 @@ def upload_imagem(file, pasta="painel_tv"):
         return resultado.get("secure_url", "")
     except Exception as e:
         print(f"Erro upload Cloudinary: {e}")
+        return ""
+
+def upload_video(file, pasta="painel_tv/videos"):
+    try:
+        resultado = cloudinary.uploader.upload(
+            file,
+            folder=pasta,
+            resource_type="video",
+            transformation=[{"duration": "90"}]
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print(f"Erro upload video Cloudinary: {e}")
         return ""
 
 def upload_logo(file, pasta="painel_tv/logos"):
@@ -285,17 +305,28 @@ def adicionar_profissional(slug):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    video_url = ""
+    if "video" in request.files:
+        file = request.files["video"]
+        if file and file.filename:
+            if not video_permitido(file.filename):
+                flash("Formato de vídeo não suportado. Use MP4, MOV ou WEBM.")
+                return redirect(url_for("admin_editor", slug=slug))
+            if not tamanho_valido(file, MAX_VIDEO_SIZE):
+                flash("O vídeo não pode ter mais de 40MB.")
+                return redirect(url_for("admin_editor", slug=slug))
+            video_url = upload_video(file)
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
     if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
     query("""INSERT INTO profissionais
-        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, cor_avatar, qr_tipo, ordem)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, video_url, cor_avatar, qr_tipo, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
-         request.form.get("especialidades"), foto_url,
+         request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, academia["id"]))
     flash("Profissional adicionado!")
     return redirect(url_for("admin_editor", slug=slug))
@@ -317,17 +348,30 @@ def editar_profissional(slug, prof_id):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
             foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+    video_url = prof["video_url"]
+    if request.form.get("remover_video") == "on":
+        video_url = ""
+    if "video" in request.files:
+        file = request.files["video"]
+        if file and file.filename:
+            if not video_permitido(file.filename):
+                flash("Formato de vídeo não suportado. Use MP4, MOV ou WEBM.")
+                return redirect(url_for("admin_editor", slug=slug))
+            if not tamanho_valido(file, MAX_VIDEO_SIZE):
+                flash("O vídeo não pode ter mais de 40MB.")
+                return redirect(url_for("admin_editor", slug=slug))
+            video_url = upload_video(file)
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
     if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
-        anos=%s, especialidades=%s, foto_url=%s, cor_avatar=%s, qr_tipo=%s
+        anos=%s, especialidades=%s, foto_url=%s, video_url=%s, cor_avatar=%s, qr_tipo=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
-         request.form.get("especialidades"), foto_url,
+         request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))

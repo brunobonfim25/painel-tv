@@ -636,6 +636,18 @@ details[open] .chevron{transform:rotate(180deg)}
                 </div>
               </div>
             </div>
+            <div class="grid-full">
+              <label class="field-label">Vídeo de apresentação</label>
+              {% if p.video_url %}
+                <video src="{{ p.video_url }}" controls style="width:100%;max-width:280px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;display:block"></video>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);margin-bottom:8px">
+                  <input type="checkbox" name="remover_video" style="width:16px;height:16px;accent-color:var(--danger);cursor:pointer">
+                  Remover vídeo atual
+                </label>
+              {% endif %}
+              <input class="field-input" type="file" name="video" accept="video/mp4,video/quicktime,video/webm">
+              <p class="field-hint">O profissional se apresentando em vídeo — aparece no cartão digital acessado pelo QR code. MP4, MOV ou WEBM, máx 40MB.</p>
+            </div>
             <div class="grid-2">
               <div>
                 <label class="field-label">Nome completo</label>
@@ -720,6 +732,11 @@ details[open] .chevron{transform:rotate(180deg)}
                   <span class="color-label">Cor quando sem foto</span>
                 </div>
               </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Vídeo de apresentação</label>
+              <input class="field-input" type="file" name="video" accept="video/mp4,video/quicktime,video/webm">
+              <p class="field-hint">O profissional se apresentando em vídeo — aparece no cartão digital acessado pelo QR code. MP4, MOV ou WEBM, máx 40MB.</p>
             </div>
             <div class="grid-2">
               <div>

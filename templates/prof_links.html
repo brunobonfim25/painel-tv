@@ -69,6 +69,23 @@
         </div>
       </div>
 
+      <!-- Video de apresentação -->
+      {% if prof.video_url %}
+      <div class="w-full max-w-md px-5 mt-5">
+        <div class="anim-fade delay-3">
+          <video
+            class="w-full rounded-2xl"
+            style="background:#000; border:1px solid #2a3f52; max-height:70vh;"
+            src="{{ prof.video_url }}"
+            controls
+            playsinline
+            preload="metadata"
+            poster="{{ prof.foto_url }}">
+          </video>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Stats -->
       {% if prof.anos %}
       <div class="w-full max-w-md px-5 -mt-1">
