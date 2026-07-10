@@ -571,7 +571,7 @@ details[open] .chevron{transform:rotate(180deg)}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div class="section-head" style="margin-bottom:0">
           <p class="section-title">Equipe de profissionais</p>
-          <p class="section-desc">{{ profissionais|length }} profissional{{ 'is' if profissionais|length != 1 else '' }} cadastrado{{ 's' if profissionais|length != 1 else '' }}</p>
+          <p class="section-desc">{{ profissionais|length }} {{ 'profissionais' if profissionais|length != 1 else 'profissional' }} cadastrado{{ 's' if profissionais|length != 1 else '' }}</p>
         </div>
       </div>
 
