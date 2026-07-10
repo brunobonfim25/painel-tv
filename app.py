@@ -64,6 +64,8 @@ def init_db():
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS cards_por_pagina INTEGER DEFAULT 10""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS duracao_pagina INTEGER DEFAULT 10""")
     query("""ALTER TABLE academias ALTER COLUMN nome DROP NOT NULL""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
@@ -78,6 +80,8 @@ def init_db():
         cta_texto TEXT DEFAULT 'Agende uma avaliacao',
         email_qr TEXT DEFAULT '',
         fonte TEXT DEFAULT 'Syne',
+        cards_por_pagina INTEGER DEFAULT 10,
+        duracao_pagina INTEGER DEFAULT 10,
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -214,15 +218,30 @@ def salvar_config(slug):
     if fonte not in fontes_validas:
         fonte = "Syne"
     exibir_nome = request.form.get("exibir_nome") == "on"
+
+    try:
+        cards_por_pagina = int(request.form.get("cards_por_pagina", 10))
+    except (TypeError, ValueError):
+        cards_por_pagina = 10
+    cards_por_pagina = max(1, min(30, cards_por_pagina))
+
+    try:
+        duracao_pagina = int(request.form.get("duracao_pagina", 10))
+    except (TypeError, ValueError):
+        duracao_pagina = 10
+    duracao_pagina = max(3, min(120, duracao_pagina))
+
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s,
-        cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s, texto_header=%s WHERE slug=%s""",
+        cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s, texto_header=%s,
+        cards_por_pagina=%s, duracao_pagina=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
          request.form.get("cta_texto"), request.form.get("email_qr"),
-         fonte, exibir_nome, request.form.get("texto_header", "EQUIPE DE PROFISSIONAIS"), slug))
+         fonte, exibir_nome, request.form.get("texto_header", "EQUIPE DE PROFISSIONAIS"),
+         cards_por_pagina, duracao_pagina, slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 

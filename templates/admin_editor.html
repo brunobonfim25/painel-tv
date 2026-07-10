@@ -556,6 +556,25 @@ details[open] .chevron{transform:rotate(180deg)}
             </label>
             {% endfor %}
           </div>
+          <div class="divider"></div>
+          <div class="section-head">
+            <p class="section-title">Carrossel da TV</p>
+            <p class="section-desc">Controla quantos cards aparecem por tela e por quanto tempo cada página fica visível</p>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label class="field-label">Profissionais por página</label>
+              <input class="field-input" type="number" name="cards_por_pagina" min="1" max="30"
+                value="{{ academia.cards_por_pagina | default(10) }}">
+              <p class="field-hint">Recomendado: 10 (grid de 5x2 na TV). Entre 1 e 30.</p>
+            </div>
+            <div>
+              <label class="field-label">Tempo por página (segundos)</label>
+              <input class="field-input" type="number" name="duracao_pagina" min="3" max="120"
+                value="{{ academia.duracao_pagina | default(10) }}">
+              <p class="field-hint">Quanto tempo cada página fica na tela antes de trocar. Entre 3 e 120.</p>
+            </div>
+          </div>
           <div style="margin-top:16px">
             <button type="submit" class="btn-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>

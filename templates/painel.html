@@ -557,8 +557,8 @@
             {% endfor %}
         ];
 
-        const CARDS_PER_PAGE = 10;
-        const PAGE_DURATION = 10000;
+        const CARDS_PER_PAGE = {{ academia.cards_por_pagina | default(10) }};
+        const PAGE_DURATION = {{ (academia.duracao_pagina | default(10)) }} * 1000;
         const container = document.getElementById('gridContainer');
         const indicator = document.getElementById('pageIndicator');
         const progressBar = document.getElementById('progressBar');
