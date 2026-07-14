@@ -6,6 +6,7 @@
     <title>{{ academia.nome or 'Painel' }} — Equipe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='qrcode.min.js') }}"></script>
     <style>
         :root {
             --accent: {{ academia.cor_destaque | default('#e94560') }};
@@ -557,6 +558,13 @@
             {% endfor %}
         ];
 
+        function makeQrDataUrl(text) {
+            var qr = qrcode(0, 'M');
+            qr.addData(text);
+            qr.make();
+            return qr.createDataURL(6, 4);
+        }
+
         const CARDS_PER_PAGE = {{ academia.cards_por_pagina | default(10) }};
         const PAGE_DURATION = {{ (academia.duracao_pagina | default(10)) }} * 1000;
         const container = document.getElementById('gridContainer');
@@ -606,7 +614,7 @@
             var bottom = hasContact
                 ? '<div class="card-bottom">' +
                   (icons ? '<div class="card-icons">' + icons + '</div>' : '') +
-                  '<img class="card-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(linkUrl) + '" alt="QR">' +
+                  '<img class="card-qr" src="' + makeQrDataUrl(linkUrl) + '" alt="QR">' +
                   '</div>'
                 : '';
 
@@ -694,7 +702,7 @@
         if (qrImg) {
             var emailQr = {{ academia.email_qr | tojson }};
             if (emailQr) {
-                qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(emailQr);
+                qrImg.src = makeQrDataUrl(emailQr);
             } else {
                 qrImg.style.display = 'none';
             }
