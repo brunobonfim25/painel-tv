@@ -16,11 +16,28 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
         body {
-            background: #f0f2f5;
             color: #1a1a2e;
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+        }
+
+        /* O painel é desenhado num "palco" de tamanho fixo (resolução de TV)
+           e escalado via transform para caber em qualquer tela, mantendo
+           as proporções do design. Ver script no fim do arquivo. */
+        #stage {
+            position: absolute;
+            top: 0; left: 0;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: top left;
+            background: #f0f2f5;
             display: flex;
             flex-direction: column;
         }
@@ -485,6 +502,7 @@
     </style>
 </head>
 <body>
+<div id="stage">
 
     <!-- HEADER -->
     <div class="header">
@@ -539,7 +557,25 @@
         </div>
     </div>
 
+</div><!-- /stage -->
+
     <script>
+        // Escala o "palco" (1920x1080) para caber em qualquer tela/janela,
+        // mantendo as proporções do design — funciona igual numa TV grande
+        // ou num monitor de computador.
+        (function () {
+            var stage = document.getElementById('stage');
+            var DESIGN_W = 1920, DESIGN_H = 1080;
+            function fitStage() {
+                var scale = Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H);
+                var offsetX = (window.innerWidth - DESIGN_W * scale) / 2;
+                var offsetY = (window.innerHeight - DESIGN_H * scale) / 2;
+                stage.style.transform = 'translate(' + offsetX + 'px,' + offsetY + 'px) scale(' + scale + ')';
+            }
+            window.addEventListener('resize', fitStage);
+            fitStage();
+        })();
+
         const profissionais = [
             {% for p in profissionais %}
             {
