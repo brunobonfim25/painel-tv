@@ -578,6 +578,31 @@
             window.addEventListener('load', fitStage);
         })();
 
+        // Auto-atualização: consulta a versão do servidor a cada 5 min e
+        // recarrega a página quando sai deploy novo — as TVs se atualizam
+        // sozinhas, sem precisar reiniciar o aparelho. Também recarrega a
+        // cada 6h para renovar dados (equipe editada no admin) mesmo sem
+        // deploy. Falha de rede é ignorada silenciosamente: o painel
+        // continua rodando com o que já está na tela.
+        (function () {
+            var VERSAO_ATUAL = {{ app_version | default('') | tojson }};
+            var CHECK_INTERVAL = 5 * 60 * 1000;
+            function recarregar() {
+                window.location.replace(window.location.pathname + '?v=' + Date.now());
+            }
+            setInterval(function () {
+                fetch('/__version', {cache: 'no-store'})
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (VERSAO_ATUAL && data.version && data.version !== VERSAO_ATUAL) {
+                            recarregar();
+                        }
+                    })
+                    .catch(function () {});
+            }, CHECK_INTERVAL);
+            setTimeout(recarregar, 6 * 60 * 60 * 1000);
+        })();
+
         const profissionais = [
             {% for p in profissionais %}
             {

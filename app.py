@@ -22,6 +22,11 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
 
+# Identificador da versão em produção — muda a cada deploy (SHA do commit
+# no Railway) ou a cada restart do processo. Usado pelo painel de TV para
+# detectar versão nova e se recarregar sozinho.
+APP_VERSION = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or str(int(datetime.now().timestamp()))
+
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -180,6 +185,10 @@ def master_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route("/__version")
+def versao():
+    return {"version": APP_VERSION}
+
 @app.route("/<slug>/")
 def painel(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
@@ -189,7 +198,8 @@ def painel(slug):
         "SELECT * FROM profissionais WHERE academia_id = %s ORDER BY ordem, id",
         (academia["id"],), fetch="all"
     )
-    return render_template("painel.html", academia=academia, profissionais=profissionais or [])
+    return render_template("painel.html", academia=academia,
+        profissionais=profissionais or [], app_version=APP_VERSION)
 
 @app.route("/<slug>/admin", methods=["GET", "POST"])
 def admin_login(slug):
