@@ -16,13 +16,31 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
         body {
-            background: #f0f2f5;
             color: #1a1a2e;
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+        }
+
+        /* O painel é desenhado num "palco" de tamanho fixo (resolução de TV)
+           e escalado via transform para caber em qualquer tela, mantendo
+           as proporções do design. Ver script no fim do arquivo. */
+        #stage {
+            position: absolute;
+            top: 0; left: 0;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: top left;
+            background: #f0f2f5;
             display: flex;
             flex-direction: column;
+            visibility: hidden;
         }
 
         /* ===== HEADER ===== */
@@ -141,7 +159,7 @@
             height: 100%;
             padding: 14px 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             grid-auto-rows: auto;
             align-content: start;
             gap: 12px;
@@ -161,19 +179,6 @@
         .page.exit-left {
             opacity: 0;
             transform: translateX(-30px);
-        }
-
-        @media (min-width: 1200px) {
-            .page { grid-template-columns: repeat(5, 1fr); }
-        }
-        @media (min-width: 900px) and (max-width: 1199px) {
-            .page { grid-template-columns: repeat(4, 1fr); }
-        }
-        @media (min-width: 600px) and (max-width: 899px) {
-            .page { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (max-width: 599px) {
-            .page { grid-template-columns: repeat(2, 1fr); }
         }
 
         /* ===== CARD ===== */
@@ -485,6 +490,7 @@
     </style>
 </head>
 <body>
+<div id="stage">
 
     <!-- HEADER -->
     <div class="header">
@@ -539,7 +545,39 @@
         </div>
     </div>
 
+</div><!-- /stage -->
+
     <script>
+        // Escala o "palco" (1920x1080) para caber em qualquer tela/janela,
+        // mantendo as proporções do design — funciona igual numa TV grande
+        // ou num monitor de computador. Defensivo contra WebViews que
+        // demoram a reportar o tamanho real da janela (ex: alguns
+        // navegadores de TV): recalcula algumas vezes após o carregamento
+        // e trava a escala numa faixa sensata para nunca "explodir".
+        (function () {
+            var stage = document.getElementById('stage');
+            var DESIGN_W = 1920, DESIGN_H = 1080;
+            function fitStage() {
+                var w = window.innerWidth || document.documentElement.clientWidth;
+                var h = window.innerHeight || document.documentElement.clientHeight;
+                if (!w || !h) return;
+                var scale = Math.min(w / DESIGN_W, h / DESIGN_H);
+                if (!isFinite(scale) || scale <= 0) return;
+                scale = Math.max(0.1, Math.min(scale, 4));
+                var offsetX = (w - DESIGN_W * scale) / 2;
+                var offsetY = (h - DESIGN_H * scale) / 2;
+                stage.style.transform = 'translate(' + offsetX + 'px,' + offsetY + 'px) scale(' + scale + ')';
+                stage.style.visibility = 'visible';
+            }
+            window.addEventListener('resize', fitStage);
+            fitStage();
+            // Retentativas para WebViews que demoram a estabilizar o viewport
+            setTimeout(fitStage, 150);
+            setTimeout(fitStage, 800);
+            setTimeout(fitStage, 2000);
+            window.addEventListener('load', fitStage);
+        })();
+
         const profissionais = [
             {% for p in profissionais %}
             {
