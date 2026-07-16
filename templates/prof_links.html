@@ -1,15 +1,14 @@
 <!doctype html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ prof.nome }} — {{ academia.nome }}</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
+    body { font-family: 'Outfit', sans-serif; background: #0f1923; }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(24px); }
@@ -24,167 +23,278 @@
     .delay-1 { animation-delay: 0.1s; opacity: 0; }
     .delay-2 { animation-delay: 0.2s; opacity: 0; }
     .delay-3 { animation-delay: 0.3s; opacity: 0; }
-    .delay-4 { animation-delay: 0.4s; opacity: 0; }
     .delay-5 { animation-delay: 0.5s; opacity: 0; }
     .delay-6 { animation-delay: 0.6s; opacity: 0; }
     .delay-7 { animation-delay: 0.7s; opacity: 0; }
 
-    .contact-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px;
+    }
+    .section {
+      width: 100%;
+      max-width: 448px;
+      padding: 0 20px;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0f1923 0%, #1a2d3d 50%, #0f1923 100%);
+    }
+    .hero-glow-1, .hero-glow-2 {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    .hero-glow-1 {
+      top: 0; right: 0; width: 192px; height: 192px;
+      background: #00d9ff; filter: blur(60px);
+      transform: translate(30%, -30%);
+    }
+    .hero-glow-2 {
+      bottom: 0; left: 0; width: 144px; height: 144px;
+      background: #6366f1; filter: blur(50px);
+      transform: translate(-30%, 30%);
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 32px;
+    }
+    .avatar-ring {
+      width: 144px; height: 144px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, #00d9ff, #6366f1);
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a2d3d;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar span { font-size: 48px; font-weight: 700; color: #00d9ff; }
+    .hero-nome {
+      font-size: 24px; font-weight: 700;
+      letter-spacing: -0.02em; text-align: center;
+      color: #f1faee;
+    }
+    .hero-cargo {
+      font-size: 14px; font-weight: 500;
+      margin-top: 4px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #00d9ff;
+      text-align: center;
+    }
+    .hero-academia {
+      font-size: 12px; font-weight: 300;
+      margin-top: 8px; letter-spacing: 0.05em;
+      color: #a8dadc; text-align: center;
+    }
+
+    /* ===== VIDEO ===== */
+    .video-box { margin-top: 20px; }
+    .video-box video {
+      width: 100%;
+      border-radius: 16px;
+      background: #000;
+      border: 1px solid #2a3f52;
+      max-height: 70vh;
+      display: block;
+    }
+
+    /* ===== STAT ===== */
+    .stat-card {
+      margin-top: 12px;
+      background: #1a2d3d;
+      border: 1px solid #2a3f52;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-num { font-size: 24px; font-weight: 700; color: #00d9ff; }
+    .stat-label { font-size: 12px; font-weight: 300; margin-top: 4px; color: #a8dadc; }
+
+    /* ===== SECTION TITLE ===== */
+    .sec-title {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #00d9ff; margin: 32px 4px 14px;
+    }
+    .sec-title svg { flex-shrink: 0; }
+
+    /* ===== TAGS ===== */
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 8px 16px; border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+    }
+    .tag-ciano { background: rgba(0,217,255,0.15); color: #00d9ff; border: 1px solid rgba(0,217,255,0.3); }
+    .tag-roxo { background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); }
+
+    /* ===== CONTATOS ===== */
+    .contatos { display: flex; flex-direction: column; gap: 12px; }
+    .contact-btn {
+      display: flex; align-items: center; gap: 16px;
+      border-radius: 16px; padding: 16px;
+      text-decoration: none; color: #fff;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     .contact-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-    .spec-tag { transition: all 0.3s ease; }
-    .spec-tag:hover { transform: scale(1.05); }
-    .stat-card { transition: all 0.3s ease; }
-    .stat-card:hover { transform: translateY(-2px); }
+    .btn-wa { background: #25D366; }
+    .btn-insta { background: linear-gradient(135deg, #833AB4, #E1306C, #F77737); }
+    .btn-mail { background: #2a3f52; color: #f1faee; border: 1px solid #3a5268; }
+    .contact-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; background: rgba(255,255,255,0.2);
+    }
+    .btn-mail .contact-icon { background: rgba(99,102,241,0.2); }
+    .contact-titulo { font-size: 14px; font-weight: 600; }
+    .contact-sub { font-size: 12px; font-weight: 300; opacity: 0.8; }
+    .contact-seta { margin-left: auto; opacity: 0.7; flex-shrink: 0; }
+
+    /* ===== FOOTER ===== */
+    .rodape {
+      margin-top: 40px; margin-bottom: 16px;
+      font-size: 12px; font-weight: 300;
+      color: #3a5268; text-align: center;
+    }
   </style>
 </head>
-<body class="h-full" style="font-family: 'Outfit', sans-serif;">
-  <div class="w-full h-full overflow-auto" style="background: #0f1923;">
-    <div class="w-full min-h-full flex flex-col items-center justify-start pb-10">
+<body>
+  <div class="wrap">
 
-      <!-- Hero Section -->
-      <div class="w-full relative overflow-hidden" style="background: linear-gradient(135deg, #0f1923 0%, #1a2d3d 50%, #0f1923 100%);">
-        <div class="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style="background: #00d9ff; filter: blur(60px); transform: translate(30%, -30%);"></div>
-        <div class="absolute bottom-0 left-0 w-36 h-36 rounded-full opacity-10" style="background: #6366f1; filter: blur(50px); transform: translate(-30%, 30%);"></div>
-
-        <div class="relative z-10 flex flex-col items-center pt-10 pb-8 px-5">
-          <!-- Avatar -->
-          <div class="anim-scale delay-1 mb-5">
-            <div class="w-36 h-36 rounded-full p-1" style="background: linear-gradient(135deg, #00d9ff, #6366f1);">
-              <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style="background: #1a2d3d;">
-                {% if prof.foto_url %}
-                  <img src="{{ prof.foto_url }}" alt="{{ prof.nome }}" class="w-full h-full object-cover">
-                {% else %}
-                  <span class="text-5xl font-bold" style="color: #00d9ff;">{{ prof.nome[0] | upper }}</span>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-
-          <!-- Name & Title -->
-          <h1 class="anim-fade delay-2 text-2xl font-bold tracking-tight text-center" style="color: #f1faee;">{{ prof.nome }}</h1>
-          <p class="anim-fade delay-3 text-sm font-medium mt-1 tracking-widest uppercase" style="color: #00d9ff;">{{ prof.cargo }}</p>
-          {% if academia.nome %}
-          <p class="anim-fade delay-3 text-xs mt-2 font-light tracking-wide" style="color: #a8dadc;">{{ academia.nome }}</p>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Video de apresentação -->
-      {% if prof.video_url %}
-      <div class="w-full max-w-md px-5 mt-5">
-        <div class="anim-fade delay-3">
-          <video
-            class="w-full rounded-2xl"
-            style="background:#000; border:1px solid #2a3f52; max-height:70vh;"
-            src="{{ prof.video_url }}"
-            controls
-            playsinline
-            preload="metadata"
-            poster="{{ prof.foto_url }}">
-          </video>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Stats -->
-      {% if prof.anos %}
-      <div class="w-full max-w-md px-5 -mt-1">
-        <div class="grid grid-cols-1 gap-3">
-          <div class="stat-card anim-fade delay-3 rounded-2xl p-4 text-center" style="background: #1a2d3d; border: 1px solid #2a3f52;">
-            <p class="text-2xl font-bold" style="color: #00d9ff;">{{ prof.anos }}</p>
-            <p class="text-xs mt-1 font-light" style="color: #a8dadc;">Anos de Experiência</p>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Specialties -->
-      {% if prof.especialidades %}
-      <div class="w-full max-w-md px-5 mt-5">
-        <div class="anim-fade delay-5">
-          <h2 class="text-sm font-semibold uppercase tracking-widest mb-3 px-1" style="color: #00d9ff;">
-            <i data-lucide="target" style="width:14px; height:14px; display:inline-block; vertical-align: -2px; margin-right: 6px;"></i>Especialidades
-          </h2>
-          <div class="flex flex-wrap gap-2">
-            {% for esp in prof.especialidades.split(',') %}
-            {% if loop.index is odd %}
-            <span class="spec-tag px-4 py-2 rounded-full text-xs font-medium" style="background: rgba(0,217,255,0.15); color: #00d9ff; border: 1px solid rgba(0,217,255,0.3);">{{ esp.strip() }}</span>
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-glow-1"></div>
+      <div class="hero-glow-2"></div>
+      <div class="hero-inner">
+        <div class="anim-scale delay-1 avatar-ring">
+          <div class="avatar">
+            {% if prof.foto_url %}
+              <img src="{{ prof.foto_url }}" alt="{{ prof.nome }}">
             {% else %}
-            <span class="spec-tag px-4 py-2 rounded-full text-xs font-medium" style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3);">{{ esp.strip() }}</span>
+              <span>{{ prof.nome[0] | upper }}</span>
             {% endif %}
-            {% endfor %}
           </div>
         </div>
+        <h1 class="anim-fade delay-2 hero-nome">{{ prof.nome }}</h1>
+        <p class="anim-fade delay-3 hero-cargo">{{ prof.cargo }}</p>
+        {% if academia.nome %}
+        <p class="anim-fade delay-3 hero-academia">{{ academia.nome }}</p>
+        {% endif %}
       </div>
-      {% endif %}
-
-      <!-- Contact Buttons -->
-      {% if prof.whatsapp or prof.instagram or prof.email %}
-      <div class="w-full max-w-md px-5 mt-8">
-        <div class="anim-fade delay-6">
-          <h2 class="text-sm font-semibold uppercase tracking-widest mb-4 px-1" style="color: #00d9ff;">
-            <i data-lucide="phone" style="width:14px; height:14px; display:inline-block; vertical-align: -2px; margin-right: 6px;"></i>Fale Comigo
-          </h2>
-          <div class="flex flex-col gap-3">
-
-            {% if prof.whatsapp %}
-            {% set wa = prof.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
-            <a href="https://wa.me/{{ wa }}?text=Olá! Vi seu cartão e gostaria de saber mais sobre seus serviços." target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: #25D366; color: #fff; text-decoration: none;">
-              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.2);">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.506 3.934 1.395 5.608L.045 23.955l6.523-1.311A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.89 0-3.694-.468-5.32-1.352l-.38-.216-3.872.779.82-3.77-.24-.393A9.793 9.793 0 012.18 12C2.18 6.586 6.586 2.18 12 2.18S21.82 6.586 21.82 12 17.414 21.82 12 21.82z"/>
-                </svg>
-              </div>
-              <div>
-                <p class="font-semibold text-sm">WhatsApp</p>
-                <p class="text-xs opacity-80 font-light">Resposta rápida</p>
-              </div>
-              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.7;"></i>
-            </a>
-            {% endif %}
-
-            {% if prof.instagram %}
-            {% set insta = prof.instagram | replace('@','') %}
-            <a href="https://instagram.com/{{ insta }}" target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: linear-gradient(135deg, #833AB4, #E1306C, #F77737); color: #fff; text-decoration: none;">
-              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.2);">
-                <i data-lucide="instagram" style="width:22px; height:22px;"></i>
-              </div>
-              <div>
-                <p class="font-semibold text-sm">Instagram</p>
-                <p class="text-xs opacity-80 font-light">@{{ insta }}</p>
-              </div>
-              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.7;"></i>
-            </a>
-            {% endif %}
-
-            {% if prof.email %}
-            <a href="mailto:{{ prof.email }}?subject=Contato pelo Cartão Digital" target="_blank" rel="noopener noreferrer" class="contact-btn flex items-center gap-4 rounded-2xl p-4" style="background: #2a3f52; color: #f1faee; text-decoration: none; border: 1px solid #3a5268;">
-              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(99,102,241,0.2);">
-                <i data-lucide="mail" style="width:22px; height:22px; color: #6366f1;"></i>
-              </div>
-              <div>
-                <p class="font-semibold text-sm">E-mail</p>
-                <p class="text-xs opacity-70 font-light">{{ prof.email }}</p>
-              </div>
-              <i data-lucide="chevron-right" class="ml-auto" style="width:18px; height:18px; opacity:0.5;"></i>
-            </a>
-            {% endif %}
-
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Footer -->
-      <div class="anim-fade delay-7 mt-10 mb-4 text-center">
-        <p class="text-xs font-light" style="color: #3a5268;">Cartão Digital Profissional</p>
-      </div>
-
     </div>
+
+    <!-- Vídeo de apresentação -->
+    {% if prof.video_url %}
+    <div class="section">
+      <div class="anim-fade delay-3 video-box">
+        <video src="{{ prof.video_url }}" controls playsinline preload="metadata" poster="{{ prof.foto_url }}"></video>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Anos de experiência -->
+    {% if prof.anos %}
+    <div class="section">
+      <div class="anim-fade delay-3 stat-card">
+        <p class="stat-num">{{ prof.anos }}</p>
+        <p class="stat-label">Anos de Experiência</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Especialidades -->
+    {% if prof.especialidades %}
+    <div class="section anim-fade delay-5">
+      <h2 class="sec-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        Especialidades
+      </h2>
+      <div class="tags">
+        {% for esp in prof.especialidades.split(',') %}
+        <span class="tag {{ 'tag-ciano' if loop.index is odd else 'tag-roxo' }}">{{ esp.strip() }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Contatos -->
+    {% if prof.whatsapp or prof.instagram or prof.email %}
+    <div class="section anim-fade delay-6">
+      <h2 class="sec-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Fale Comigo
+      </h2>
+      <div class="contatos">
+
+        {% if prof.whatsapp %}
+        {% set wa = prof.whatsapp | replace('(','') | replace(')','') | replace('-','') | replace(' ','') %}
+        <a href="https://wa.me/{{ wa }}?text=Olá! Vi seu cartão e gostaria de saber mais sobre seus serviços." target="_blank" rel="noopener noreferrer" class="contact-btn btn-wa">
+          <div class="contact-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.506 3.934 1.395 5.608L.045 23.955l6.523-1.311A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.82c-1.89 0-3.694-.468-5.32-1.352l-.38-.216-3.872.779.82-3.77-.24-.393A9.793 9.793 0 012.18 12C2.18 6.586 6.586 2.18 12 2.18S21.82 6.586 21.82 12 17.414 21.82 12 21.82z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="contact-titulo">WhatsApp</p>
+            <p class="contact-sub">Resposta rápida</p>
+          </div>
+          <svg class="contact-seta" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+
+        {% if prof.instagram %}
+        {% set insta = prof.instagram | replace('@','') %}
+        <a href="https://instagram.com/{{ insta }}" target="_blank" rel="noopener noreferrer" class="contact-btn btn-insta">
+          <div class="contact-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </div>
+          <div>
+            <p class="contact-titulo">Instagram</p>
+            <p class="contact-sub">@{{ insta }}</p>
+          </div>
+          <svg class="contact-seta" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+
+        {% if prof.email %}
+        <a href="mailto:{{ prof.email }}?subject=Contato pelo Cartão Digital" target="_blank" rel="noopener noreferrer" class="contact-btn btn-mail">
+          <div class="contact-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </div>
+          <div>
+            <p class="contact-titulo">E-mail</p>
+            <p class="contact-sub">{{ prof.email }}</p>
+          </div>
+          <svg class="contact-seta" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
+    <p class="anim-fade delay-7 rodape">Cartão Digital Profissional</p>
+
   </div>
-  <script>
-    lucide.createIcons();
-  </script>
 </body>
 </html>

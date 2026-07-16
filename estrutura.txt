@@ -1,11 +1,24 @@
 painel_tv/
-├── app.py                  ← aplicação principal Flask
+├── app.py                  ← aplicação principal Flask (rotas, banco, uploads)
 ├── requirements.txt        ← dependências
-├── Procfile               ← Railway deploy
-├── .env                   ← variáveis de ambiente (não sobe pro git)
-├── templates/
-│   ├── painel.html        ← TV pública
-│   ├── admin_login.html   ← tela de login
-│   └── admin_editor.html  ← painel de edição
-└── static/
-    └── uploads/           ← fotos dos profissionais
+├── Dockerfile              ← build no Railway (gunicorn 2 workers)
+├── Procfile                ← comando alternativo de start
+├── .env.example            ← modelo das variáveis de ambiente
+├── scripts/
+│   └── liberar-overlay-fully.ps1  ← libera permissão de overlay no Fire TV via ADB
+├── static/
+│   └── qrcode.min.js       ← geração de QR code no navegador (offline)
+└── templates/
+    ├── painel.html         ← TV pública (carrossel, escala 1920x1080, auto-update)
+    ├── admin_login.html    ← login da academia
+    ├── admin_editor.html   ← painel de edição (config, profissionais, segurança)
+    ├── master_login.html   ← login master
+    ├── master.html         ← dashboard master (todos os clientes)
+    ├── setup.html          ← criação de nova academia (master)
+    ├── prof_links.html     ← cartão digital do profissional (via QR code)
+    ├── 404.html / 500.html ← páginas de erro
+
+Banco (PostgreSQL no Railway):
+    academias      ← clientes (slug, marca, cores, fonte, carrossel, senha)
+    profissionais  ← equipe de cada academia (contatos, foto, vídeo, ordem)
+    scans          ← registro de cada scan de QR code (métrica de engajamento)
