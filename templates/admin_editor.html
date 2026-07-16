@@ -277,6 +277,13 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
 .pro-name{font-size:14px;font-weight:600;color:var(--t1)}
 .pro-role{font-size:12px;color:var(--t2);margin-top:2px}
 .pro-tags{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.scan-badge{
+  display:flex;align-items:center;gap:5px;flex-shrink:0;
+  background:var(--acc-dim);border:1px solid rgba(59,130,246,0.25);
+  border-radius:20px;font-size:11px;font-weight:600;
+  padding:3px 10px;color:var(--acc-h);white-space:nowrap;
+  margin-left:12px;
+}
 .pro-tag{
   background:rgba(255,255,255,0.06);
   border:1px solid var(--border);
@@ -607,6 +614,10 @@ details[open] .chevron{transform:rotate(180deg)}
           <div style="flex:1;min-width:0">
             <div class="pro-name">{{ p.nome }}</div>
             <div class="pro-role">{{ p.cargo or 'Sem cargo' }}</div>
+          </div>
+          <div class="scan-badge" title="Vezes que o QR code deste profissional foi escaneado">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            {{ p.scans_mes | default(0) }} no mês · {{ p.scans_total | default(0) }} total
           </div>
           <div class="pro-tags">
             {% for esp in p.especialidades.split(',')[:2] if p.especialidades %}

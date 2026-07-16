@@ -1,5 +1,6 @@
 ﻿import os
 import re
+import secrets
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
@@ -22,10 +23,17 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
 
-# Identificador da versão em produção — muda a cada deploy (SHA do commit
-# no Railway) ou a cada restart do processo. Usado pelo painel de TV para
-# detectar versão nova e se recarregar sozinho.
-APP_VERSION = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or str(int(datetime.now().timestamp()))
+if MASTER_PASSWORD == "master123":
+    print("[AVISO DE SEGURANÇA] MASTER_PASSWORD não definida no ambiente — usando o padrão inseguro. Defina no Railway!")
+if app.secret_key == "troque-em-producao":
+    print("[AVISO DE SEGURANÇA] SECRET_KEY não definida no ambiente — sessões podem ser forjadas. Defina no Railway!")
+
+# Identificador da versão em produção — muda a cada deploy. Prefere o SHA
+# do commit (Railway); o fallback usa o mtime deste arquivo, que é estável
+# entre workers do gunicorn (um timestamp de import divergiria entre
+# workers e faria as TVs recarregarem em loop). Usado pelo painel de TV
+# para detectar versão nova e se recarregar sozinho.
+APP_VERSION = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or str(int(os.path.getmtime(__file__)))
 
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
@@ -107,6 +115,11 @@ def init_db():
         cor_avatar TEXT DEFAULT '#1a6fd4',
         qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
+        criado_em TIMESTAMP DEFAULT NOW())""")
+    query("""CREATE TABLE IF NOT EXISTS scans (
+        id SERIAL PRIMARY KEY,
+        profissional_id INTEGER REFERENCES profissionais(id) ON DELETE CASCADE,
+        academia_id INTEGER REFERENCES academias(id) ON DELETE CASCADE,
         criado_em TIMESTAMP DEFAULT NOW())""")
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
@@ -226,7 +239,11 @@ def admin_logout(slug):
 def admin_editor(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
     profissionais = query(
-        "SELECT * FROM profissionais WHERE academia_id = %s ORDER BY ordem, id",
+        """SELECT p.*,
+            (SELECT COUNT(*) FROM scans s WHERE s.profissional_id = p.id) AS scans_total,
+            (SELECT COUNT(*) FROM scans s WHERE s.profissional_id = p.id
+                AND s.criado_em >= date_trunc('month', NOW())) AS scans_mes
+        FROM profissionais p WHERE p.academia_id = %s ORDER BY p.ordem, p.id""",
         (academia["id"],), fetch="all"
     )
     return render_template("admin_editor.html", academia=academia, profissionais=profissionais or [])
@@ -399,7 +416,8 @@ def master_login():
     if session.get("master_logged"):
         return redirect(url_for("master_dashboard"))
     if request.method == "POST":
-        if request.form.get("senha") == MASTER_PASSWORD:
+        senha = request.form.get("senha", "")
+        if secrets.compare_digest(senha.encode(), MASTER_PASSWORD.encode()):
             session.permanent = True
             session["master_logged"] = True
             return redirect(url_for("master_dashboard"))
@@ -464,6 +482,11 @@ def prof_links(slug, prof_id):
                  (prof_id, academia["id"]), fetch="one")
     if not prof:
         return render_template("404.html"), 404
+    try:
+        query("INSERT INTO scans (profissional_id, academia_id) VALUES (%s, %s)",
+              (prof_id, academia["id"]))
+    except Exception as e:
+        print(f"[SCAN] Falha ao registrar scan: {e}")
     return render_template("prof_links.html", academia=academia, prof=prof)
 
 @app.errorhandler(404)
@@ -476,7 +499,7 @@ def server_error(e):
 
 @app.errorhandler(413)
 def file_too_large(e):
-    flash("Arquivo muito grande. O limite é 5MB.")
+    flash("Arquivo muito grande. Limite: 5MB para fotos e logo, 40MB para vídeos.")
     return redirect(request.referrer or "/")
 
 with app.app_context():
