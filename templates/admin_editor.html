@@ -284,6 +284,14 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
   padding:3px 10px;color:var(--acc-h);white-space:nowrap;
   margin-left:12px;
 }
+.order-btns{display:flex;flex-direction:column;gap:2px;margin-left:10px;flex-shrink:0}
+.order-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:22px;height:16px;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);border-radius:5px;
+  color:var(--t2);cursor:pointer;padding:0;transition:all .15s;
+}
+.order-btn:hover{background:var(--acc-dim);color:var(--acc-h);border-color:rgba(59,130,246,0.35)}
 .pro-tag{
   background:rgba(255,255,255,0.06);
   border:1px solid var(--border);
@@ -623,6 +631,24 @@ details[open] .chevron{transform:rotate(180deg)}
             {% for esp in p.especialidades.split(',')[:2] if p.especialidades %}
               <span class="pro-tag">{{ esp.strip() }}</span>
             {% endfor %}
+          </div>
+          <div class="order-btns" onclick="event.stopPropagation()">
+            {% if not loop.first %}
+            <form method="POST" action="{{ url_for('mover_profissional', slug=academia.slug, prof_id=p.id) }}">
+              <input type="hidden" name="direcao" value="cima">
+              <button type="submit" class="order-btn" title="Mover para cima" onclick="event.stopPropagation()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+            </form>
+            {% endif %}
+            {% if not loop.last %}
+            <form method="POST" action="{{ url_for('mover_profissional', slug=academia.slug, prof_id=p.id) }}">
+              <input type="hidden" name="direcao" value="baixo">
+              <button type="submit" class="order-btn" title="Mover para baixo" onclick="event.stopPropagation()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </form>
+            {% endif %}
           </div>
           <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </summary>

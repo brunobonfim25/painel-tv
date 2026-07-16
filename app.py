@@ -173,7 +173,46 @@ def upload_logo(file, pasta="painel_tv/logos"):
         print(f"Erro upload logo Cloudinary: {e}")
         return ""
 
+def excluir_do_cloudinary(url, resource_type="image"):
+    """Remove do Cloudinary o arquivo apontado pela URL (foto/logo/vídeo
+    substituído ou removido), para não acumular arquivos órfãos."""
+    if not url or "res.cloudinary.com" not in url:
+        return
+    try:
+        m = re.search(r"/upload/(?:v\d+/)?(.+?)(?:\.\w+)?$", url)
+        if m:
+            cloudinary.uploader.destroy(m.group(1), resource_type=resource_type)
+    except Exception as e:
+        print(f"Erro ao excluir do Cloudinary: {e}")
+
 SESSION_TIMEOUT = timedelta(hours=2)
+
+# Rate-limit simples de login, em memória por worker: 5 falhas em 15 min
+# bloqueiam novas tentativas daquele IP para aquele alvo (slug ou master).
+LOGIN_MAX_TENTATIVAS = 5
+LOGIN_JANELA_SEGUNDOS = 15 * 60
+_tentativas_login = {}
+
+def _ip_cliente():
+    encaminhado = request.headers.get("X-Forwarded-For", "")
+    if encaminhado:
+        return encaminhado.split(",")[0].strip()
+    return request.remote_addr or "?"
+
+def login_bloqueado(alvo):
+    chave = f"{alvo}|{_ip_cliente()}"
+    agora = datetime.utcnow().timestamp()
+    recentes = [t for t in _tentativas_login.get(chave, [])
+                if agora - t < LOGIN_JANELA_SEGUNDOS]
+    _tentativas_login[chave] = recentes
+    return len(recentes) >= LOGIN_MAX_TENTATIVAS
+
+def registrar_falha_login(alvo):
+    chave = f"{alvo}|{_ip_cliente()}"
+    _tentativas_login.setdefault(chave, []).append(datetime.utcnow().timestamp())
+
+def limpar_falhas_login(alvo):
+    _tentativas_login.pop(f"{alvo}|{_ip_cliente()}", None)
 
 def login_required(f):
     @wraps(f)
@@ -220,12 +259,17 @@ def admin_login(slug):
     if not academia:
         return "Academia nao encontrada.", 404
     if request.method == "POST":
+        if login_bloqueado(slug):
+            flash("Muitas tentativas. Aguarde 15 minutos e tente de novo.")
+            return render_template("admin_login.html", academia=academia)
         if check_password_hash(academia["senha_hash"], request.form.get("senha", "")):
+            limpar_falhas_login(slug)
             session.permanent = True
             session["academia_slug"] = slug
             session["academia_id"] = academia["id"]
             session["last_activity"] = datetime.utcnow().timestamp()
             return redirect(url_for("admin_editor", slug=slug))
+        registrar_falha_login(slug)
         flash("Senha incorreta.")
     return render_template("admin_login.html", academia=academia)
 
@@ -259,7 +303,10 @@ def salvar_config(slug):
             if not tamanho_valido(file):
                 flash("A logo não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
-            logo_url = upload_logo(file)
+            nova_logo = upload_logo(file)
+            if nova_logo:
+                excluir_do_cloudinary(logo_url)
+                logo_url = nova_logo
     fontes_validas = {"Syne","Montserrat","Poppins","Oswald","Bebas Neue","Space Grotesk","Encode Sans","Raleway"}
     fonte = request.form.get("fonte", "Syne")
     if fonte not in fontes_validas:
@@ -317,6 +364,9 @@ def trocar_senha(slug):
 @app.route("/<slug>/admin/remover-logo", methods=["POST"])
 @login_required
 def remover_logo(slug):
+    academia = query("SELECT logo_url FROM academias WHERE slug=%s", (slug,), fetch="one")
+    if academia:
+        excluir_do_cloudinary(academia["logo_url"])
     query("UPDATE academias SET logo_url='' WHERE slug=%s", (slug,))
     flash("Logo removida.")
     return redirect(url_for("admin_editor", slug=slug))
@@ -374,9 +424,13 @@ def editar_profissional(slug, prof_id):
             if not tamanho_valido(file):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
-            foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+            nova_foto = upload_imagem(file, pasta="painel_tv/profissionais")
+            if nova_foto:
+                excluir_do_cloudinary(foto_url)
+                foto_url = nova_foto
     video_url = prof["video_url"]
     if request.form.get("remover_video") == "on":
+        excluir_do_cloudinary(video_url, resource_type="video")
         video_url = ""
     if "video" in request.files:
         file = request.files["video"]
@@ -387,7 +441,10 @@ def editar_profissional(slug, prof_id):
             if not tamanho_valido(file, MAX_VIDEO_SIZE):
                 flash("O vídeo não pode ter mais de 40MB.")
                 return redirect(url_for("admin_editor", slug=slug))
-            video_url = upload_video(file)
+            novo_video = upload_video(file)
+            if novo_video:
+                excluir_do_cloudinary(video_url, resource_type="video")
+                video_url = novo_video
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
     if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
@@ -403,10 +460,37 @@ def editar_profissional(slug, prof_id):
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
+@app.route("/<slug>/admin/profissional/<int:prof_id>/mover", methods=["POST"])
+@login_required
+def mover_profissional(slug, prof_id):
+    direcao = request.form.get("direcao")
+    if direcao not in ("cima", "baixo"):
+        return redirect(url_for("admin_editor", slug=slug))
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    profs = query("SELECT id FROM profissionais WHERE academia_id=%s ORDER BY ordem, id",
+                  (academia["id"],), fetch="all") or []
+    ids = [p["id"] for p in profs]
+    if prof_id not in ids:
+        return redirect(url_for("admin_editor", slug=slug))
+    i = ids.index(prof_id)
+    j = i - 1 if direcao == "cima" else i + 1
+    if 0 <= j < len(ids):
+        ids[i], ids[j] = ids[j], ids[i]
+        # Renumera todos: também normaliza registros antigos com ordem=0 duplicada
+        for pos, pid in enumerate(ids):
+            query("UPDATE profissionais SET ordem=%s WHERE id=%s AND academia_id=%s",
+                  (pos, pid, academia["id"]))
+    return redirect(url_for("admin_editor", slug=slug))
+
 @app.route("/<slug>/admin/profissional/<int:prof_id>/remover", methods=["POST"])
 @login_required
 def remover_profissional(slug, prof_id):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    prof = query("SELECT foto_url, video_url FROM profissionais WHERE id=%s AND academia_id=%s",
+                 (prof_id, academia["id"]), fetch="one")
+    if prof:
+        excluir_do_cloudinary(prof["foto_url"])
+        excluir_do_cloudinary(prof["video_url"], resource_type="video")
     query("DELETE FROM profissionais WHERE id=%s AND academia_id=%s", (prof_id, academia["id"]))
     flash("Profissional removido.")
     return redirect(url_for("admin_editor", slug=slug))
@@ -416,11 +500,16 @@ def master_login():
     if session.get("master_logged"):
         return redirect(url_for("master_dashboard"))
     if request.method == "POST":
+        if login_bloqueado("__master__"):
+            flash("Muitas tentativas. Aguarde 15 minutos e tente de novo.")
+            return render_template("master_login.html")
         senha = request.form.get("senha", "")
         if secrets.compare_digest(senha.encode(), MASTER_PASSWORD.encode()):
+            limpar_falhas_login("__master__")
             session.permanent = True
             session["master_logged"] = True
             return redirect(url_for("master_dashboard"))
+        registrar_falha_login("__master__")
         flash("Senha incorreta.")
     return render_template("master_login.html")
 
