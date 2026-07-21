@@ -670,12 +670,24 @@
             return d.innerHTML;
         }
 
+        // Monta a URL de entrega da foto sob medida: recorte de rosto e
+        // tamanho calculados na hora pelo Cloudinary (em vez de um recorte
+        // fixo salvo no upload), respeitando a densidade de pixels de cada
+        // TV para a imagem sair nítida sem depender do tamanho do card.
+        function cloudinaryPhotoUrl(url, size) {
+            if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
+            var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+            var t = 'c_fill,g_face,w_' + size + ',h_' + size + ',q_auto,f_auto,dpr_' + dpr;
+            return url.replace('/upload/', '/upload/' + t + '/');
+        }
+
         function buildCard(p) {
             const name = esc(p.nome) || '';
             const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
 
-            var photo = p.foto_url
-                ? '<img class="card-photo-img" src="' + esc(p.foto_url) + '" alt="' + esc(p.nome) + '">'
+            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500) : '';
+            var photo = photoSrc
+                ? '<img class="card-photo-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) + '">'
                 : '<div class="card-photo-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
             const badge = p.anos ? '<span class="badge-exp">' + esc(p.anos) + ' anos</span>' : '';
             const cargo = p.cargo ? '<div class="card-cargo">' + esc(p.cargo).toUpperCase() + '</div>' : '';

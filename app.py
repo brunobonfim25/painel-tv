@@ -137,14 +137,16 @@ def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     return size <= max_size
 
 def upload_imagem(file, pasta="painel_tv"):
+    # Guarda a foto em alta resolução, sem recorte fixo: o recorte
+    # (crop de rosto) e o tamanho de entrega são calculados on-the-fly
+    # pelo painel (ver cloudinaryUrl() em painel.html), ajustados à
+    # densidade de pixels de cada TV. Isso evita reenvio de fotos toda
+    # vez que o layout muda de tamanho.
     try:
         resultado = cloudinary.uploader.upload(
             file,
             folder=pasta,
-            transformation=[{
-                "width": 800, "height": 800, "crop": "fill", "gravity": "face",
-                "quality": "auto:best"
-            }]
+            transformation=[{"width": 1600, "height": 1600, "crop": "limit", "quality": "auto:best"}]
         )
         return resultado.get("secure_url", "")
     except Exception as e:
