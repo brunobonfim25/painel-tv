@@ -141,7 +141,10 @@ def upload_imagem(file, pasta="painel_tv"):
         resultado = cloudinary.uploader.upload(
             file,
             folder=pasta,
-            transformation=[{"width": 400, "height": 400, "crop": "fill", "gravity": "face"}]
+            transformation=[{
+                "width": 800, "height": 800, "crop": "fill", "gravity": "face",
+                "quality": "auto:best"
+            }]
         )
         return resultado.get("secure_url", "")
     except Exception as e:
