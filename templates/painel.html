@@ -49,10 +49,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 32px;
-            height: 64px;
-            min-height: 64px;
-            background: #fff;
-            border-bottom: 3px solid var(--accent);
+            height: 76px;
+            min-height: 76px;
+            background: #f3f3f6;
             box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
 
@@ -63,8 +62,8 @@
         }
 
         .header-logo {
-            height: 48px;
-            max-width: 200px;
+            height: 58px;
+            max-width: 240px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -78,7 +77,7 @@
         }
 
         .header-logo-text {
-            height: 48px;
+            height: 58px;
             padding: 0 14px;
             border-radius: 10px;
             border: 2px solid var(--accent);
@@ -86,14 +85,14 @@
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 15px;
+            font-size: 18px;
             color: var(--accent);
             background: #fff;
         }
 
         .header-logo.logo-only {
-            height: 54px;
-            max-width: 260px;
+            height: 64px;
+            max-width: 300px;
         }
 
         .header-title { display: flex; flex-direction: column; }
@@ -103,15 +102,15 @@
         .header-center {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 700;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 900;
             color: var(--pri);
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .header-center svg {
-            width: 20px; height: 20px;
+            width: 26px; height: 26px;
             stroke: var(--accent); fill: none; stroke-width: 2;
         }
 
@@ -265,17 +264,24 @@
         }
 
         /* ===== FOTO ESTILO "DESTAQUE" (fundo removido, sem moldura/caixa) =====
-           Mesma altura da versão em círculo (140px * cs) de propósito: é o
-           limite de altura testado para o QR Code nunca ser empurrado para
-           fora do card (ver commit da correção do QR cortado). Sem
+           Maior que a versão em círculo de propósito (era 128x140, testada
+           como limite seguro) — testado de novo nesse tamanho (160x175)
+           nos layouts de 6/8/10 cards por página para o QR Code continuar
+           com folga (ver commit da correção do QR cortado). Sem
            border-radius/overflow/box-shadow aqui de propósito — a foto (com
            fundo removido via IA do Cloudinary) precisa "flutuar" direto
            sobre o fundo branco do card, sem caixa nenhuma ao redor. */
         .card-photo-destaque {
             position: relative;
             flex-shrink: 0;
-            width: calc(128px * var(--cs, 1));
-            height: calc(140px * var(--cs, 1));
+            width: calc(136px * var(--cs, 1));
+            height: calc(148px * var(--cs, 1));
+            /* Folga extra de propósito: mesmo com o recorte pedindo mais
+               espaço ao redor da pessoa (zoom "afastado" no Cloudinary),
+               fotos com enquadramento original mais fechado ainda podem
+               encostar na borda do recorte — essa margem garante uma
+               distância mínima até o nome de qualquer forma. */
+            margin-bottom: calc(2px * var(--cs, 1));
         }
 
         .card-photo-destaque-img {
@@ -316,6 +322,13 @@
         }
 
         /* ===== TEXT ===== */
+        /* flex-shrink:0 é essencial aqui: dentro de um flex column,
+           qualquer elemento com overflow:hidden perde sua altura mínima
+           automática e o navegador pode espremê-lo até ~0px quando falta
+           espaço no card — o texto continua desenhando no tamanho da
+           fonte, só que fora da própria caixa, "sobrepondo" o que vem
+           depois. flex-shrink:0 impede isso; se um dia faltar espaço de
+           verdade, o corte limpo acontece no overflow:hidden do .card. */
         .card-nome {
             font-size: calc(15px * var(--cs, 1));
             font-weight: 800;
@@ -327,6 +340,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .card-cargo {
@@ -336,6 +350,7 @@
             text-transform: uppercase;
             color: var(--accent);
             text-align: center;
+            flex-shrink: 0;
         }
 
         /* ===== CONTACTS ===== */
@@ -382,8 +397,9 @@
             gap: 4px;
             justify-content: center;
             margin-top: 2px;
-            max-height: calc(46px * var(--cs, 1));
+            max-height: calc(24px * var(--cs, 1));
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .tag {
@@ -404,13 +420,15 @@
             gap: 8px;
             margin-top: auto;
             width: 100%;
+            flex-shrink: 0;
         }
 
         .card-icons {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            flex-direction: row;
+            gap: 6px;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .card-icon {
@@ -723,13 +741,21 @@
         // TV para a imagem sair nítida sem depender do tamanho do card.
         // bgRemoval pede à IA do Cloudinary para remover o fundo da foto
         // (add-on pago, pode não estar habilitado na conta — ver fallback
-        // em buildCard()).
-        function cloudinaryPhotoUrl(url, size, bgRemoval) {
+        // em buildCard()). opts.w/h permitem um recorte retrato (mais alto
+        // que largo) e opts.zoom (<1) afasta o enquadramento do rosto para
+        // sobrar espaço/corpo ao redor da pessoa — sem isso, fotos com
+        // enquadramento original mais fechado ficam com a pessoa tocando
+        // a borda do recorte, sem folga nenhuma até o nome abaixo.
+        function cloudinaryPhotoUrl(url, size, bgRemoval, opts) {
             if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
+            opts = opts || {};
             var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+            var w = opts.w || size, h = opts.h || size;
             var parts = [];
             if (bgRemoval) parts.push('e_background_removal');
-            parts.push('c_fill', 'g_face', 'w_' + size, 'h_' + size, 'q_auto', 'f_auto', 'dpr_' + dpr);
+            parts.push('c_fill', 'g_face');
+            if (opts.zoom) parts.push('z_' + opts.zoom);
+            parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + dpr);
             return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
         }
 
@@ -746,7 +772,9 @@
                 // habilitado na conta Cloudinary (ou a foto falhar), o
                 // onerror troca sozinho para o recorte normal (com fundo) —
                 // nunca mostra ícone de imagem quebrada na TV.
-                var destaqueSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, true) : '';
+                var destaqueSrc = p.foto_url
+                    ? cloudinaryPhotoUrl(p.foto_url, 500, true, {w: 500, h: 620, zoom: 0.65})
+                    : '';
                 var photoDestaque = destaqueSrc
                     ? '<img class="card-photo-destaque-img" src="' + esc(destaqueSrc) + '" alt="' + esc(p.nome) +
                       '" data-fallback="' + esc(photoSrc) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
