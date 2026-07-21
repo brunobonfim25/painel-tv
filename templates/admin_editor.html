@@ -575,6 +575,31 @@ details[open] .chevron{transform:rotate(180deg)}
           </div>
           <div class="divider"></div>
           <div class="section-head">
+            <p class="section-title">Foto dos profissionais</p>
+            <p class="section-desc">Como a foto de cada profissional aparece no card da TV</p>
+          </div>
+          <div class="grid-2" style="margin-bottom:8px">
+            {% set estilos = [
+              ('circulo',  'Círculo', 'Foto redonda com anel de destaque giratório (padrão atual)'),
+              ('destaque', 'Destaque', 'Foto grande, recortada, sem moldura — estilo cartaz')
+            ] %}
+            {% for valor, label, desc in estilos %}
+            <label style="cursor:pointer">
+              <input type="radio" name="estilo_foto" value="{{ valor }}"
+                {% if (academia.estilo_foto or 'circulo') == valor %}checked{% endif %}
+                style="display:none" class="estilo-foto-radio">
+              <div class="estilo-foto-card"
+                style="border:2px solid {% if (academia.estilo_foto or 'circulo') == valor %}var(--acc){% else %}var(--border){% endif %};
+                       background:{% if (academia.estilo_foto or 'circulo') == valor %}var(--acc-dim){% else %}var(--card){% endif %};
+                       border-radius:12px;padding:14px 12px;transition:all .2s;text-align:center;">
+                <div style="font-size:14px;font-weight:800;color:var(--t1);margin-bottom:4px">{{ label }}</div>
+                <div style="font-size:11px;color:var(--t2);font-weight:500">{{ desc }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          <div class="divider"></div>
+          <div class="section-head">
             <p class="section-title">Carrossel da TV</p>
             <p class="section-desc">Controla quantos cards aparecem por tela e por quanto tempo cada página fica visível</p>
           </div>
@@ -915,6 +940,18 @@ document.querySelectorAll('.fonte-radio').forEach(radio => {
       card.style.background = 'rgba(255,255,255,0.04)';
     });
     const card = this.closest('label').querySelector('.fonte-card');
+    card.style.border = '2px solid var(--acc)';
+    card.style.background = 'var(--acc-dim)';
+  });
+});
+// seletor de estilo da foto
+document.querySelectorAll('.estilo-foto-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.estilo-foto-card').forEach(card => {
+      card.style.border = '2px solid rgba(255,255,255,0.08)';
+      card.style.background = 'rgba(255,255,255,0.04)';
+    });
+    const card = this.closest('label').querySelector('.estilo-foto-card');
     card.style.border = '2px solid var(--acc)';
     card.style.background = 'var(--acc-dim)';
   });

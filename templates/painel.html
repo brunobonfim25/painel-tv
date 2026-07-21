@@ -264,6 +264,39 @@
             color: #fff;
         }
 
+        /* ===== FOTO ESTILO "DESTAQUE" (sem moldura/anel, tipo cartaz) =====
+           Mesma altura da versão em círculo (140px * cs) de propósito: é o
+           limite de altura testado para o QR Code nunca ser empurrado para
+           fora do card (ver commit da correção do QR cortado). */
+        .card-photo-destaque {
+            position: relative;
+            flex-shrink: 0;
+            width: calc(128px * var(--cs, 1));
+            height: calc(140px * var(--cs, 1));
+            border-radius: 16px;
+            overflow: hidden;
+            background: #f5f5f5;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+        }
+
+        .card-photo-destaque-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-photo-destaque-ph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(44px * var(--cs, 1));
+            font-weight: 800;
+            color: #fff;
+        }
+
         .badge-exp {
             position: absolute;
             bottom: -2px;
@@ -641,6 +674,7 @@
             return qr.createDataURL(6, 4);
         }
 
+        const FOTO_DESTAQUE = {{ (academia.estilo_foto == 'destaque') | tojson }};
         const CARDS_PER_PAGE = {{ academia.cards_por_pagina | default(10) }};
         const PAGE_DURATION = {{ (academia.duracao_pagina | default(10)) }} * 1000;
         const container = document.getElementById('gridContainer');
@@ -697,10 +731,20 @@
             const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
 
             var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500) : '';
-            var photo = photoSrc
-                ? '<img class="card-photo-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) + '">'
-                : '<div class="card-photo-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
             const badge = p.anos ? '<span class="badge-exp">' + esc(p.anos) + ' anos</span>' : '';
+
+            var photoWrap;
+            if (FOTO_DESTAQUE) {
+                var photoDestaque = photoSrc
+                    ? '<img class="card-photo-destaque-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) + '">'
+                    : '<div class="card-photo-destaque-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
+                photoWrap = '<div class="card-photo-destaque">' + photoDestaque + badge + '</div>';
+            } else {
+                var photo = photoSrc
+                    ? '<img class="card-photo-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) + '">'
+                    : '<div class="card-photo-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
+                photoWrap = '<div class="card-photo-wrap">' + photo + badge + '</div>';
+            }
             const cargo = p.cargo ? '<div class="card-cargo">' + esc(p.cargo).toUpperCase() + '</div>' : '';
 
             let tags = '';
@@ -730,7 +774,7 @@
                 : '';
 
             return '<div class="card">' +
-                '<div class="card-photo-wrap">' + photo + badge + '</div>' +
+                photoWrap +
                 '<div class="card-nome">' + name + '</div>' +
                 cargo + tags + bottom +
                 '</div>';
