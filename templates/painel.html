@@ -716,12 +716,16 @@
         const totalPages = Math.max(1, Math.ceil(profissionais.length / CARDS_PER_PAGE));
         let currentPage = 0;
 
-        // Layout adaptativo: com menos cards por página, usa menos colunas
-        // e aumenta a escala dos cards para preencher a tela sem espaço
-        // vago. O layout é baseado em CARDS_PER_PAGE (não na página atual)
-        // para todas as páginas ficarem visualmente consistentes.
-        (function () {
-            var n = Math.min(CARDS_PER_PAGE, Math.max(profissionais.length, 1));
+        // Layout adaptativo: com menos cards, usa menos colunas e aumenta a
+        // escala dos cards para preencher a tela sem espaço vago. Calculado
+        // por página (não por CARDS_PER_PAGE global) — a última página do
+        // carrossel quase sempre tem menos itens que as anteriores (ex:
+        // 44 profissionais / 6 por página = 7 páginas cheias + 1 com 2
+        // sobrando), e usar o mesmo grid das páginas cheias nela deixava
+        // 1 card ocupando uma linha inteira esticada verticalmente, com
+        // colunas vazias sobrando ao lado.
+        function computeLayout(n) {
+            n = Math.max(n, 1);
             var cols;
             if (n <= 3) cols = n;
             else if (n === 4) cols = 2;
@@ -735,9 +739,18 @@
             // pelo vertical (base: 2 linhas, com ~35% de folga no card).
             var scale = Math.min(5 / cols, (2 / rows) * 1.35, 1.5);
             scale = Math.max(scale, 0.7);
-            container.style.setProperty('--cols', cols);
-            container.style.setProperty('--cs', scale.toFixed(3));
-        })();
+            return {cols: cols, scale: scale, rows: rows};
+        }
+
+        // Referência de nº de linhas com base no CARDS_PER_PAGE configurado
+        // (não no que sobra na última página). Sem isso, uma página com só
+        // 2 itens (de um layout pensado pra 6) criaria 1 única linha de
+        // grid, e "grid-auto-rows: 1fr" faria essa linha esticar para
+        // ocupar 100% da altura da tela — cards enormes e desproporcionais.
+        // Reservando o mesmo nº de linhas de uma página cheia, a linha
+        // populada fica do mesmo tamanho de sempre e o resto vira espaço
+        // vazio no grid (sem card nenhum ali), não um card esticado.
+        const REFERENCE_ROWS = computeLayout(CARDS_PER_PAGE).rows;
 
         function esc(str) {
             if (!str) return '';
@@ -851,6 +864,13 @@
 
                 var start = i * CARDS_PER_PAGE;
                 var end = Math.min(start + CARDS_PER_PAGE, profissionais.length);
+
+                var layout = computeLayout(end - start);
+                page.style.setProperty('--cols', layout.cols);
+                page.style.setProperty('--cs', layout.scale.toFixed(3));
+                var rows = Math.max(layout.rows, REFERENCE_ROWS);
+                page.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+
                 var html = '';
                 for (var j = start; j < end; j++) {
                     html += buildCard(profissionais[j]);
