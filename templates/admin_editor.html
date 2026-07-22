@@ -182,6 +182,7 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-cores{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:16px}
 .grid-full{margin-bottom:16px}
 
 /* ── COLOR INPUT ── */
@@ -512,7 +513,7 @@ details[open] .chevron{transform:rotate(180deg)}
           <div class="section-head">
             <p class="section-title">Cores do painel</p>
           </div>
-          <div class="grid-4">
+          <div class="grid-cores">
             <div>
               <label class="field-label">Cor principal</label>
               <div class="color-field">
@@ -535,12 +536,20 @@ details[open] .chevron{transform:rotate(180deg)}
               </div>
             </div>
             <div>
-              <label class="field-label">Cor de fundo</label>
+              <label class="field-label">Cor de fundo (palco)</label>
               <div class="color-field">
                 <input type="color" name="cor_fundo" value="{{ academia.cor_fundo | default('#f0f2f5') }}" class="color-swatch">
                 <span class="color-label">{{ academia.cor_fundo | default('#f0f2f5') }}</span>
               </div>
-              <p class="field-hint">Fundo do palco da TV, atrás dos cards</p>
+              <p class="field-hint">Fundo atrás dos cards</p>
+            </div>
+            <div>
+              <label class="field-label">Cor do card</label>
+              <div class="color-field">
+                <input type="color" name="cor_card" value="{{ academia.cor_card | default('#ffffff') }}" class="color-swatch">
+                <span class="color-label">{{ academia.cor_card | default('#ffffff') }}</span>
+              </div>
+              <p class="field-hint">Fundo do cartão onde fica a foto de cada profissional</p>
             </div>
           </div>
           <div class="divider"></div>

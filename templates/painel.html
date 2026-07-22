@@ -13,6 +13,7 @@
             --pri: {{ academia.cor_primaria | default('#1a1a2e') }};
             --tag-bg: {{ academia.cor_tag | default('#1a1a2e') }};
             --bg: {{ academia.cor_fundo | default('#f0f2f5') }};
+            --card-bg: {{ academia.cor_card | default('#ffffff') }};
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -185,7 +186,7 @@
 
         /* ===== CARD ===== */
         .card {
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 14px;
             display: flex;
             flex-direction: column;

@@ -87,6 +87,7 @@ def init_db():
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS duracao_pagina INTEGER DEFAULT 10""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS estilo_foto TEXT DEFAULT 'circulo'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS cor_fundo TEXT DEFAULT '#f0f2f5'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS cor_card TEXT DEFAULT '#ffffff'""")
     query("""ALTER TABLE academias ALTER COLUMN nome DROP NOT NULL""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
@@ -99,6 +100,7 @@ def init_db():
         cor_destaque TEXT DEFAULT '#e94560',
         cor_tag TEXT DEFAULT '#1a1a2e',
         cor_fundo TEXT DEFAULT '#f0f2f5',
+        cor_card TEXT DEFAULT '#ffffff',
         cta_texto TEXT DEFAULT 'Agende uma avaliacao',
         email_qr TEXT DEFAULT '',
         fonte TEXT DEFAULT 'Syne',
@@ -382,13 +384,14 @@ def salvar_config(slug):
 
     query("""UPDATE academias SET
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
-        cor_primaria=%s, cor_destaque=%s, cor_tag=%s, cor_fundo=%s,
+        cor_primaria=%s, cor_destaque=%s, cor_tag=%s, cor_fundo=%s, cor_card=%s,
         cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s, texto_header=%s,
         cards_por_pagina=%s, duracao_pagina=%s, estilo_foto=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
          request.form.get("cor_fundo", "#f0f2f5"),
+         request.form.get("cor_card", "#ffffff"),
          request.form.get("cta_texto"), request.form.get("email_qr"),
          fonte, exibir_nome, request.form.get("texto_header", "EQUIPE DE PROFISSIONAIS"),
          cards_por_pagina, duracao_pagina, estilo_foto, slug))
