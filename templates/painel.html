@@ -739,13 +739,14 @@
         // tamanho calculados na hora pelo Cloudinary (em vez de um recorte
         // fixo salvo no upload), respeitando a densidade de pixels de cada
         // TV para a imagem sair nítida sem depender do tamanho do card.
-        // bgRemoval pede à IA do Cloudinary para remover o fundo da foto
-        // (add-on pago, pode não estar habilitado na conta — ver fallback
-        // em buildCard()). opts.w/h permitem um recorte retrato (mais alto
-        // que largo) e opts.zoom (<1) afasta o enquadramento do rosto para
-        // sobrar espaço/corpo ao redor da pessoa — sem isso, fotos com
-        // enquadramento original mais fechado ficam com a pessoa tocando
-        // a borda do recorte, sem folga nenhuma até o nome abaixo.
+        // bgRemoval pede à IA do Cloudinary para remover o fundo da foto e
+        // opts.improve pede correção automática de brilho/cor/nitidez
+        // (add-ons pagos, podem não estar habilitados na conta — ver
+        // fallback em buildCard()). opts.w/h permitem um recorte retrato
+        // (mais alto que largo) e opts.zoom (<1) afasta o enquadramento do
+        // rosto para sobrar espaço/corpo ao redor da pessoa — sem isso,
+        // fotos com enquadramento original mais fechado ficam com a pessoa
+        // tocando a borda do recorte, sem folga nenhuma até o nome abaixo.
         function cloudinaryPhotoUrl(url, size, bgRemoval, opts) {
             if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
             opts = opts || {};
@@ -753,6 +754,7 @@
             var w = opts.w || size, h = opts.h || size;
             var parts = [];
             if (bgRemoval) parts.push('e_background_removal');
+            if (opts.improve) parts.push('e_improve');
             parts.push('c_fill', 'g_face');
             if (opts.zoom) parts.push('z_' + opts.zoom);
             parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + dpr);
@@ -763,17 +765,23 @@
             const name = esc(p.nome) || '';
             const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
 
-            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500) : '';
+            // photoSrcPlain nunca falha (sem add-ons) — é o fallback final
+            // de qualquer combinação. photoSrc pede correção automática de
+            // imagem (e_improve); se o add-on não estiver habilitado, o
+            // onerror troca sozinho para a versão plana.
+            var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500) : '';
+            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, false, {improve: true}) : '';
             const badge = p.anos ? '<span class="badge-exp">' + esc(p.anos) + ' anos</span>' : '';
 
             var photoWrap;
             if (FOTO_DESTAQUE) {
-                // Tenta remover o fundo via IA. Se o add-on não estiver
-                // habilitado na conta Cloudinary (ou a foto falhar), o
-                // onerror troca sozinho para o recorte normal (com fundo) —
-                // nunca mostra ícone de imagem quebrada na TV.
+                // Tenta remover o fundo + melhorar a imagem via IA. Se algum
+                // dos add-ons não estiver habilitado na conta Cloudinary (ou
+                // a foto falhar), o onerror troca sozinho para o recorte
+                // normal com melhoria (photoSrc) — nunca mostra ícone de
+                // imagem quebrada na TV.
                 var destaqueSrc = p.foto_url
-                    ? cloudinaryPhotoUrl(p.foto_url, 500, true, {w: 500, h: 620, zoom: 0.65})
+                    ? cloudinaryPhotoUrl(p.foto_url, 500, true, {w: 500, h: 620, zoom: 0.65, improve: true})
                     : '';
                 var photoDestaque = destaqueSrc
                     ? '<img class="card-photo-destaque-img" src="' + esc(destaqueSrc) + '" alt="' + esc(p.nome) +
@@ -782,7 +790,8 @@
                 photoWrap = '<div class="card-photo-destaque">' + photoDestaque + badge + '</div>';
             } else {
                 var photo = photoSrc
-                    ? '<img class="card-photo-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) + '">'
+                    ? '<img class="card-photo-img" src="' + esc(photoSrc) + '" alt="' + esc(p.nome) +
+                      '" data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
                     : '<div class="card-photo-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
                 photoWrap = '<div class="card-photo-wrap">' + photo + badge + '</div>';
             }
