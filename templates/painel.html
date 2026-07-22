@@ -766,10 +766,10 @@
         // fixo salvo no upload), respeitando a densidade de pixels de cada
         // TV para a imagem sair nítida sem depender do tamanho do card. A
         // remoção de fundo (estilo "Destaque") acontece no upload da foto
-        // via remove.bg (ver upload_imagem() no app.py) — a foto já chega
-        // aqui com ou sem transparência, não precisa pedir nada na hora da
-        // entrega. opts.improve pede correção automática de brilho/cor/
-        // nitidez (add-on Cloudinary, cai para a versão plana via onerror
+        // via rembg, local no servidor (ver upload_imagem() no app.py) — a
+        // foto já chega aqui com ou sem transparência, não precisa pedir
+        // nada na hora da entrega. opts.improve pede correção automática
+        // de brilho/cor/nitidez (add-on Cloudinary, cai para a versão plana via onerror
         // se não estiver habilitado). opts.w/h permitem um recorte retrato
         // (mais alto que largo) e opts.zoom (<1) afasta o enquadramento do
         // rosto para sobrar espaço/corpo ao redor da pessoa.

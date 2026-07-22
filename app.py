@@ -2,6 +2,7 @@
 import os
 import re
 import secrets
+import threading
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
@@ -12,7 +13,6 @@ from psycopg2.extras import RealDictCursor
 from psycopg2 import pool as pg_pool
 import cloudinary
 import cloudinary.uploader
-import requests
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
@@ -21,7 +21,6 @@ app.permanent_session_lifetime = timedelta(hours=8)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
-REMOVEBG_API_KEY = os.environ.get("REMOVEBG_API_KEY", "")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
@@ -146,27 +145,16 @@ def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     return size <= max_size
 
 def remover_fundo_bytes(file_bytes):
-    """Remove o fundo da imagem via API do remove.bg (plano gratuito,
-    50 chamadas/mes). Retorna os bytes do PNG resultante (com
-    transparencia), ou None se a chave nao estiver configurada ou a
-    chamada falhar -- nesse caso quem chamou deve seguir com a foto
-    original, sem travar o cadastro do profissional."""
-    if not REMOVEBG_API_KEY:
-        return None
+    """Remove o fundo da imagem localmente com rembg (biblioteca Python,
+    roda no próprio servidor, sem conta/API externa). Retorna os bytes
+    do PNG resultante (com transparência), ou None se falhar -- nesse
+    caso quem chamou deve seguir com a foto original, sem travar o
+    cadastro do profissional."""
     try:
-        resp = requests.post(
-            "https://api.remove.bg/v1.0/removebg",
-            files={"image_file": file_bytes},
-            data={"size": "auto"},
-            headers={"X-Api-Key": REMOVEBG_API_KEY},
-            timeout=25,
-        )
-        if resp.status_code == 200:
-            return resp.content
-        print(f"[remove.bg] erro {resp.status_code}: {resp.text[:200]}")
-        return None
+        from rembg import remove as rembg_remove
+        return rembg_remove(file_bytes)
     except Exception as e:
-        print(f"[remove.bg] falha: {e}")
+        print(f"[rembg] falha ao remover fundo: {e}")
         return None
 
 def upload_imagem(file, pasta="painel_tv"):
@@ -176,10 +164,10 @@ def upload_imagem(file, pasta="painel_tv"):
     # densidade de pixels de cada TV. Isso evita reenvio de fotos toda
     # vez que o layout muda de tamanho.
     #
-    # Antes de subir, tenta remover o fundo via remove.bg. Se a chave
-    # REMOVEBG_API_KEY não estiver configurada ou a chamada falhar, sobe
-    # a foto original sem quebrar o cadastro -- só essa foto específica
-    # fica sem o fundo removido no estilo "Destaque".
+    # Antes de subir, tenta remover o fundo com rembg (local, sem
+    # depender de nenhum serviço externo). Se falhar, sobe a foto
+    # original sem quebrar o cadastro -- só essa foto específica fica
+    # sem o fundo removido no estilo "Destaque".
     upload_source = file
     try:
         file.seek(0)
@@ -188,7 +176,7 @@ def upload_imagem(file, pasta="painel_tv"):
         if fundo_removido:
             upload_source = io.BytesIO(fundo_removido)
     except Exception as e:
-        print(f"[remove.bg] erro lendo arquivo para remoção de fundo: {e}")
+        print(f"[rembg] erro lendo arquivo para remoção de fundo: {e}")
 
     try:
         resultado = cloudinary.uploader.upload(
@@ -630,6 +618,24 @@ def file_too_large(e):
 
 with app.app_context():
     init_db()
+
+def _aquecer_rembg():
+    # Roda uma remoção de fundo "descartável" em segundo plano assim que o
+    # servidor sobe, só para forçar o download do modelo de IA (~176MB) e
+    # o carregamento do onnxruntime antes que um upload de verdade precise
+    # disso -- sem isso, o primeiro upload de foto depois de cada deploy
+    # ficaria bem mais lento (download + inferência na mesma requisição).
+    try:
+        from io import BytesIO
+        from PIL import Image
+        buf = BytesIO()
+        Image.new("RGB", (32, 32), "white").save(buf, format="PNG")
+        remover_fundo_bytes(buf.getvalue())
+        print("[rembg] modelo pré-carregado com sucesso")
+    except Exception as e:
+        print(f"[rembg] aquecimento falhou (upload real ainda deve funcionar): {e}")
+
+threading.Thread(target=_aquecer_rembg, daemon=True).start()
 
 if __name__ == "__main__":
     app.run(debug=False)

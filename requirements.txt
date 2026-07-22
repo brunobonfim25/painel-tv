@@ -4,4 +4,4 @@ werkzeug==3.0.3
 gunicorn==22.0.0
 
 cloudinary==1.36.0
-requests==2.32.3
+rembg[cpu]
