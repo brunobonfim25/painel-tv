@@ -762,21 +762,20 @@
         // Monta a URL de entrega da foto sob medida: recorte de rosto e
         // tamanho calculados na hora pelo Cloudinary (em vez de um recorte
         // fixo salvo no upload), respeitando a densidade de pixels de cada
-        // TV para a imagem sair nítida sem depender do tamanho do card.
-        // bgRemoval pede à IA do Cloudinary para remover o fundo da foto e
-        // opts.improve pede correção automática de brilho/cor/nitidez
-        // (add-ons pagos, podem não estar habilitados na conta — ver
-        // fallback em buildCard()). opts.w/h permitem um recorte retrato
+        // TV para a imagem sair nítida sem depender do tamanho do card. A
+        // remoção de fundo (estilo "Destaque") acontece no upload da foto
+        // via remove.bg (ver upload_imagem() no app.py) — a foto já chega
+        // aqui com ou sem transparência, não precisa pedir nada na hora da
+        // entrega. opts.improve pede correção automática de brilho/cor/
+        // nitidez (add-on Cloudinary, cai para a versão plana via onerror
+        // se não estiver habilitado). opts.w/h permitem um recorte retrato
         // (mais alto que largo) e opts.zoom (<1) afasta o enquadramento do
-        // rosto para sobrar espaço/corpo ao redor da pessoa — sem isso,
-        // fotos com enquadramento original mais fechado ficam com a pessoa
-        // tocando a borda do recorte, sem folga nenhuma até o nome abaixo.
-        function cloudinaryPhotoUrl(url, size, bgRemoval, opts) {
+        // rosto para sobrar espaço/corpo ao redor da pessoa.
+        function cloudinaryPhotoUrl(url, size, opts) {
             if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
             opts = opts || {};
             var w = opts.w || size, h = opts.h || size;
             var parts = [];
-            if (bgRemoval) parts.push('e_background_removal');
             if (opts.improve) parts.push('e_improve');
             // g_face:auto — se não achar rosto na foto (óculos escuros, de
             // perfil, foto de grupo enviada por engano), cai para o
@@ -784,13 +783,7 @@
             // cortar num ponto genérico da imagem. Nativo, sem add-on.
             parts.push('c_fill', 'g_face:auto');
             if (opts.zoom) parts.push('z_' + opts.zoom);
-            // q_auto:good é idêntico a q_auto (é o modo padrão por trás
-            // dele), mas muda a string da URL de propósito: força o
-            // Cloudinary a gerar essa transformação do zero em vez de
-            // servir uma versão já cacheada de antes do add-on Pixelz
-            // estar instalado (o cache antigo, gerado quando o add-on
-            // ainda não existia, ficaria preso pra sempre na mesma URL).
-            parts.push('w_' + w, 'h_' + h, 'q_auto:good', 'f_auto', 'dpr_' + PHOTO_DPR);
+            parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + PHOTO_DPR);
             return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
         }
 
@@ -803,18 +796,20 @@
             // imagem (e_improve); se o add-on não estiver habilitado, o
             // onerror troca sozinho para a versão plana.
             var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500) : '';
-            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, false, {improve: true}) : '';
+            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {improve: true}) : '';
             const badge = p.anos ? '<span class="badge-exp">' + esc(p.anos) + ' anos</span>' : '';
 
             var photoWrap;
             if (FOTO_DESTAQUE) {
-                // Tenta remover o fundo + melhorar a imagem via IA. Se algum
-                // dos add-ons não estiver habilitado na conta Cloudinary (ou
-                // a foto falhar), o onerror troca sozinho para o recorte
-                // normal com melhoria (photoSrc) — nunca mostra ícone de
+                // O recorte pede mais contexto ao redor da pessoa (retrato
+                // mais alto, zoom afastado) — combinado com a foto já vir
+                // com fundo removido (ou não) desde o upload, ver
+                // remover_fundo_bytes() no app.py. Se e_improve não estiver
+                // habilitado na conta Cloudinary, o onerror troca sozinho
+                // para o recorte normal (photoSrc) — nunca mostra ícone de
                 // imagem quebrada na TV.
                 var destaqueSrc = p.foto_url
-                    ? cloudinaryPhotoUrl(p.foto_url, 500, true, {w: 500, h: 620, zoom: 0.65, improve: true})
+                    ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 500, h: 620, zoom: 0.65, improve: true})
                     : '';
                 var photoDestaque = destaqueSrc
                     ? '<img class="card-photo-destaque-img" src="' + esc(destaqueSrc) + '" alt="' + esc(p.nome) +

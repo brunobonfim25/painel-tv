@@ -1,4 +1,5 @@
-﻿import os
+﻿import io
+import os
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -11,6 +12,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2 import pool as pg_pool
 import cloudinary
 import cloudinary.uploader
+import requests
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
@@ -19,6 +21,7 @@ app.permanent_session_lifetime = timedelta(hours=8)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
+REMOVEBG_API_KEY = os.environ.get("REMOVEBG_API_KEY", "")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
@@ -138,15 +141,54 @@ def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     file.seek(0)
     return size <= max_size
 
+def remover_fundo_bytes(file_bytes):
+    """Remove o fundo da imagem via API do remove.bg (plano gratuito,
+    50 chamadas/mes). Retorna os bytes do PNG resultante (com
+    transparencia), ou None se a chave nao estiver configurada ou a
+    chamada falhar -- nesse caso quem chamou deve seguir com a foto
+    original, sem travar o cadastro do profissional."""
+    if not REMOVEBG_API_KEY:
+        return None
+    try:
+        resp = requests.post(
+            "https://api.remove.bg/v1.0/removebg",
+            files={"image_file": file_bytes},
+            data={"size": "auto"},
+            headers={"X-Api-Key": REMOVEBG_API_KEY},
+            timeout=25,
+        )
+        if resp.status_code == 200:
+            return resp.content
+        print(f"[remove.bg] erro {resp.status_code}: {resp.text[:200]}")
+        return None
+    except Exception as e:
+        print(f"[remove.bg] falha: {e}")
+        return None
+
 def upload_imagem(file, pasta="painel_tv"):
     # Guarda a foto em alta resolução, sem recorte fixo: o recorte
     # (crop de rosto) e o tamanho de entrega são calculados on-the-fly
-    # pelo painel (ver cloudinaryUrl() em painel.html), ajustados à
+    # pelo painel (ver cloudinaryPhotoUrl() em painel.html), ajustados à
     # densidade de pixels de cada TV. Isso evita reenvio de fotos toda
     # vez que o layout muda de tamanho.
+    #
+    # Antes de subir, tenta remover o fundo via remove.bg. Se a chave
+    # REMOVEBG_API_KEY não estiver configurada ou a chamada falhar, sobe
+    # a foto original sem quebrar o cadastro -- só essa foto específica
+    # fica sem o fundo removido no estilo "Destaque".
+    upload_source = file
+    try:
+        file.seek(0)
+        fundo_removido = remover_fundo_bytes(file.read())
+        file.seek(0)
+        if fundo_removido:
+            upload_source = io.BytesIO(fundo_removido)
+    except Exception as e:
+        print(f"[remove.bg] erro lendo arquivo para remoção de fundo: {e}")
+
     try:
         resultado = cloudinary.uploader.upload(
-            file,
+            upload_source,
             folder=pasta,
             transformation=[{"width": 1600, "height": 1600, "crop": "limit", "quality": "auto:best"}]
         )
