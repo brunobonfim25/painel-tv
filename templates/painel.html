@@ -695,6 +695,17 @@
         }
 
         const FOTO_DESTAQUE = {{ (academia.estilo_foto == 'destaque') | tojson }};
+
+        // Arredondado para o degrau de 0.5 mais próximo (1, 1.5, 2, 2.5, 3)
+        // em vez do valor "cru" de devicePixelRatio (que pode vir com
+        // várias casas decimais). Cada valor de dpr diferente vira uma
+        // transformação nova e separada no Cloudinary (consome cota de
+        // créditos do plano) — travar em poucos degraus evita gerar uma
+        // variante de imagem cacheada por aparelho/navegador diferente.
+        const PHOTO_DPR = (function () {
+            var raw = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+            return Math.round(raw * 2) / 2;
+        })();
         const CARDS_PER_PAGE = {{ academia.cards_por_pagina | default(10) }};
         const PAGE_DURATION = {{ (academia.duracao_pagina | default(10)) }} * 1000;
         const container = document.getElementById('gridContainer');
@@ -750,7 +761,6 @@
         function cloudinaryPhotoUrl(url, size, bgRemoval, opts) {
             if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
             opts = opts || {};
-            var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
             var w = opts.w || size, h = opts.h || size;
             var parts = [];
             if (bgRemoval) parts.push('e_background_removal');
@@ -761,7 +771,7 @@
             // cortar num ponto genérico da imagem. Nativo, sem add-on.
             parts.push('c_fill', 'g_face:auto');
             if (opts.zoom) parts.push('z_' + opts.zoom);
-            parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + dpr);
+            parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + PHOTO_DPR);
             return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
         }
 
