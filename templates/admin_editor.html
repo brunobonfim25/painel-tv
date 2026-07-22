@@ -284,14 +284,6 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
   padding:3px 10px;color:var(--acc-h);white-space:nowrap;
   margin-left:12px;
 }
-.order-btns{display:flex;flex-direction:column;gap:2px;margin-left:10px;flex-shrink:0}
-.order-btn{
-  display:flex;align-items:center;justify-content:center;
-  width:22px;height:16px;background:rgba(255,255,255,0.05);
-  border:1px solid var(--border);border-radius:5px;
-  color:var(--t2);cursor:pointer;padding:0;transition:all .15s;
-}
-.order-btn:hover{background:var(--acc-dim);color:var(--acc-h);border-color:rgba(59,130,246,0.35)}
 .pro-tag{
   background:rgba(255,255,255,0.06);
   border:1px solid var(--border);
@@ -629,15 +621,26 @@ details[open] .chevron{transform:rotate(180deg)}
 
     <!-- TAB: PROFISSIONAIS -->
     <div class="tab-content active" id="content-profissionais">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap">
         <div class="section-head" style="margin-bottom:0">
           <p class="section-title">Equipe de profissionais</p>
-          <p class="section-desc">{{ profissionais|length }} {{ 'profissionais' if profissionais|length != 1 else 'profissional' }} cadastrado{{ 's' if profissionais|length != 1 else '' }}</p>
+          <p class="section-desc" id="proCount">{{ profissionais|length }} {{ 'profissionais' if profissionais|length != 1 else 'profissional' }} cadastrado{{ 's' if profissionais|length != 1 else '' }}</p>
+        </div>
+        <div style="position:relative;min-width:240px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t2);pointer-events:none">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="proSearch" class="field-input" placeholder="Buscar profissional por nome..."
+            style="padding-left:36px" oninput="filtrarProfissionais(this.value)">
         </div>
       </div>
+      <p id="proSearchEmpty" style="display:none;color:var(--t2);font-size:13px;padding:20px 0;text-align:center">
+        Nenhum profissional encontrado.
+      </p>
 
       {% for p in profissionais %}
-      <details class="pro-card">
+      <details class="pro-card" data-nome="{{ p.nome|lower }}">
         <summary class="pro-header">
           <div class="pro-avatar" style="background:{{ p.cor_avatar }}">
             {% if p.foto_url %}
@@ -658,24 +661,6 @@ details[open] .chevron{transform:rotate(180deg)}
             {% for esp in p.especialidades.split(',')[:2] if p.especialidades %}
               <span class="pro-tag">{{ esp.strip() }}</span>
             {% endfor %}
-          </div>
-          <div class="order-btns" onclick="event.stopPropagation()">
-            {% if not loop.first %}
-            <form method="POST" action="{{ url_for('mover_profissional', slug=academia.slug, prof_id=p.id) }}">
-              <input type="hidden" name="direcao" value="cima">
-              <button type="submit" class="order-btn" title="Mover para cima" onclick="event.stopPropagation()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m18 15-6-6-6 6"/></svg>
-              </button>
-            </form>
-            {% endif %}
-            {% if not loop.last %}
-            <form method="POST" action="{{ url_for('mover_profissional', slug=academia.slug, prof_id=p.id) }}">
-              <input type="hidden" name="direcao" value="baixo">
-              <button type="submit" class="order-btn" title="Mover para baixo" onclick="event.stopPropagation()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-            </form>
-            {% endif %}
           </div>
           <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
@@ -931,6 +916,18 @@ function switchTab(tab) {
   const [title, sub] = titles[tab] || titles['profissionais'];
   document.getElementById('pageTitle').textContent = title;
   document.getElementById('pageSub').textContent = sub;
+}
+
+function filtrarProfissionais(termo) {
+  var q = termo.trim().toLowerCase();
+  var cards = document.querySelectorAll('.pro-card');
+  var visiveis = 0;
+  cards.forEach(function (card) {
+    var match = !q || card.dataset.nome.indexOf(q) !== -1;
+    card.style.display = match ? '' : 'none';
+    if (match) visiveis++;
+  });
+  document.getElementById('proSearchEmpty').style.display = visiveis === 0 ? '' : 'none';
 }
 // seletor de fonte visual
 document.querySelectorAll('.fonte-radio').forEach(radio => {

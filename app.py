@@ -254,7 +254,7 @@ def painel(slug):
     if not academia:
         return "Academia nao encontrada.", 404
     profissionais = query(
-        "SELECT * FROM profissionais WHERE academia_id = %s ORDER BY ordem, id",
+        "SELECT * FROM profissionais WHERE academia_id = %s ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
     )
     return render_template("painel.html", academia=academia,
@@ -294,7 +294,7 @@ def admin_editor(slug):
             (SELECT COUNT(*) FROM scans s WHERE s.profissional_id = p.id) AS scans_total,
             (SELECT COUNT(*) FROM scans s WHERE s.profissional_id = p.id
                 AND s.criado_em >= date_trunc('month', NOW())) AS scans_mes
-        FROM profissionais p WHERE p.academia_id = %s ORDER BY p.ordem, p.id""",
+        FROM profissionais p WHERE p.academia_id = %s ORDER BY LOWER(p.nome)""",
         (academia["id"],), fetch="all"
     )
     return render_template("admin_editor.html", academia=academia, profissionais=profissionais or [])
@@ -469,28 +469,6 @@ def editar_profissional(slug, prof_id):
          request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, prof_id, academia["id"]))
     flash("Profissional atualizado!")
-    return redirect(url_for("admin_editor", slug=slug))
-
-@app.route("/<slug>/admin/profissional/<int:prof_id>/mover", methods=["POST"])
-@login_required
-def mover_profissional(slug, prof_id):
-    direcao = request.form.get("direcao")
-    if direcao not in ("cima", "baixo"):
-        return redirect(url_for("admin_editor", slug=slug))
-    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
-    profs = query("SELECT id FROM profissionais WHERE academia_id=%s ORDER BY ordem, id",
-                  (academia["id"],), fetch="all") or []
-    ids = [p["id"] for p in profs]
-    if prof_id not in ids:
-        return redirect(url_for("admin_editor", slug=slug))
-    i = ids.index(prof_id)
-    j = i - 1 if direcao == "cima" else i + 1
-    if 0 <= j < len(ids):
-        ids[i], ids[j] = ids[j], ids[i]
-        # Renumera todos: também normaliza registros antigos com ordem=0 duplicada
-        for pos, pid in enumerate(ids):
-            query("UPDATE profissionais SET ordem=%s WHERE id=%s AND academia_id=%s",
-                  (pos, pid, academia["id"]))
     return redirect(url_for("admin_editor", slug=slug))
 
 @app.route("/<slug>/admin/profissional/<int:prof_id>/remover", methods=["POST"])
