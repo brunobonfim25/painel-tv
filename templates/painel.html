@@ -755,7 +755,11 @@
             var parts = [];
             if (bgRemoval) parts.push('e_background_removal');
             if (opts.improve) parts.push('e_improve');
-            parts.push('c_fill', 'g_face');
+            // g_face:auto — se não achar rosto na foto (óculos escuros, de
+            // perfil, foto de grupo enviada por engano), cai para o
+            // recorte inteligente automático do Cloudinary em vez de
+            // cortar num ponto genérico da imagem. Nativo, sem add-on.
+            parts.push('c_fill', 'g_face:auto');
             if (opts.zoom) parts.push('z_' + opts.zoom);
             parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + dpr);
             return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
