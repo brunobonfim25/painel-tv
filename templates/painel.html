@@ -784,7 +784,13 @@
             // cortar num ponto genérico da imagem. Nativo, sem add-on.
             parts.push('c_fill', 'g_face:auto');
             if (opts.zoom) parts.push('z_' + opts.zoom);
-            parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + PHOTO_DPR);
+            // q_auto:good é idêntico a q_auto (é o modo padrão por trás
+            // dele), mas muda a string da URL de propósito: força o
+            // Cloudinary a gerar essa transformação do zero em vez de
+            // servir uma versão já cacheada de antes do add-on Pixelz
+            // estar instalado (o cache antigo, gerado quando o add-on
+            // ainda não existia, ficaria preso pra sempre na mesma URL).
+            parts.push('w_' + w, 'h_' + h, 'q_auto:good', 'f_auto', 'dpr_' + PHOTO_DPR);
             return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
         }
 
