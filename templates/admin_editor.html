@@ -181,6 +181,7 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 .grid-full{margin-bottom:16px}
 
 /* ── COLOR INPUT ── */
@@ -511,7 +512,7 @@ details[open] .chevron{transform:rotate(180deg)}
           <div class="section-head">
             <p class="section-title">Cores do painel</p>
           </div>
-          <div class="grid-3">
+          <div class="grid-4">
             <div>
               <label class="field-label">Cor principal</label>
               <div class="color-field">
@@ -532,6 +533,14 @@ details[open] .chevron{transform:rotate(180deg)}
                 <input type="color" name="cor_tag" value="{{ academia.cor_tag }}" class="color-swatch">
                 <span class="color-label">{{ academia.cor_tag }}</span>
               </div>
+            </div>
+            <div>
+              <label class="field-label">Cor de fundo</label>
+              <div class="color-field">
+                <input type="color" name="cor_fundo" value="{{ academia.cor_fundo | default('#f0f2f5') }}" class="color-swatch">
+                <span class="color-label">{{ academia.cor_fundo | default('#f0f2f5') }}</span>
+              </div>
+              <p class="field-hint">Fundo do palco da TV, atrás dos cards</p>
             </div>
           </div>
           <div class="divider"></div>

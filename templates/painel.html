@@ -12,6 +12,7 @@
             --accent: {{ academia.cor_destaque | default('#e94560') }};
             --pri: {{ academia.cor_primaria | default('#1a1a2e') }};
             --tag-bg: {{ academia.cor_tag | default('#1a1a2e') }};
+            --bg: {{ academia.cor_fundo | default('#f0f2f5') }};
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,7 +38,7 @@
             width: 1920px;
             height: 1080px;
             transform-origin: top left;
-            background: #f0f2f5;
+            background: var(--bg);
             display: flex;
             flex-direction: column;
             visibility: hidden;
