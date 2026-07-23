@@ -87,6 +87,7 @@ def init_db():
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS estilo_foto TEXT DEFAULT 'circulo'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS cor_fundo TEXT DEFAULT '#f0f2f5'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS cor_card TEXT DEFAULT '#ffffff'""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS efeito_foto TEXT DEFAULT 'nenhum'""")
     query("""ALTER TABLE academias ALTER COLUMN nome DROP NOT NULL""")
     query("""CREATE TABLE IF NOT EXISTS academias (
         id SERIAL PRIMARY KEY,
@@ -100,6 +101,7 @@ def init_db():
         cor_tag TEXT DEFAULT '#1a1a2e',
         cor_fundo TEXT DEFAULT '#f0f2f5',
         cor_card TEXT DEFAULT '#ffffff',
+        efeito_foto TEXT DEFAULT 'nenhum',
         cta_texto TEXT DEFAULT 'Agende uma avaliacao',
         email_qr TEXT DEFAULT '',
         fonte TEXT DEFAULT 'Syne',
@@ -358,6 +360,10 @@ def salvar_config(slug):
     if estilo_foto not in ("circulo", "destaque"):
         estilo_foto = "circulo"
 
+    efeito_foto = request.form.get("efeito_foto", "nenhum")
+    if efeito_foto not in ("nenhum", "pb", "vinheta", "duotone", "vibrante"):
+        efeito_foto = "nenhum"
+
     try:
         cards_por_pagina = int(request.form.get("cards_por_pagina", 10))
     except (TypeError, ValueError):
@@ -374,7 +380,7 @@ def salvar_config(slug):
         nome=%s, subtitulo=%s, logo_url=%s, logo_texto=%s,
         cor_primaria=%s, cor_destaque=%s, cor_tag=%s, cor_fundo=%s, cor_card=%s,
         cta_texto=%s, email_qr=%s, fonte=%s, exibir_nome=%s, texto_header=%s,
-        cards_por_pagina=%s, duracao_pagina=%s, estilo_foto=%s WHERE slug=%s""",
+        cards_por_pagina=%s, duracao_pagina=%s, estilo_foto=%s, efeito_foto=%s WHERE slug=%s""",
         (request.form.get("nome"), request.form.get("subtitulo"), logo_url,
          request.form.get("logo_texto"), request.form.get("cor_primaria"),
          request.form.get("cor_destaque"), request.form.get("cor_tag"),
@@ -382,7 +388,7 @@ def salvar_config(slug):
          request.form.get("cor_card", "#ffffff"),
          request.form.get("cta_texto"), request.form.get("email_qr"),
          fonte, exibir_nome, request.form.get("texto_header", "EQUIPE DE PROFISSIONAIS"),
-         cards_por_pagina, duracao_pagina, estilo_foto, slug))
+         cards_por_pagina, duracao_pagina, estilo_foto, efeito_foto, slug))
     flash("Configuracoes salvas!")
     return redirect(url_for("admin_editor", slug=slug))
 

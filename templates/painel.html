@@ -697,6 +697,8 @@
         }
 
         const FOTO_DESTAQUE = {{ (academia.estilo_foto == 'destaque') | tojson }};
+        const EFEITO_FOTO = {{ academia.efeito_foto | default('nenhum') | tojson }};
+        const ACCENT_HEX = {{ (academia.cor_destaque | default('#e94560'))[1:] | tojson }};
 
         // Arredondado para o degrau de 0.5 mais próximo (1, 1.5, 2, 2.5, 3)
         // em vez do valor "cru" de devicePixelRatio (que pode vir com
@@ -773,12 +775,25 @@
         // se não estiver habilitado). opts.w/h permitem um recorte retrato
         // (mais alto que largo) e opts.zoom (<1) afasta o enquadramento do
         // rosto para sobrar espaço/corpo ao redor da pessoa.
+        // Filtro visual configurado em Configurações > Efeito de foto,
+        // aplicado em todas as fotos da equipe. Efeitos nativos do
+        // Cloudinary (grayscale, vignette, colorize, contrast/saturation)
+        // — fazem parte do plano gratuito, sem add-on nenhum.
+        function efeitoFotoParts() {
+            switch (EFEITO_FOTO) {
+                case 'pb': return ['e_grayscale'];
+                case 'vinheta': return ['e_vignette:35'];
+                case 'duotone': return ['e_grayscale', 'e_colorize:60', 'co_rgb:' + ACCENT_HEX];
+                case 'vibrante': return ['e_contrast:20', 'e_saturation:40'];
+                default: return [];
+            }
+        }
+
         function cloudinaryPhotoUrl(url, size, opts) {
             if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
             opts = opts || {};
             var w = opts.w || size, h = opts.h || size;
-            var parts = [];
-            if (opts.improve) parts.push('e_improve');
+            var parts = efeitoFotoParts();
             // g_face:auto — se não achar rosto na foto (óculos escuros, de
             // perfil, foto de grupo enviada por engano), cai para o
             // recorte inteligente automático do Cloudinary em vez de
@@ -786,7 +801,13 @@
             parts.push('c_fill', 'g_face:auto');
             if (opts.zoom) parts.push('z_' + opts.zoom);
             parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + PHOTO_DPR);
-            return url.replace('/upload/', '/upload/' + parts.join(',') + '/');
+            // e_improve precisa ficar em um bloco separado (encadeado com
+            // "/"): combinado no mesmo bloco que um efeito de cor (ex:
+            // e_grayscale), ele "devolve" a cor que o outro efeito
+            // removeu — confirmado testando direto contra a API do
+            // Cloudinary, não é suposição.
+            var improveSegment = opts.improve ? 'e_improve/' : '';
+            return url.replace('/upload/', '/upload/' + improveSegment + parts.join(',') + '/');
         }
 
         function buildCard(p) {
