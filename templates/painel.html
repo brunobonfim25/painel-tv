@@ -840,15 +840,15 @@
             return {cols: cols, scale: scale, rows: rows};
         }
 
-        // Referência de nº de linhas com base no CARDS_PER_PAGE configurado
-        // (não no que sobra na última página). Sem isso, uma página com só
-        // 2 itens (de um layout pensado pra 6) criaria 1 única linha de
-        // grid, e "grid-auto-rows: 1fr" faria essa linha esticar para
-        // ocupar 100% da altura da tela — cards enormes e desproporcionais.
-        // Reservando o mesmo nº de linhas de uma página cheia, a linha
-        // populada fica do mesmo tamanho de sempre e o resto vira espaço
-        // vazio no grid (sem card nenhum ali), não um card esticado.
-        const REFERENCE_ROWS = computeLayout(CARDS_PER_PAGE).rows;
+        // Layout de referência calculado UMA vez a partir do CARDS_PER_PAGE
+        // configurado no admin — e usado em TODAS as páginas, mesmo as que
+        // têm menos itens (última página do carrossel, equipe pequena, ou
+        // um único profissional ativo). Um card sozinho ocupa exatamente
+        // uma célula do grid padrão, com o mesmo tamanho e proporção que
+        // teria numa página cheia; o resto vira espaço vazio no grid.
+        // Sem isso, computeLayout(1) criava 1 coluna única e o card
+        // esticava pra largura inteira da tela — desproporcional.
+        const REFERENCE_LAYOUT = computeLayout(CARDS_PER_PAGE);
 
         function esc(str) {
             if (!str) return '';
@@ -1026,11 +1026,9 @@
                 var start = i * CARDS_PER_PAGE;
                 var end = Math.min(start + CARDS_PER_PAGE, profissionais.length);
 
-                var layout = computeLayout(end - start);
-                page.style.setProperty('--cols', layout.cols);
-                page.style.setProperty('--cs', layout.scale.toFixed(3));
-                var rows = Math.max(layout.rows, REFERENCE_ROWS);
-                page.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+                page.style.setProperty('--cols', REFERENCE_LAYOUT.cols);
+                page.style.setProperty('--cs', REFERENCE_LAYOUT.scale.toFixed(3));
+                page.style.gridTemplateRows = 'repeat(' + REFERENCE_LAYOUT.rows + ', minmax(0, 1fr))';
 
                 var html = '';
                 for (var j = start; j < end; j++) {
