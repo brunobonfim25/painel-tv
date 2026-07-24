@@ -91,6 +91,7 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT ''""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -138,6 +139,7 @@ def init_db():
         qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
         ativo BOOLEAN DEFAULT TRUE,
+        foto_posicao_y INTEGER DEFAULT 50,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS scans (
         id SERIAL PRIMARY KEY,
@@ -560,15 +562,21 @@ def editar_profissional(slug, prof_id):
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
     if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
+    try:
+        foto_posicao_y = max(0, min(100, int(request.form.get("foto_posicao_y", 50))))
+    except (TypeError, ValueError):
+        foto_posicao_y = 50
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
-        anos=%s, especialidades=%s, foto_url=%s, video_url=%s, cor_avatar=%s, qr_tipo=%s
+        anos=%s, especialidades=%s, foto_url=%s, video_url=%s, cor_avatar=%s, qr_tipo=%s,
+        foto_posicao_y=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
-         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, prof_id, academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, foto_posicao_y,
+         prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 

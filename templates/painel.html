@@ -793,6 +793,7 @@
                 anos: {{ p.anos | tojson }},
                 especialidades: {{ p.especialidades | tojson }},
                 qr_tipo: {{ p.qr_tipo | default('whatsapp') | tojson }},
+                foto_posicao_y: {{ p.foto_posicao_y | default(50) | tojson }},
                 id: {{ p.id | tojson }}
             }{{ "," if not loop.last }}
             {% endfor %}
@@ -985,9 +986,15 @@
 
             var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 500, h: 640, cutout: true}) : '';
             var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 500, h: 640, cutout: true, improve: true}) : '';
+            // Posição vertical ajustável no admin (0=topo, 50=centro,
+            // 100=base) — o e_trim/c_fit acima não corta a pessoa, então
+            // sobra espaço vazio em cima/embaixo dela dentro do card;
+            // object-position controla onde a foto fica nesse espaço.
+            var posY = (p.foto_posicao_y === null || p.foto_posicao_y === undefined) ? 50 : p.foto_posicao_y;
             var photo = photoSrc
                 ? '<img src="' + esc(photoSrc) + '" alt="' + esc(p.nome) +
-                  '" data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
+                  '" style="object-position:50% ' + posY + '%"' +
+                  ' data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
                 : '<div class="card-photo-cartao-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
 
             var linkUrl = window.location.origin + '/{{ academia.slug }}/prof/' + p.id + '/links';

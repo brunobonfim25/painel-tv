@@ -756,6 +756,25 @@ details[open] .chevron{transform:rotate(180deg)}
                 </div>
               </div>
             </div>
+            {% if p.foto_url %}
+            <div class="grid-full" style="margin-bottom:20px">
+              <label class="field-label">Posição da foto no card (estilo Cartão)</label>
+              <div style="display:flex;gap:16px;align-items:flex-start">
+                <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:#111;flex-shrink:0;border:1px solid var(--border)">
+                  <img src="{{ p.foto_url }}" id="fotoPos{{ p.id }}" style="width:100%;height:100%;object-fit:contain;object-position:50% {{ p.foto_posicao_y | default(50) }}%">
+                </div>
+                <div style="flex:1;padding-top:6px">
+                  <input type="range" min="0" max="100" name="foto_posicao_y" value="{{ p.foto_posicao_y | default(50) }}"
+                    oninput="document.getElementById('fotoPos{{ p.id }}').style.objectPosition='50% '+this.value+'%'"
+                    style="width:100%;cursor:pointer">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:2px">
+                    <span>Topo</span><span>Centro</span><span>Base</span>
+                  </div>
+                  <p class="field-hint">Suba ou desça a foto para centralizar a pessoa dentro do card flutuante.</p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
             <div class="grid-full">
               <label class="field-label">Vídeo de apresentação</label>
               {% if p.video_url %}
