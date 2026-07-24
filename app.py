@@ -98,6 +98,7 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT ''""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -127,6 +128,7 @@ def init_db():
         cards_por_pagina INTEGER DEFAULT 10,
         duracao_pagina INTEGER DEFAULT 10,
         estilo_foto TEXT DEFAULT 'circulo',
+        versao_painel INTEGER DEFAULT 0,
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -370,6 +372,11 @@ def master_required(f):
 
 @app.route("/__version")
 def versao():
+    slug = request.args.get("slug")
+    if slug:
+        academia = query("SELECT versao_painel FROM academias WHERE slug=%s", (slug,), fetch="one")
+        if academia:
+            return {"version": APP_VERSION + ":" + str(academia.get("versao_painel") or 0)}
     return {"version": APP_VERSION}
 
 @app.route("/<slug>/")
@@ -382,8 +389,9 @@ def painel(slug):
         (academia["id"],), fetch="all"
     )
     card_text_color = cor_contraste(academia.get("cor_card") or "#ffffff")
+    versao_atual = APP_VERSION + ":" + str(academia.get("versao_painel") or 0)
     return render_template("painel.html", academia=academia,
-        profissionais=profissionais or [], app_version=APP_VERSION,
+        profissionais=profissionais or [], app_version=versao_atual,
         card_text_color=card_text_color)
 
 @app.route("/<slug>/admin", methods=["GET", "POST"])
@@ -513,6 +521,19 @@ def remover_logo(slug):
     query("UPDATE academias SET logo_url='' WHERE slug=%s", (slug,))
     flash("Logo removida.")
     return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/atualizar-tv", methods=["POST"])
+@login_required
+def atualizar_tv(slug):
+    # A TV verifica essa versão a cada 5 min e recarrega sozinha quando
+    # muda (ver painel.html) — sem isso, mudanças de configuração só
+    # apareceriam na próxima checagem periódica ou no recarregamento de
+    # 6h. Esse botão só incrementa o contador pra forçar a checagem
+    # seguinte a detectar mudança e recarregar mais cedo.
+    query("UPDATE academias SET versao_painel = COALESCE(versao_painel, 0) + 1 WHERE slug=%s", (slug,))
+    flash("Comando enviado! A TV atualiza sozinha em até 5 minutos.")
+    return redirect(url_for("admin_editor", slug=slug))
+
 @app.route("/<slug>/admin/profissional/adicionar", methods=["POST"])
 @login_required
 def adicionar_profissional(slug):

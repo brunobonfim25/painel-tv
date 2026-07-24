@@ -768,7 +768,7 @@
                 window.location.replace(window.location.pathname + '?v=' + Date.now());
             }
             setInterval(function () {
-                fetch('/__version', {cache: 'no-store'})
+                fetch('/__version?slug={{ academia.slug }}', {cache: 'no-store'})
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
                         if (VERSAO_ATUAL && data.version && data.version !== VERSAO_ATUAL) {
