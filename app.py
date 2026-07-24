@@ -403,7 +403,7 @@ def salvar_config(slug):
         estilo_foto = "circulo"
 
     efeito_foto = request.form.get("efeito_foto", "nenhum")
-    if efeito_foto not in ("nenhum", "pb", "vinheta", "duotone", "vibrante"):
+    if efeito_foto not in ("nenhum", "pb", "vinheta", "duotone", "vibrante", "blur"):
         efeito_foto = "nenhum"
 
     try:
