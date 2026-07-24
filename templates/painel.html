@@ -307,6 +307,99 @@
             color: #fff;
         }
 
+        /* ===== FOTO ESTILO "CARTÃO" (foto retangular ao lado do nome) =====
+           Layout horizontal: foto ocupa a altura inteira do card à
+           esquerda, conteúdo (nome/cargo/QR) à direita. Diferente do
+           Destaque, aqui a foto preenche 100% da caixa (object-fit:cover,
+           sem flutuar) — não precisa do ajuste fino de orçamento vertical
+           que os outros estilos precisaram: o conteúdo da direita usa
+           justify-content:space-between dentro da MESMA altura da foto,
+           então nunca "estoura" — só distribui o espaço que sobrar. */
+        .card--row {
+            flex-direction: row;
+            align-items: stretch;
+            text-align: left;
+            gap: calc(14px * var(--cs, 1));
+        }
+
+        .card-photo-cartao {
+            flex-shrink: 0;
+            width: calc(120px * var(--cs, 1));
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .card-photo-cartao img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-photo-cartao-ph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(36px * var(--cs, 1));
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .card-cartao-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-cartao-nome {
+            font-size: calc(20px * var(--cs, 1));
+            font-weight: 800;
+            color: var(--pri);
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .card-cartao-cargo {
+            font-size: calc(13px * var(--cs, 1));
+            font-weight: 500;
+            color: var(--pri);
+            opacity: 0.7;
+            margin-top: calc(3px * var(--cs, 1));
+            flex-shrink: 0;
+        }
+
+        .card-cartao-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: calc(4px * var(--cs, 1));
+            align-self: flex-end;
+            flex-shrink: 0;
+        }
+
+        .card-cartao-qr {
+            width: calc(66px * var(--cs, 1));
+            height: calc(66px * var(--cs, 1));
+            border-radius: 6px;
+        }
+
+        .card-cartao-info {
+            font-size: calc(11px * var(--cs, 1));
+            font-weight: 600;
+            color: var(--pri);
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
         .badge-exp {
             position: absolute;
             bottom: -2px;
@@ -697,6 +790,7 @@
         }
 
         const FOTO_DESTAQUE = {{ (academia.estilo_foto == 'destaque') | tojson }};
+        const FOTO_CARTAO = {{ (academia.estilo_foto == 'cartao') | tojson }};
         const EFEITO_FOTO = {{ academia.efeito_foto | default('nenhum') | tojson }};
         const ACCENT_HEX = {{ (academia.cor_destaque | default('#e94560'))[1:] | tojson }};
 
@@ -810,7 +904,40 @@
             return url.replace('/upload/', '/upload/' + improveSegment + parts.join(',') + '/');
         }
 
+        // Estilo "Cartão": foto retangular à esquerda (preenche 100% da
+        // altura, sem flutuar), nome/cargo à direita, QR Code + "Mais
+        // informações" no canto inferior direito. Sem tags nem ícones de
+        // contato — o QR já leva ao cartão digital do profissional
+        // (WhatsApp/Instagram/e-mail ficam lá, não aqui no card da TV).
+        function buildCardCartao(p) {
+            const name = esc(p.nome) || '';
+            const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
+            const cargo = p.cargo ? '<div class="card-cartao-cargo">' + esc(p.cargo) + '</div>' : '';
+
+            var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 400, h: 520}) : '';
+            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 400, h: 520, zoom: 0.8, improve: true}) : '';
+            var photo = photoSrc
+                ? '<img src="' + esc(photoSrc) + '" alt="' + esc(p.nome) +
+                  '" data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
+                : '<div class="card-photo-cartao-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
+
+            var linkUrl = window.location.origin + '/{{ academia.slug }}/prof/' + p.id + '/links';
+
+            return '<div class="card card--row">' +
+                '<div class="card-photo-cartao">' + photo + '</div>' +
+                '<div class="card-cartao-content">' +
+                    '<div><div class="card-cartao-nome">' + name + '</div>' + cargo + '</div>' +
+                    '<div class="card-cartao-bottom">' +
+                        '<img class="card-cartao-qr" src="' + makeQrDataUrl(linkUrl) + '" alt="QR">' +
+                        '<span class="card-cartao-info">Mais informações</span>' +
+                    '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
         function buildCard(p) {
+            if (FOTO_CARTAO) return buildCardCartao(p);
+
             const name = esc(p.nome) || '';
             const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
 

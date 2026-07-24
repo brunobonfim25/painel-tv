@@ -357,7 +357,7 @@ def salvar_config(slug):
     exibir_nome = request.form.get("exibir_nome") == "on"
 
     estilo_foto = request.form.get("estilo_foto", "circulo")
-    if estilo_foto not in ("circulo", "destaque"):
+    if estilo_foto not in ("circulo", "destaque", "cartao"):
         estilo_foto = "circulo"
 
     efeito_foto = request.form.get("efeito_foto", "nenhum")

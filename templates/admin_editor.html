@@ -588,10 +588,11 @@ details[open] .chevron{transform:rotate(180deg)}
             <p class="section-title">Foto dos profissionais</p>
             <p class="section-desc">Como a foto de cada profissional aparece no card da TV</p>
           </div>
-          <div class="grid-2" style="margin-bottom:8px">
+          <div class="grid-3" style="margin-bottom:8px">
             {% set estilos = [
               ('circulo',  'Círculo', 'Foto redonda com anel de destaque giratório (padrão atual)'),
-              ('destaque', 'Destaque', 'Foto grande com fundo removido por IA, sem moldura — estilo cartaz')
+              ('destaque', 'Destaque', 'Foto grande com fundo removido por IA, sem moldura — estilo cartaz'),
+              ('cartao',   'Cartão', 'Foto retangular ao lado do nome, sem tags/ícones — só QR Code e "Mais informações"')
             ] %}
             {% for valor, label, desc in estilos %}
             <label style="cursor:pointer">
