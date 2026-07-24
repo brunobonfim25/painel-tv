@@ -915,19 +915,21 @@
             return rest.split('/').join(':');
         }
 
-        // Efeito "Recorte automático": pessoa nítida, em círculo, sobre a
-        // MESMA foto ampliada e desfocada ao fundo — mesmo recurso visual
-        // do Spotify Canvas / Apple Music (uma imagem servindo de base
-        // borrada + ela mesma nítida, recortada, por cima). Não precisa de
-        // remoção de fundo nenhuma: é só composição, 100% Cloudinary
-        // nativo, sem add-on.
+        // Efeito "Recorte automático": pessoa nítida, em TAMANHO CHEIO,
+        // sobre a MESMA foto ampliada e desfocada ao fundo. Primeira versão
+        // encolhia a pessoa num círculo pequeno (inset 74%) e usava
+        // g_face:auto pra recortar — a IA de rosto falhava em várias fotos
+        // (ângulo, óculos, tatuagem no rosto) e o resultado ficava menor e
+        // inconsistente ("algumas fotos funcionam outras não"). Trocado
+        // para o MESMO método já validado no estilo Cartão: e_trim/c_fit,
+        // sem depender de detecção de rosto — a pessoa preenche a caixa
+        // inteira, só o entorno (visível através da transparência do
+        // recorte) mostra o fundo desfocado.
         function cloudinaryBlurPortraitUrl(url, w, h, improve) {
             var id = cloudinaryPublicId(url);
             if (!id) return url;
-            var inset = Math.round(Math.min(w, h) * 0.74);
             var base = ['e_blur:1800', 'c_fill', 'g_auto', 'w_' + w, 'h_' + h].join(',');
-            var overlay = ['l_' + id, 'c_fill', 'g_face:auto', 'w_' + inset, 'h_' + inset,
-                            'r_max', 'bo_8px_solid_white'].join(',');
+            var overlay = ['l_' + id, 'e_trim:10', 'c_fit', 'w_' + w, 'h_' + h].join(',');
             var apply = 'fl_layer_apply,g_center';
             var final = ['q_auto', 'f_auto', 'dpr_' + PHOTO_DPR].join(',');
             var improveSegment = improve ? 'e_improve/' : '';
