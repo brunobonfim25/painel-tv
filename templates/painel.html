@@ -307,40 +307,40 @@
             color: #fff;
         }
 
-        /* ===== FOTO ESTILO "CARTÃO" (foto retangular ao lado do nome) =====
-           Layout horizontal: foto ocupa a altura inteira do card à
-           esquerda, conteúdo (nome/cargo/QR) à direita. Diferente do
-           Destaque, aqui a foto preenche 100% da caixa (object-fit:cover,
-           sem flutuar) — não precisa do ajuste fino de orçamento vertical
-           que os outros estilos precisaram: o conteúdo da direita usa
+        /* ===== FOTO ESTILO "CARTÃO" (foto recortada flutuando ao lado do nome) =====
+           Layout horizontal: foto à esquerda, conteúdo (nome/cargo/QR) à
+           direita. A foto tem o fundo removido (via rembg no upload) e
+           FLUTUA direto sobre o fundo do card — sem caixa, sem moldura,
+           sem cor de fundo, como no mockup. object-fit:contain preserva o
+           recorte inteiro (não corta a pessoa); object-position:bottom faz
+           a pessoa "apoiar" na base do card. O conteúdo da direita usa
            justify-content:space-between dentro da MESMA altura da foto,
            então nunca "estoura" — só distribui o espaço que sobrar. */
         .card--row {
             flex-direction: row;
             align-items: stretch;
             text-align: left;
-            gap: calc(14px * var(--cs, 1));
+            gap: calc(12px * var(--cs, 1));
         }
 
         .card-photo-cartao {
             flex-shrink: 0;
-            width: calc(120px * var(--cs, 1));
+            width: calc(140px * var(--cs, 1));
             height: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f5f5f5;
         }
 
         .card-photo-cartao img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: bottom center;
             display: block;
         }
 
         .card-photo-cartao-ph {
             width: 100%;
             height: 100%;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
