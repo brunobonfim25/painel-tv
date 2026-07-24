@@ -390,9 +390,18 @@ def painel(slug):
     )
     card_text_color = cor_contraste(academia.get("cor_card") or "#ffffff")
     versao_atual = APP_VERSION + ":" + str(academia.get("versao_painel") or 0)
-    return render_template("painel.html", academia=academia,
+    html = render_template("painel.html", academia=academia,
         profissionais=profissionais or [], app_version=versao_atual,
         card_text_color=card_text_color)
+    # Sem isso, o navegador da TV (WebView do Fully Kiosk no Fire TV,
+    # rodando dias seguidos) pode reabrir de um cache em disco após um
+    # crash/relançamento do app sem nem bater na rede — aí a TV fica
+    # "presa" numa versão antiga mesmo depois do JS de auto-atualização
+    # mandar recarregar, porque o reload volta pra essa mesma cópia
+    # cacheada.
+    resp = app.make_response(html)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    return resp
 
 @app.route("/<slug>/admin", methods=["GET", "POST"])
 def admin_login(slug):

@@ -756,14 +756,22 @@
         })();
 
         // Auto-atualização: consulta a versão do servidor a cada 5 min e
-        // recarrega a página quando sai deploy novo — as TVs se atualizam
-        // sozinhas, sem precisar reiniciar o aparelho. Também recarrega a
-        // cada 6h para renovar dados (equipe editada no admin) mesmo sem
-        // deploy. Falha de rede é ignorada silenciosamente: o painel
-        // continua rodando com o que já está na tela.
+        // recarrega a página quando sai deploy novo, quando o admin clica
+        // em "Atualizar TV agora", ou quando a equipe muda — as TVs se
+        // atualizam sozinhas, sem precisar reiniciar o aparelho. Falha de
+        // rede é ignorada silenciosamente: o painel continua rodando com o
+        // que já está na tela.
+        //
+        // Recarga incondicional a cada 1h como rede de segurança: se por
+        // qualquer motivo esse script travar/parar de rodar num navegador
+        // que fica ligado dias seguidos (WebView de TV/kiosk), o próprio
+        // load da página seguinte já religa os timers do zero. Antes era
+        // 6h — encurtado depois de uma TV ficar presa numa versão antiga
+        // por tempo demais sem ninguém perceber.
         (function () {
             var VERSAO_ATUAL = {{ app_version | default('') | tojson }};
             var CHECK_INTERVAL = 5 * 60 * 1000;
+            var RECARGA_FORCADA = 60 * 60 * 1000;
             function recarregar() {
                 window.location.replace(window.location.pathname + '?v=' + Date.now());
             }
@@ -777,7 +785,7 @@
                     })
                     .catch(function () {});
             }, CHECK_INTERVAL);
-            setTimeout(recarregar, 6 * 60 * 60 * 1000);
+            setTimeout(recarregar, RECARGA_FORCADA);
         })();
 
         const profissionais = [
