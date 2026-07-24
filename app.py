@@ -314,6 +314,21 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def cor_contraste(hex_cor, claro="#ffffff", escuro="#151515"):
+    """Escolhe automaticamente texto claro ou escuro conforme a
+    luminância da cor de fundo do card (cor_card), para o nome, cargo
+    e ícones do painel de TV continuarem legíveis não importa qual
+    combinação de cores a academia escolher no admin."""
+    try:
+        h = (hex_cor or "").lstrip("#")
+        if len(h) == 3:
+            h = "".join(c * 2 for c in h)
+        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+        luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        return escuro if luminancia > 0.6 else claro
+    except Exception:
+        return escuro
+
 def master_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -335,8 +350,10 @@ def painel(slug):
         "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
     )
+    card_text_color = cor_contraste(academia.get("cor_card") or "#ffffff")
     return render_template("painel.html", academia=academia,
-        profissionais=profissionais or [], app_version=APP_VERSION)
+        profissionais=profissionais or [], app_version=APP_VERSION,
+        card_text_color=card_text_color)
 
 @app.route("/<slug>/admin", methods=["GET", "POST"])
 def admin_login(slug):

@@ -14,6 +14,13 @@
             --tag-bg: {{ academia.cor_tag | default('#1a1a2e') }};
             --bg: {{ academia.cor_fundo | default('#f0f2f5') }};
             --card-bg: {{ academia.cor_card | default('#ffffff') }};
+            /* Calculada no servidor a partir da luminância de --card-bg
+               (ver cor_contraste() no app.py) — nome, cargo e ícones do
+               card usam essa variável em vez de uma cor fixa, para
+               continuarem legíveis não importa a combinação de cores
+               escolhida no admin (ex: card escuro + texto escuro
+               deixava tudo ilegível antes desse ajuste). */
+            --card-text: {{ card_text_color | default('#151515') }};
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -364,7 +371,7 @@
         .card-cartao-nome {
             font-size: calc(26px * var(--cs, 1));
             font-weight: 800;
-            color: var(--pri);
+            color: var(--card-text);
             line-height: 1.15;
             max-width: 100%;
             overflow: hidden;
@@ -377,7 +384,7 @@
         .card-cartao-cargo {
             font-size: calc(14px * var(--cs, 1));
             font-weight: 500;
-            color: var(--pri);
+            color: var(--card-text);
             opacity: 0.75;
             margin-top: calc(3px * var(--cs, 1));
             flex-shrink: 0;
@@ -402,7 +409,7 @@
         .card-cartao-info {
             font-size: calc(14px * var(--cs, 1));
             font-weight: 500;
-            color: var(--pri);
+            color: var(--card-text);
             opacity: 0.85;
             white-space: nowrap;
         }
@@ -434,7 +441,7 @@
         .card-nome {
             font-size: calc(15px * var(--cs, 1));
             font-weight: 800;
-            color: var(--pri);
+            color: var(--card-text);
             text-align: center;
             line-height: 1.2;
             margin-top: 4px;
@@ -536,11 +543,13 @@
         .card-icon {
             width: calc(28px * var(--cs, 1));
             height: calc(28px * var(--cs, 1));
-            stroke: var(--accent);
+            stroke: var(--card-text);
             fill: none;
             stroke-width: 2;
         }
 
+        /* Verde fixo do WhatsApp continua igual — é uma cor de marca já
+           bem contrastada, tanto em fundo claro quanto escuro. */
         .card-icon-wa {
             fill: #25d366;
             stroke: none;
