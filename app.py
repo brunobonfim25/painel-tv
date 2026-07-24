@@ -146,6 +146,23 @@ def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     file.seek(0)
     return size <= max_size
 
+def ja_tem_transparencia(file_bytes):
+    """True se a imagem enviada já vem com fundo transparente (PNG
+    recortado pelo próprio usuário num editor externo). Nesse caso não
+    faz sentido rodar o rembg de novo: a pessoa já entregou o recorte
+    que quer, e reprocessar só arriscaria degradar as bordas."""
+    try:
+        from io import BytesIO
+        from PIL import Image
+        img = Image.open(BytesIO(file_bytes))
+        if img.mode not in ("RGBA", "LA", "PA"):
+            return False
+        alpha = img.convert("RGBA").getchannel("A")
+        return alpha.getextrema()[0] < 250  # existe pelo menos 1 pixel transparente
+    except Exception as e:
+        print(f"[transparencia] falha ao checar: {e}")
+        return False
+
 def remover_fundo_bytes(file_bytes):
     """Remove o fundo da imagem localmente com rembg (biblioteca Python,
     roda no próprio servidor, sem conta/API externa). Retorna os bytes
@@ -160,25 +177,31 @@ def remover_fundo_bytes(file_bytes):
         return None
 
 def upload_imagem(file, pasta="painel_tv"):
-    # Guarda a foto em alta resolução, sem recorte fixo: o recorte
-    # (crop de rosto) e o tamanho de entrega são calculados on-the-fly
-    # pelo painel (ver cloudinaryPhotoUrl() em painel.html), ajustados à
-    # densidade de pixels de cada TV. Isso evita reenvio de fotos toda
-    # vez que o layout muda de tamanho.
+    # Guarda a foto em alta resolução, sem recorte fixo: o recorte e o
+    # tamanho de entrega são calculados on-the-fly pelo painel (ver
+    # cloudinaryPhotoUrl() em painel.html). Isso evita reenvio de fotos
+    # toda vez que o layout muda de tamanho.
     #
-    # Antes de subir, tenta remover o fundo com rembg (local, sem
-    # depender de nenhum serviço externo). Se falhar, sobe a foto
-    # original sem quebrar o cadastro -- só essa foto específica fica
-    # sem o fundo removido no estilo "Destaque".
+    # Fluxo de remoção de fundo:
+    #  1. Se a foto JÁ vem transparente (PNG recortado no editor do
+    #     próprio usuário), sobe ela como está — respeita o recorte
+    #     manual, que é sempre melhor que o automático.
+    #  2. Senão, tenta remover o fundo com rembg (local, sem serviço
+    #     externo). Se falhar, sobe a foto original sem quebrar o
+    #     cadastro — só essa foto fica sem fundo removido.
     upload_source = file
     try:
         file.seek(0)
-        fundo_removido = remover_fundo_bytes(file.read())
+        raw = file.read()
         file.seek(0)
-        if fundo_removido:
-            upload_source = io.BytesIO(fundo_removido)
+        if ja_tem_transparencia(raw):
+            upload_source = io.BytesIO(raw)
+        else:
+            fundo_removido = remover_fundo_bytes(raw)
+            if fundo_removido:
+                upload_source = io.BytesIO(fundo_removido)
     except Exception as e:
-        print(f"[rembg] erro lendo arquivo para remoção de fundo: {e}")
+        print(f"[upload_imagem] erro no pré-processamento da foto: {e}")
 
     try:
         resultado = cloudinary.uploader.upload(

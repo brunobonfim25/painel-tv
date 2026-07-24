@@ -888,12 +888,22 @@
             opts = opts || {};
             var w = opts.w || size, h = opts.h || size;
             var parts = efeitoFotoParts();
-            // g_face:auto — se não achar rosto na foto (óculos escuros, de
-            // perfil, foto de grupo enviada por engano), cai para o
-            // recorte inteligente automático do Cloudinary em vez de
-            // cortar num ponto genérico da imagem. Nativo, sem add-on.
-            parts.push('c_fill', 'g_face:auto');
-            if (opts.zoom) parts.push('z_' + opts.zoom);
+            if (opts.cutout) {
+                // Modo "recorte flutuante" (estilo Cartão): NÃO força corte
+                // no rosto — isso distorcia a pessoa e a deixava "fora de
+                // esquadro". e_trim apara o vazio/borda uniforme ao redor
+                // (o transparente de um PNG recortado, ou a margem branca
+                // de uma foto de estúdio), e c_fit encaixa preservando a
+                // proporção REAL da pessoa, sem esticar nem cortar.
+                parts.push('e_trim:10', 'c_fit');
+            } else {
+                // g_face:auto — se não achar rosto na foto (óculos escuros,
+                // de perfil, foto de grupo enviada por engano), cai para o
+                // recorte inteligente automático do Cloudinary em vez de
+                // cortar num ponto genérico da imagem. Nativo, sem add-on.
+                parts.push('c_fill', 'g_face:auto');
+                if (opts.zoom) parts.push('z_' + opts.zoom);
+            }
             parts.push('w_' + w, 'h_' + h, 'q_auto', 'f_auto', 'dpr_' + PHOTO_DPR);
             // e_improve precisa ficar em um bloco separado (encadeado com
             // "/"): combinado no mesmo bloco que um efeito de cor (ex:
@@ -914,8 +924,8 @@
             const initials = p.nome ? p.nome.charAt(0).toUpperCase() : '?';
             const cargo = p.cargo ? '<div class="card-cartao-cargo">' + esc(p.cargo) + '</div>' : '';
 
-            var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 400, h: 520}) : '';
-            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 400, h: 520, zoom: 0.8, improve: true}) : '';
+            var photoSrcPlain = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 500, h: 640, cutout: true}) : '';
+            var photoSrc = p.foto_url ? cloudinaryPhotoUrl(p.foto_url, 500, {w: 500, h: 640, cutout: true, improve: true}) : '';
             var photo = photoSrc
                 ? '<img src="' + esc(photoSrc) + '" alt="' + esc(p.nome) +
                   '" data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
