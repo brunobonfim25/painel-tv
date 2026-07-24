@@ -19,6 +19,17 @@ app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 app.permanent_session_lifetime = timedelta(hours=8)
 
+# Cookies de sessão endurecidos. Secure só em produção (Railway serve via
+# HTTPS; em dev local http://localhost o cookie não seria enviado e o
+# login quebraria). SameSite=Lax impede que outros sites disparem
+# requisições autenticadas cross-site (mitiga boa parte de CSRF).
+_em_producao = bool(os.environ.get("RAILWAY_GIT_COMMIT_SHA"))
+app.config.update(
+    SESSION_COOKIE_SECURE=_em_producao,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
@@ -133,6 +144,12 @@ def init_db():
         profissional_id INTEGER REFERENCES profissionais(id) ON DELETE CASCADE,
         academia_id INTEGER REFERENCES academias(id) ON DELETE CASCADE,
         criado_em TIMESTAMP DEFAULT NOW())""")
+    # Cobre as contagens de scans do admin (total e do mês, por
+    # profissional) — sem ele, cada carregamento do editor varre a
+    # tabela inteira de scans uma vez por profissional, ficando mais
+    # lento conforme os scans acumulam.
+    query("""CREATE INDEX IF NOT EXISTS idx_scans_prof_data
+             ON scans (profissional_id, criado_em)""")
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
