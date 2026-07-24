@@ -14,6 +14,12 @@ from psycopg2 import pool as pg_pool
 import cloudinary
 import cloudinary.uploader
 
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except Exception:
+    pass
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
@@ -32,7 +38,7 @@ app.config.update(
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
 
@@ -161,6 +167,27 @@ def arquivo_permitido(f):
 def video_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
 
+def preparar_upload_heic(file):
+    """Converte HEIC/HEIF (formato padrão de foto do iPhone) para JPEG
+    antes de subir pro Cloudinary — HEIC não abre em navegador nenhum
+    além do Safari, então sem essa conversão a foto ficaria invisível
+    no admin e no painel da TV na maioria dos aparelhos."""
+    nome = (file.filename or "").lower()
+    if not (nome.endswith(".heic") or nome.endswith(".heif")):
+        return file
+    try:
+        from PIL import Image
+        file.seek(0)
+        img = Image.open(file).convert("RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=92)
+        buf.seek(0)
+        return buf
+    except Exception as e:
+        print(f"[preparar_upload_heic] erro convertendo HEIC: {e}")
+        file.seek(0)
+        return file
+
 def tamanho_valido(file, max_size=MAX_FILE_SIZE):
     file.seek(0, 2)
     size = file.tell()
@@ -210,6 +237,7 @@ def upload_imagem(file, pasta="painel_tv"):
     #  2. Senão, tenta remover o fundo com rembg (local, sem serviço
     #     externo). Se falhar, sobe a foto original sem quebrar o
     #     cadastro — só essa foto fica sem fundo removido.
+    file = preparar_upload_heic(file)
     upload_source = file
     try:
         file.seek(0)
@@ -249,6 +277,7 @@ def upload_video(file, pasta="painel_tv/videos"):
         return ""
 
 def upload_logo(file, pasta="painel_tv/logos"):
+    file = preparar_upload_heic(file)
     try:
         resultado = cloudinary.uploader.upload(
             file,

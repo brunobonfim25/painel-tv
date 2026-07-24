@@ -5,3 +5,4 @@ gunicorn==22.0.0
 
 cloudinary==1.36.0
 rembg[cpu]
+pillow-heif
