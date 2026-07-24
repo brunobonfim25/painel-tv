@@ -349,54 +349,61 @@
             color: #fff;
         }
 
+        /* Área à direita da foto, seguindo o mockup do cliente: nome e
+           cargo centralizados no topo, QR Code grande centralizado no
+           espaço restante, com "Mais informações" logo abaixo dele. */
         .card-cartao-content {
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            text-align: center;
         }
 
         .card-cartao-nome {
-            font-size: calc(20px * var(--cs, 1));
+            font-size: calc(26px * var(--cs, 1));
             font-weight: 800;
             color: var(--pri);
             line-height: 1.15;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             flex-shrink: 0;
+            margin-top: calc(6px * var(--cs, 1));
         }
 
         .card-cartao-cargo {
-            font-size: calc(13px * var(--cs, 1));
+            font-size: calc(14px * var(--cs, 1));
             font-weight: 500;
             color: var(--pri);
-            opacity: 0.7;
+            opacity: 0.75;
             margin-top: calc(3px * var(--cs, 1));
             flex-shrink: 0;
         }
 
         .card-cartao-bottom {
+            flex: 1;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: calc(4px * var(--cs, 1));
-            align-self: flex-end;
-            flex-shrink: 0;
+            justify-content: center;
+            gap: calc(8px * var(--cs, 1));
         }
 
         .card-cartao-qr {
-            width: calc(66px * var(--cs, 1));
-            height: calc(66px * var(--cs, 1));
-            border-radius: 6px;
+            width: calc(120px * var(--cs, 1));
+            height: calc(120px * var(--cs, 1));
+            border-radius: 8px;
         }
 
         .card-cartao-info {
-            font-size: calc(11px * var(--cs, 1));
-            font-weight: 600;
+            font-size: calc(14px * var(--cs, 1));
+            font-weight: 500;
             color: var(--pri);
-            opacity: 0.7;
+            opacity: 0.85;
             white-space: nowrap;
         }
 
@@ -936,7 +943,9 @@
             return '<div class="card card--row">' +
                 '<div class="card-photo-cartao">' + photo + '</div>' +
                 '<div class="card-cartao-content">' +
-                    '<div><div class="card-cartao-nome">' + name + '</div>' + cargo + '</div>' +
+                    '<div style="width:100%">' +
+                        '<div class="card-cartao-nome">' + name + '</div>' + cargo +
+                    '</div>' +
                     '<div class="card-cartao-bottom">' +
                         '<img class="card-cartao-qr" src="' + makeQrDataUrl(linkUrl) + '" alt="QR">' +
                         '<span class="card-cartao-info">Mais informações</span>' +
