@@ -79,6 +79,7 @@ def query(sql, params=None, fetch=None):
 def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT ''""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -125,6 +126,7 @@ def init_db():
         cor_avatar TEXT DEFAULT '#1a6fd4',
         qr_tipo TEXT DEFAULT 'whatsapp',
         ordem INTEGER DEFAULT 0,
+        ativo BOOLEAN DEFAULT TRUE,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS scans (
         id SERIAL PRIMARY KEY,
@@ -313,7 +315,7 @@ def painel(slug):
     if not academia:
         return "Academia nao encontrada.", 404
     profissionais = query(
-        "SELECT * FROM profissionais WHERE academia_id = %s ORDER BY LOWER(nome)",
+        "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
     )
     return render_template("painel.html", academia=academia,
@@ -547,6 +549,34 @@ def remover_profissional(slug, prof_id):
         excluir_do_cloudinary(prof["video_url"], resource_type="video")
     query("DELETE FROM profissionais WHERE id=%s AND academia_id=%s", (prof_id, academia["id"]))
     flash("Profissional removido.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissional/<int:prof_id>/toggle-ativo", methods=["POST"])
+@login_required
+def toggle_ativo_profissional(slug, prof_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    query("""UPDATE profissionais SET ativo = NOT COALESCE(ativo, TRUE)
+             WHERE id=%s AND academia_id=%s""", (prof_id, academia["id"]))
+    prof = query("SELECT nome, ativo FROM profissionais WHERE id=%s AND academia_id=%s",
+                 (prof_id, academia["id"]), fetch="one")
+    if prof:
+        flash(f"{prof['nome'].strip()} {'ativado' if prof['ativo'] else 'desativado'}.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissionais/ativar-todos", methods=["POST"])
+@login_required
+def ativar_todos_profissionais(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    query("UPDATE profissionais SET ativo = TRUE WHERE academia_id=%s", (academia["id"],))
+    flash("Todos os profissionais foram ativados.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissionais/desativar-todos", methods=["POST"])
+@login_required
+def desativar_todos_profissionais(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    query("UPDATE profissionais SET ativo = FALSE WHERE academia_id=%s", (academia["id"],))
+    flash("Todos os profissionais foram desativados. O painel da TV ficará vazio até reativar.")
     return redirect(url_for("admin_editor", slug=slug))
 
 @app.route("/master", methods=["GET", "POST"])
