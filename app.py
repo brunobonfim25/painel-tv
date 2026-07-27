@@ -819,6 +819,7 @@ def setup():
         slug = request.form.get("slug", "").lower().strip()
         nome = request.form.get("nome", "").strip()
         senha = request.form.get("senha", "").strip()
+        copiar_de = request.form.get("copiar_de", "").strip()
         if not slug or not nome or not senha:
             flash("Preencha todos os campos.")
             return redirect(url_for("setup"))
@@ -828,11 +829,36 @@ def setup():
         if query("SELECT id FROM academias WHERE slug=%s", (slug,), fetch="one"):
             flash("Slug ja em uso.")
             return redirect(url_for("setup"))
-        query("INSERT INTO academias (slug,nome,senha_hash) VALUES (%s,%s,%s)",
-              (slug, nome, generate_password_hash(senha)))
-        flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
+        if copiar_de:
+            # Acelera onboarding: em vez de escolher cor por cor do
+            # zero, herda a identidade visual de um cliente existente
+            # (o novo dono ainda pode ajustar tudo depois no admin).
+            origem = query("""SELECT cor_primaria, cor_destaque, cor_tag, cor_fundo, cor_card,
+                fonte, estilo_foto, efeito_foto, cards_por_pagina, duracao_pagina,
+                cta_texto, texto_header, exibir_nome
+                FROM academias WHERE slug=%s""", (copiar_de,), fetch="one")
+        else:
+            origem = None
+        if origem:
+            query("""INSERT INTO academias
+                (slug, nome, senha_hash, cor_primaria, cor_destaque, cor_tag, cor_fundo, cor_card,
+                 fonte, estilo_foto, efeito_foto, cards_por_pagina, duracao_pagina,
+                 cta_texto, texto_header, exibir_nome)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (slug, nome, generate_password_hash(senha),
+                 origem["cor_primaria"], origem["cor_destaque"], origem["cor_tag"],
+                 origem["cor_fundo"], origem["cor_card"], origem["fonte"],
+                 origem["estilo_foto"], origem["efeito_foto"], origem["cards_por_pagina"],
+                 origem["duracao_pagina"], origem["cta_texto"], origem["texto_header"],
+                 origem["exibir_nome"]))
+            flash(f"Academia criada com as configurações de {copiar_de}! Acesse: /{slug}/ e /{slug}/admin")
+        else:
+            query("INSERT INTO academias (slug,nome,senha_hash) VALUES (%s,%s,%s)",
+                  (slug, nome, generate_password_hash(senha)))
+            flash(f"Academia criada! Acesse: /{slug}/ e /{slug}/admin")
         return redirect(url_for("setup"))
-    return render_template("setup.html")
+    academias_existentes = query("SELECT slug, nome FROM academias ORDER BY nome", fetch="all") or []
+    return render_template("setup.html", academias_existentes=academias_existentes)
 
 @app.route("/<slug>/prof/<int:prof_id>/links")
 def prof_links(slug, prof_id):
