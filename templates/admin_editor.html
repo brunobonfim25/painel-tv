@@ -354,6 +354,16 @@ details[open] .chevron{transform:rotate(180deg)}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
+/* ── AVISO DE ALTERAÇÕES NÃO SALVAS ── */
+.unsaved-bar{
+  display:none;align-items:center;gap:10px;
+  background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.25);
+  border-radius:12px;padding:10px 16px;margin-bottom:20px;
+  font-size:13px;font-weight:500;color:#eab308;
+  position:sticky;top:12px;z-index:80;
+}
+.unsaved-bar.show{display:flex}
+
 /* ── PREVIEW AO VIVO (tab Configurações) ── */
 .config-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
 .config-main-col{min-width:0}
@@ -501,6 +511,14 @@ details[open] .chevron{transform:rotate(180deg)}
       <span class="logo-text">Painel<em>Pro</em></span>
     </div>
 
+    <div class="unsaved-bar" id="unsavedBar">
+      <span style="width:7px;height:7px;border-radius:50%;background:#eab308;flex-shrink:0"></span>
+      Você tem alterações não salvas nas configurações
+      <button type="button" class="btn-primary" style="margin-left:auto;padding:6px 14px;font-size:12.5px" onclick="document.getElementById('configForm').requestSubmit()">
+        Salvar agora
+      </button>
+    </div>
+
     {% with msgs = get_flashed_messages() %}
       {% if msgs %}{% for m in msgs %}
         <div class="flash">
@@ -556,7 +574,7 @@ details[open] .chevron{transform:rotate(180deg)}
         <p class="section-desc">Personalize como seu painel aparece na TV</p>
       </div>
       <div class="card">
-        <form method="POST" action="{{ url_for('salvar_config', slug=academia.slug) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('salvar_config', slug=academia.slug) }}" enctype="multipart/form-data" id="configForm">
           <div class="grid-2">
             <div>
               <label class="field-label">Nome da academia</label>
@@ -774,11 +792,15 @@ details[open] .chevron{transform:rotate(180deg)}
               <p class="field-hint">Quanto tempo cada página fica na tela antes de trocar. Entre 3 e 120.</p>
             </div>
           </div>
-          <div style="margin-top:16px">
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
             <button type="submit" class="btn-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Salvar configurações
             </button>
+            <span id="unsavedBadge" style="display:none;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#eab308">
+              <span style="width:6px;height:6px;border-radius:50%;background:#eab308;flex-shrink:0"></span>
+              Alterações não salvas
+            </span>
           </div>
         </form>
       </div>
@@ -1298,6 +1320,31 @@ document.querySelectorAll('.upload-zone input[type=file]').forEach(input => {
       zone.style.borderColor = '#22c55e';
     }
   });
+});
+
+// aviso de alteracoes nao salvas — o formulario de configuracoes e
+// longo (identidade + cores + fonte + foto + carrossel num scroll so),
+// facil mexer em algo la em cima e esquecer de rolar ate o botao
+// salvar no final. Cobre tanto navegar pra fora da pagina quanto so
+// deixar visivel que ha algo pendente.
+var configForm = document.getElementById('configForm');
+var configDirty = false;
+if (configForm) {
+  configForm.addEventListener('input', markConfigDirty);
+  configForm.addEventListener('change', markConfigDirty);
+  configForm.addEventListener('submit', function () { configDirty = false; });
+}
+function markConfigDirty() {
+  if (configDirty) return;
+  configDirty = true;
+  document.getElementById('unsavedBar').classList.add('show');
+  document.getElementById('unsavedBadge').style.display = 'inline-flex';
+}
+window.addEventListener('beforeunload', function (e) {
+  if (configDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
 });
 </script>
 </body>
