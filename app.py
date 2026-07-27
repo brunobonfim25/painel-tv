@@ -718,12 +718,14 @@ def master_dashboard():
     novos_mes = sum(1 for a in academias
         if a["criado_em"] and a["criado_em"].month == now.month
         and a["criado_em"].year == now.year)
+    media_profs = round(total_profissionais / len(academias)) if academias else 0
 
     return render_template("master.html",
         academias=academias,
         total_academias=len(academias),
         total_profissionais=total_profissionais,
-        novos_mes=novos_mes)
+        novos_mes=novos_mes,
+        media_profs=media_profs)
 
 @app.route("/setup", methods=["GET", "POST"])
 @master_required

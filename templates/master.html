@@ -84,11 +84,40 @@ a{color:inherit;text-decoration:none}
 .btn-admin{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--t2);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;transition:all .2s}
 .btn-admin:hover{background:rgba(255,255,255,0.08);color:var(--t1)}
 .empty{text-align:center;padding:48px;color:var(--t3);font-size:14px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+
+/* ── MOBILE ── */
+.mobile-topbar{display:none}
+.sidebar-backdrop{display:none}
+@media (max-width:860px){
+  .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:200}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:16px 16px 60px}
+  .mobile-topbar{
+    display:flex;align-items:center;gap:12px;
+    position:sticky;top:0;z-index:120;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:14px 16px;margin:-16px -16px 20px;
+  }
+  .mobile-menu-btn{
+    background:none;border:1px solid var(--border);border-radius:8px;
+    color:var(--t1);padding:8px;display:flex;cursor:pointer;flex-shrink:0;
+  }
+  .sidebar-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .sidebar-backdrop.open{opacity:1;pointer-events:auto}
+  .page-header{flex-wrap:wrap;gap:12px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .client-header{flex-wrap:wrap}
+  .client-meta{margin-left:0;width:100%;justify-content:space-between}
+}
 </style>
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+  <aside class="sidebar" id="sidebar">
     <div class="sb-logo-area">
       <div class="logo-mark">
         <div class="logo-icon">
@@ -121,6 +150,12 @@ a{color:inherit;text-decoration:none}
   </aside>
 
   <main class="main">
+    <div class="mobile-topbar">
+      <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Abrir menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <span class="logo-text">Painel<em>Pro</em></span>
+    </div>
     <div class="page-header">
       <div>
         <h1 class="page-title">Dashboard</h1>
@@ -149,10 +184,10 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="stat">
         <div class="stat-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><path d="M3 3v18h18"/><rect width="4" height="8" x="7" y="11"/><rect width="4" height="12" x="15" y="7"/></svg>
         </div>
-        <div class="stat-num">R${{ total_academias * 99 }}</div>
-        <div class="stat-label">Receita mensal</div>
+        <div class="stat-num">{{ media_profs }}</div>
+        <div class="stat-label">Profissionais por cliente (média)</div>
       </div>
       <div class="stat">
         <div class="stat-icon">
@@ -214,5 +249,11 @@ a{color:inherit;text-decoration:none}
     <div style="height:60px"></div>
   </main>
 </div>
+<script>
+function toggleSidebar(open) {
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('sidebarBackdrop').classList.toggle('open', open);
+}
+</script>
 </body>
 </html>

@@ -90,7 +90,7 @@ a{color:inherit;text-decoration:none}
 }
 
 /* ── MAIN ── */
-.main{margin-left:256px;flex:1;padding:36px 44px;max-width:900px}
+.main{margin-left:256px;flex:1;padding:36px 44px;max-width:1260px}
 
 /* ── PAGE HEADER ── */
 .page-header{
@@ -200,6 +200,15 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
 .color-swatch::-webkit-color-swatch-wrapper{padding:0}
 .color-swatch::-webkit-color-swatch{border:none;border-radius:6px}
 .color-label{font-size:12px;color:var(--t2)}
+.color-label-input{
+  font-size:12px;color:var(--t2);font-family:inherit;
+  background:none;border:1px solid transparent;border-radius:6px;
+  padding:3px 6px;width:78px;outline:none;transition:all .15s;
+  text-transform:lowercase;
+}
+.color-label-input:hover{border-color:var(--border)}
+.color-label-input:focus{border-color:var(--acc);color:var(--t1);background:rgba(59,130,246,0.06)}
+.color-label-input.invalid{border-color:var(--danger);color:var(--danger)}
 
 /* ── UPLOAD ── */
 .upload-zone{
@@ -344,14 +353,97 @@ details[open] .chevron{transform:rotate(180deg)}
 /* CONFIG SECTION hidden by default */
 .tab-content{display:none}
 .tab-content.active{display:block}
+
+/* ── PREVIEW AO VIVO (tab Configurações) ── */
+.config-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+.config-main-col{min-width:0}
+.config-preview{
+  position:sticky;top:36px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:18px;
+}
+.config-preview-label{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
+.config-preview-hint{font-size:10.5px;color:var(--t3);line-height:1.4;margin-top:12px}
+.config-preview-stage{
+  background:var(--pv-bg,#f0f2f5);border-radius:12px;padding:20px 14px;
+  display:flex;align-items:center;justify-content:center;min-height:220px;
+}
+.pv-card{display:none;flex-direction:column;align-items:center;text-align:center;
+  background:var(--pv-card,#fff);border-radius:10px;padding:16px 12px;width:100%;max-width:200px;
+  font-family:var(--pv-font,'Syne'),sans-serif;
+}
+.config-preview[data-estilo="circulo"] .pv-circulo{display:flex}
+.config-preview[data-estilo="destaque"] .pv-destaque{display:flex}
+.config-preview[data-estilo="cartao"] .pv-cartao{display:flex;flex-direction:row;text-align:left;max-width:none}
+.pv-photo-wrap{margin-bottom:10px;flex-shrink:0}
+.pv-photo{color:var(--pv-pri,#1a1a2e);opacity:.5}
+.pv-photo svg{display:block}
+.pv-photo-round{width:56px;height:56px;border-radius:50%;border:2px solid var(--pv-accent,#e94560);padding:6px;box-sizing:border-box}
+.pv-photo-tall{width:64px;height:82px}
+.pv-cartao .pv-photo-wrap{margin-bottom:0;margin-right:12px}
+.pv-cartao .pv-photo-tall{width:56px;height:96px}
+.config-preview[data-efeito="pb"] .pv-photo{filter:grayscale(1)}
+.config-preview[data-efeito="vibrante"] .pv-photo{filter:saturate(2) contrast(1.2)}
+.config-preview[data-efeito="vinheta"] .pv-photo{filter:contrast(1.15) brightness(.85)}
+.config-preview[data-efeito="duotone"] .pv-photo{filter:grayscale(1) opacity(.7);color:var(--pv-accent,#e94560)}
+.config-preview[data-efeito="blur"] .pv-photo{filter:drop-shadow(0 0 6px var(--pv-accent,#e94560))}
+.pv-nome{font-size:13px;font-weight:800;color:var(--pv-text,#151515);letter-spacing:-0.01em}
+.pv-cargo{font-size:10px;font-weight:600;color:var(--pv-pri,#1a1a2e);text-transform:uppercase;margin-top:2px;opacity:.75}
+.pv-tags{margin-top:8px}
+.pv-tag{background:var(--pv-tag,#1a1a2e);color:#fff;font-size:9px;font-weight:600;padding:3px 9px;border-radius:20px}
+.pv-cartao-content{flex:1;min-width:0}
+.pv-cartao .pv-nome{font-size:12px}
+.pv-cartao .pv-cargo{margin-bottom:6px}
+.pv-qr{width:34px;height:34px;background:var(--pv-text,#151515);opacity:.15;border-radius:4px;margin-top:4px}
+.pv-info{font-size:9px;color:var(--pv-text,#151515);opacity:.6;margin-top:4px;font-weight:600}
+
+@media (max-width:1100px){
+  .config-layout{grid-template-columns:1fr}
+  .config-preview{position:static;order:-1}
+}
+
+/* ── MOBILE ── */
+.mobile-topbar{display:none}
+.sidebar-backdrop{display:none}
+@media (max-width:860px){
+  .sidebar{
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    z-index:200;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:16px 16px 80px;max-width:100%}
+  .mobile-topbar{
+    display:flex;align-items:center;gap:12px;
+    position:sticky;top:0;z-index:120;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:14px 16px;margin:-16px -16px 20px;
+  }
+  .mobile-menu-btn{
+    background:none;border:1px solid var(--border);border-radius:8px;
+    color:var(--t1);padding:8px;display:flex;cursor:pointer;flex-shrink:0;
+  }
+  .sidebar-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .sidebar-backdrop.open{opacity:1;pointer-events:auto}
+  .page-header{flex-wrap:wrap;gap:12px}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .pro-tags{display:none}
+  .tab-bar{width:100%}
+  .tab-btn{flex:1;padding:7px 8px;font-size:12px;justify-content:center}
+}
 </style>
 </head>
 <body>
 
 <div class="layout">
 
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sb-logo-area">
       <div class="logo-mark">
         <div class="logo-icon">
@@ -402,6 +494,13 @@ details[open] .chevron{transform:rotate(180deg)}
   <!-- MAIN -->
   <main class="main">
 
+    <div class="mobile-topbar">
+      <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Abrir menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <span class="logo-text">Painel<em>Pro</em></span>
+    </div>
+
     {% with msgs = get_flashed_messages() %}
       {% if msgs %}{% for m in msgs %}
         <div class="flash">
@@ -450,6 +549,8 @@ details[open] .chevron{transform:rotate(180deg)}
 
     <!-- TAB: CONFIGURAÇÕES -->
     <div class="tab-content" id="content-config">
+    <div class="config-layout">
+    <div class="config-main-col">
       <div class="section-head">
         <p class="section-title">Informações da academia</p>
         <p class="section-desc">Personalize como seu painel aparece na TV</p>
@@ -534,28 +635,28 @@ details[open] .chevron{transform:rotate(180deg)}
               <label class="field-label">Cor principal</label>
               <div class="color-field">
                 <input type="color" name="cor_primaria" value="{{ academia.cor_primaria }}" class="color-swatch">
-                <span class="color-label">{{ academia.cor_primaria }}</span>
+                <input type="text" class="color-label-input" value="{{ academia.cor_primaria }}" maxlength="7" spellcheck="false" autocomplete="off">
               </div>
             </div>
             <div>
               <label class="field-label">Cor destaque</label>
               <div class="color-field">
                 <input type="color" name="cor_destaque" value="{{ academia.cor_destaque }}" class="color-swatch">
-                <span class="color-label">{{ academia.cor_destaque }}</span>
+                <input type="text" class="color-label-input" value="{{ academia.cor_destaque }}" maxlength="7" spellcheck="false" autocomplete="off">
               </div>
             </div>
             <div>
               <label class="field-label">Cor das tags</label>
               <div class="color-field">
                 <input type="color" name="cor_tag" value="{{ academia.cor_tag }}" class="color-swatch">
-                <span class="color-label">{{ academia.cor_tag }}</span>
+                <input type="text" class="color-label-input" value="{{ academia.cor_tag }}" maxlength="7" spellcheck="false" autocomplete="off">
               </div>
             </div>
             <div>
               <label class="field-label">Cor de fundo (palco)</label>
               <div class="color-field">
                 <input type="color" name="cor_fundo" value="{{ academia.cor_fundo | default('#f0f2f5') }}" class="color-swatch">
-                <span class="color-label">{{ academia.cor_fundo | default('#f0f2f5') }}</span>
+                <input type="text" class="color-label-input" value="{{ academia.cor_fundo | default('#f0f2f5') }}" maxlength="7" spellcheck="false" autocomplete="off">
               </div>
               <p class="field-hint">Fundo atrás dos cards</p>
             </div>
@@ -563,7 +664,7 @@ details[open] .chevron{transform:rotate(180deg)}
               <label class="field-label">Cor do card</label>
               <div class="color-field">
                 <input type="color" name="cor_card" value="{{ academia.cor_card | default('#ffffff') }}" class="color-swatch">
-                <span class="color-label">{{ academia.cor_card | default('#ffffff') }}</span>
+                <input type="text" class="color-label-input" value="{{ academia.cor_card | default('#ffffff') }}" maxlength="7" spellcheck="false" autocomplete="off">
               </div>
               <p class="field-hint">Fundo do cartão onde fica a foto de cada profissional</p>
             </div>
@@ -681,7 +782,43 @@ details[open] .chevron{transform:rotate(180deg)}
           </div>
         </form>
       </div>
-    </div>
+    </div><!-- /config-main-col -->
+
+    <aside class="config-preview" id="configPreview" data-estilo="{{ academia.estilo_foto or 'circulo' }}" data-efeito="{{ academia.efeito_foto or 'nenhum' }}">
+      <p class="config-preview-label">Prévia ao vivo</p>
+      <div class="config-preview-stage" id="pvStage">
+        <div class="pv-card pv-circulo">
+          <div class="pv-photo-wrap">
+            <div class="pv-photo pv-photo-round"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Zm0 2.5c-3.3 0-9.9 1.6-9.9 4.9v2.4h19.8v-2.4c0-3.3-6.6-4.9-9.9-4.9Z"/></svg></div>
+          </div>
+          <div class="pv-nome">Nome Exemplo</div>
+          <div class="pv-cargo">Personal Trainer</div>
+          <div class="pv-tags"><span class="pv-tag">Musculação</span></div>
+        </div>
+        <div class="pv-card pv-destaque">
+          <div class="pv-photo-wrap">
+            <div class="pv-photo pv-photo-tall"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Zm0 2.5c-3.3 0-9.9 1.6-9.9 4.9v2.4h19.8v-2.4c0-3.3-6.6-4.9-9.9-4.9Z"/></svg></div>
+          </div>
+          <div class="pv-nome">Nome Exemplo</div>
+          <div class="pv-cargo">Personal Trainer</div>
+        </div>
+        <div class="pv-card pv-cartao">
+          <div class="pv-photo-wrap">
+            <div class="pv-photo pv-photo-tall"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Zm0 2.5c-3.3 0-9.9 1.6-9.9 4.9v2.4h19.8v-2.4c0-3.3-6.6-4.9-9.9-4.9Z"/></svg></div>
+          </div>
+          <div class="pv-cartao-content">
+            <div class="pv-nome">Nome Exemplo</div>
+            <div class="pv-cargo">Personal Trainer</div>
+            <div class="pv-qr"></div>
+            <div class="pv-info">Mais informações</div>
+          </div>
+        </div>
+      </div>
+      <p class="config-preview-hint">Aproximação — fotos reais passam por processamento do Cloudinary e podem variar levemente.</p>
+    </aside>
+
+    </div><!-- /config-layout -->
+    </div><!-- /content-config -->
 
     <!-- TAB: PROFISSIONAIS -->
     <div class="tab-content active" id="content-profissionais">
@@ -1029,6 +1166,11 @@ function switchTab(tab) {
   const [title, sub] = titles[tab] || titles['profissionais'];
   document.getElementById('pageTitle').textContent = title;
   document.getElementById('pageSub').textContent = sub;
+  toggleSidebar(false);
+}
+function toggleSidebar(open) {
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('sidebarBackdrop').classList.toggle('open', open);
 }
 
 function filtrarProfissionais(termo) {
@@ -1052,6 +1194,7 @@ document.querySelectorAll('.fonte-radio').forEach(radio => {
     const card = this.closest('label').querySelector('.fonte-card');
     card.style.border = '2px solid var(--acc)';
     card.style.background = 'var(--acc-dim)';
+    updatePreview();
   });
 });
 // seletor de estilo da foto
@@ -1064,6 +1207,7 @@ document.querySelectorAll('.estilo-foto-radio').forEach(radio => {
     const card = this.closest('label').querySelector('.estilo-foto-card');
     card.style.border = '2px solid var(--acc)';
     card.style.background = 'var(--acc-dim)';
+    updatePreview();
   });
 });
 document.querySelectorAll('.efeito-foto-radio').forEach(radio => {
@@ -1075,13 +1219,75 @@ document.querySelectorAll('.efeito-foto-radio').forEach(radio => {
     const card = this.closest('label').querySelector('.efeito-foto-card');
     card.style.border = '2px solid var(--acc)';
     card.style.background = 'var(--acc-dim)';
+    updatePreview();
   });
 });
-// sync color hex label
-document.querySelectorAll('.color-swatch').forEach(input => {
-  const label = input.closest('.color-field')?.querySelector('.color-label');
-  if(label) input.addEventListener('input', () => label.textContent = input.value);
+// sync entre o seletor de cor nativo e o campo de texto do hex —
+// permite colar um hex exato de marca (ex: cinza da Bodytech) em vez
+// de depender só do seletor visual do navegador.
+var HEX_RE = /^#[0-9a-fA-F]{6}$/;
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+  const textInput = swatch.closest('.color-field')?.querySelector('.color-label-input');
+  if (!textInput) return;
+  swatch.addEventListener('input', () => {
+    textInput.value = swatch.value;
+    textInput.classList.remove('invalid');
+    updatePreview();
+  });
+  textInput.addEventListener('input', () => {
+    let v = textInput.value.trim();
+    if (v && v[0] !== '#') v = '#' + v;
+    if (HEX_RE.test(v)) {
+      textInput.classList.remove('invalid');
+      swatch.value = v;
+      updatePreview();
+    } else {
+      textInput.classList.add('invalid');
+    }
+  });
+  textInput.addEventListener('blur', () => {
+    // se saiu do campo com hex invalido, volta pro ultimo valor valido
+    if (!HEX_RE.test(textInput.value.trim().replace(/^([^#])/, '#$1'))) {
+      textInput.value = swatch.value;
+      textInput.classList.remove('invalid');
+    }
+  });
 });
+
+// preview ao vivo (tab Configurações) — evita o ciclo salvar/abrir TV/conferir
+function cvContraste(hex) {
+  try {
+    var h = (hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function(c) { return c + c; }).join('');
+    var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
+    var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum > 0.6 ? '#151515' : '#ffffff';
+  } catch (e) { return '#151515'; }
+}
+function updatePreview() {
+  var preview = document.getElementById('configPreview');
+  var stage = document.getElementById('pvStage');
+  if (!preview || !stage) return;
+  function val(name) {
+    var el = document.querySelector('[name="' + name + '"]');
+    return el ? el.value : '';
+  }
+  function checkedVal(name, fallback) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : fallback;
+  }
+  var corCard = val('cor_card') || '#ffffff';
+  stage.style.setProperty('--pv-bg', val('cor_fundo') || '#f0f2f5');
+  preview.style.setProperty('--pv-pri', val('cor_primaria') || '#1a1a2e');
+  preview.style.setProperty('--pv-accent', val('cor_destaque') || '#e94560');
+  preview.style.setProperty('--pv-tag', val('cor_tag') || '#1a1a2e');
+  preview.style.setProperty('--pv-card', corCard);
+  preview.style.setProperty('--pv-text', cvContraste(corCard));
+  preview.style.setProperty('--pv-font', checkedVal('fonte', 'Syne'));
+  preview.setAttribute('data-estilo', checkedVal('estilo_foto', 'circulo'));
+  preview.setAttribute('data-efeito', checkedVal('efeito_foto', 'nenhum'));
+}
+updatePreview();
 // logo upload feedback
 document.querySelectorAll('.upload-zone input[type=file]').forEach(input => {
   input.addEventListener('change', function() {
