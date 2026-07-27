@@ -99,6 +99,7 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS tv_visto_em TIMESTAMP""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -129,6 +130,7 @@ def init_db():
         duracao_pagina INTEGER DEFAULT 10,
         estilo_foto TEXT DEFAULT 'circulo',
         versao_painel INTEGER DEFAULT 0,
+        tv_visto_em TIMESTAMP,
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -362,6 +364,26 @@ def cor_contraste(hex_cor, claro="#ffffff", escuro="#151515"):
     except Exception:
         return escuro
 
+def tempo_relativo(dt):
+    """"Visto há X" pro master dashboard — sinaliza TVs que pararam de
+    bater o /__version (o caso da Bodytech travada numa versão antiga
+    sem que ninguém percebesse, até o cliente reportar manualmente)."""
+    if not dt:
+        return "nunca"
+    segundos = (datetime.now() - dt).total_seconds()
+    if segundos < 0:
+        segundos = 0
+    if segundos < 60:
+        return "agora mesmo"
+    minutos = int(segundos // 60)
+    if minutos < 60:
+        return f"há {minutos} min"
+    horas = int(minutos // 60)
+    if horas < 24:
+        return f"há {horas}h"
+    dias = int(horas // 24)
+    return f"há {dias} dia{'s' if dias != 1 else ''}"
+
 def master_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -376,6 +398,11 @@ def versao():
     if slug:
         academia = query("SELECT versao_painel FROM academias WHERE slug=%s", (slug,), fetch="one")
         if academia:
+            # Esse endpoint é batido pela própria TV a cada 5 min (ver
+            # painel.html) — é o sinal mais frequente que temos de que
+            # uma TV ainda está ligada e rodando. Registrar aqui é o
+            # que alimenta o "visto por último" no master.
+            query("UPDATE academias SET tv_visto_em=NOW() WHERE slug=%s", (slug,))
             return {"version": APP_VERSION + ":" + str(academia.get("versao_painel") or 0)}
     return {"version": APP_VERSION}
 
@@ -384,6 +411,7 @@ def painel(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
     if not academia:
         return "Academia nao encontrada.", 404
+    query("UPDATE academias SET tv_visto_em=NOW() WHERE slug=%s", (slug,))
     profissionais = query(
         "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
@@ -703,6 +731,22 @@ def master_logout():
     session.pop("master_logged", None)
     return redirect(url_for("master_login"))
 
+@app.route("/master/entrar/<slug>")
+@master_required
+def master_entrar_academia(slug):
+    # Acesso direto de suporte: o master já provou identidade pelo
+    # master_required, então entra direto no admin da academia sem
+    # precisar saber/redigitar a senha de cada cliente.
+    academia = query("SELECT id FROM academias WHERE slug=%s", (slug,), fetch="one")
+    if not academia:
+        flash("Academia nao encontrada.")
+        return redirect(url_for("master_dashboard"))
+    session.permanent = True
+    session["academia_slug"] = slug
+    session["academia_id"] = academia["id"]
+    session["last_activity"] = datetime.utcnow().timestamp()
+    return redirect(url_for("admin_editor", slug=slug))
+
 @app.route("/master/dashboard")
 @master_required
 def master_dashboard():
@@ -712,6 +756,14 @@ def master_dashboard():
         LEFT JOIN profissionais p ON p.academia_id = a.id
         GROUP BY a.id ORDER BY a.criado_em DESC
     """, fetch="all") or []
+    for a in academias:
+        visto = a.get("tv_visto_em")
+        a["tv_visto_rel"] = tempo_relativo(visto)
+        if not visto:
+            a["tv_visto_status"] = "nunca"
+        else:
+            minutos = (datetime.now() - visto).total_seconds() / 60
+            a["tv_visto_status"] = "ok" if minutos <= 30 else ("atencao" if minutos <= 180 else "sumida")
 
     total_profissionais = sum(a["total_profs"] for a in academias)
     now = datetime.now()

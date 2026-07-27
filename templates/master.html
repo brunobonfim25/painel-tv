@@ -77,6 +77,11 @@ a{color:inherit;text-decoration:none}
 .meta-label{font-size:10px;color:var(--t3);margin-top:1px}
 .badge-active{display:inline-flex;align-items:center;gap:4px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#22c55e;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
 .badge-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;animation:pdot 2s infinite}
+.tv-seen{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.tv-seen-ok{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#22c55e}
+.tv-seen-atencao{background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.25);color:#eab308}
+.tv-seen-sumida{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#ef4444}
+.tv-seen-nunca{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--t3)}
 .client-date{font-size:11px;color:var(--t3)}
 .client-actions{display:flex;gap:8px;padding:12px 22px;border-top:1px solid var(--border);background:rgba(0,0,0,0.15)}
 .btn-tv{display:inline-flex;align-items:center;gap:6px;background:rgba(26,111,212,0.12);border:1px solid rgba(26,111,212,0.2);border-radius:8px;color:#4a9eff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;transition:all .2s}
@@ -224,6 +229,10 @@ a{color:inherit;text-decoration:none}
               <span class="badge-dot"></span>
               Ativo
             </div>
+            <div class="tv-seen tv-seen-{{ a.tv_visto_status }}" title="Última vez que essa TV verificou atualizações">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+              TV {{ a.tv_visto_rel }}
+            </div>
             <div class="client-date">{{ a.criado_em.strftime('%d/%m/%Y') if a.criado_em else '-' }}</div>
           </div>
         </div>
@@ -232,7 +241,7 @@ a{color:inherit;text-decoration:none}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
             Ver TV
           </a>
-          <a href="{{ url_for('admin_login', slug=a.slug) }}" target="_blank" class="btn-admin">
+          <a href="{{ url_for('master_entrar_academia', slug=a.slug) }}" target="_blank" class="btn-admin">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             Acessar admin
           </a>
