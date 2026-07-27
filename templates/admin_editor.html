@@ -286,6 +286,14 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
   display:flex;align-items:center;gap:14px;
   padding:18px 22px;cursor:pointer;user-select:none;
 }
+.pro-select{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
+.bulk-bar{
+  display:none;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--acc-dim);border:1px solid rgba(59,130,246,0.25);
+  border-radius:12px;padding:10px 16px;margin-bottom:16px;
+  font-size:13px;font-weight:600;color:var(--acc-h);
+}
+.bulk-bar.show{display:flex}
 .pro-avatar{
   width:44px;height:44px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -873,6 +881,30 @@ details[open] .chevron{transform:rotate(180deg)}
           </button>
         </form>
       </div>
+      <div class="bulk-bar" id="bulkBar">
+        <span id="bulkCount">0 selecionados</span>
+        <button type="button" class="btn-ghost" onclick="enviarSelecionados('{{ url_for('ativar_selecionados_profissionais', slug=academia.slug) }}')">
+          Ativar
+        </button>
+        <button type="button" class="btn-ghost" onclick="enviarSelecionados('{{ url_for('desativar_selecionados_profissionais', slug=academia.slug) }}')">
+          Desativar
+        </button>
+        <select id="bulkQrTipo" class="field-input" style="width:auto;padding:7px 10px;font-size:12.5px">
+          <option value="whatsapp">QR → WhatsApp</option>
+          <option value="instagram">QR → Instagram</option>
+          <option value="ambos">QR → WhatsApp + Instagram</option>
+        </select>
+        <button type="button" class="btn-ghost" onclick="enviarSelecionados('{{ url_for('qr_tipo_selecionados_profissionais', slug=academia.slug) }}', {qr_tipo: document.getElementById('bulkQrTipo').value})">
+          Aplicar QR
+        </button>
+        <button type="button" class="btn-ghost" style="margin-left:auto" onclick="limparSelecaoProfissionais()">
+          Limpar seleção
+        </button>
+      </div>
+      <form method="POST" id="bulkForm" style="display:none">
+        <input type="hidden" name="ids" id="bulkIds">
+        <input type="hidden" name="qr_tipo" id="bulkQrTipoHidden">
+      </form>
       <p id="proSearchEmpty" style="display:none;color:var(--t2);font-size:13px;padding:20px 0;text-align:center">
         Nenhum profissional encontrado.
       </p>
@@ -880,6 +912,8 @@ details[open] .chevron{transform:rotate(180deg)}
       {% for p in profissionais %}
       <details class="pro-card{{ ' pro-inativo' if p.ativo == false }}" data-nome="{{ p.nome|lower }}">
         <summary class="pro-header">
+          <input type="checkbox" class="pro-select" data-id="{{ p.id }}"
+            onclick="event.stopPropagation()" onchange="atualizarSelecaoProfissionais()">
           <div class="pro-avatar" style="background:{{ p.cor_avatar }}">
             {% if p.foto_url %}
               <img src="{{ p.foto_url }}" alt="">
@@ -1346,6 +1380,33 @@ window.addEventListener('beforeunload', function (e) {
     e.returnValue = '';
   }
 });
+
+// edicao em massa de profissionais — seleciona varios cards e aplica
+// ativar/desativar/tipo de QR de uma vez, sem precisar abrir um por um
+function atualizarSelecaoProfissionais() {
+  var marcados = document.querySelectorAll('.pro-select:checked');
+  var bar = document.getElementById('bulkBar');
+  var count = document.getElementById('bulkCount');
+  if (marcados.length > 0) {
+    bar.classList.add('show');
+    count.textContent = marcados.length + (marcados.length === 1 ? ' selecionado' : ' selecionados');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+function limparSelecaoProfissionais() {
+  document.querySelectorAll('.pro-select:checked').forEach(function (cb) { cb.checked = false; });
+  atualizarSelecaoProfissionais();
+}
+function enviarSelecionados(url, extra) {
+  var ids = Array.from(document.querySelectorAll('.pro-select:checked')).map(function (cb) { return cb.dataset.id; });
+  if (!ids.length) return;
+  var form = document.getElementById('bulkForm');
+  form.action = url;
+  document.getElementById('bulkIds').value = ids.join(',');
+  document.getElementById('bulkQrTipoHidden').value = (extra && extra.qr_tipo) || '';
+  form.submit();
+}
 </script>
 </body>
 </html>

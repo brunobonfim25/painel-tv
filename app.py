@@ -712,6 +712,50 @@ def desativar_todos_profissionais(slug):
     flash("Todos os profissionais foram desativados. O painel da TV ficará vazio até reativar.")
     return redirect(url_for("admin_editor", slug=slug))
 
+def _parse_ids_selecionados(raw):
+    ids = []
+    for parte in (raw or "").split(","):
+        parte = parte.strip()
+        if parte.isdigit():
+            ids.append(int(parte))
+    return ids
+
+@app.route("/<slug>/admin/profissionais/ativar-selecionados", methods=["POST"])
+@login_required
+def ativar_selecionados_profissionais(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    ids = _parse_ids_selecionados(request.form.get("ids"))
+    if ids:
+        query("UPDATE profissionais SET ativo = TRUE WHERE academia_id=%s AND id = ANY(%s)",
+              (academia["id"], ids))
+        flash(f"{len(ids)} profissional(is) ativado(s).")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissionais/desativar-selecionados", methods=["POST"])
+@login_required
+def desativar_selecionados_profissionais(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    ids = _parse_ids_selecionados(request.form.get("ids"))
+    if ids:
+        query("UPDATE profissionais SET ativo = FALSE WHERE academia_id=%s AND id = ANY(%s)",
+              (academia["id"], ids))
+        flash(f"{len(ids)} profissional(is) desativado(s).")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissionais/qr-tipo-selecionados", methods=["POST"])
+@login_required
+def qr_tipo_selecionados_profissionais(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    ids = _parse_ids_selecionados(request.form.get("ids"))
+    qr_tipo = request.form.get("qr_tipo", "whatsapp")
+    if qr_tipo not in ("whatsapp", "instagram", "ambos"):
+        qr_tipo = "whatsapp"
+    if ids:
+        query("UPDATE profissionais SET qr_tipo=%s WHERE academia_id=%s AND id = ANY(%s)",
+              (qr_tipo, academia["id"], ids))
+        flash(f"QR Code de {len(ids)} profissional(is) atualizado.")
+    return redirect(url_for("admin_editor", slug=slug))
+
 @app.route("/master", methods=["GET", "POST"])
 def master_login():
     if session.get("master_logged"):
