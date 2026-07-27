@@ -100,6 +100,7 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS tv_visto_em TIMESTAMP""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS fonte TEXT DEFAULT 'Syne'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS exibir_nome BOOLEAN DEFAULT TRUE""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS texto_header TEXT DEFAULT 'EQUIPE DE PROFISSIONAIS'""")
@@ -131,6 +132,7 @@ def init_db():
         estilo_foto TEXT DEFAULT 'circulo',
         versao_painel INTEGER DEFAULT 0,
         tv_visto_em TIMESTAMP,
+        ativo BOOLEAN DEFAULT TRUE,
         senha_hash TEXT NOT NULL,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS profissionais (
@@ -411,6 +413,8 @@ def painel(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
     if not academia:
         return "Academia nao encontrada.", 404
+    if academia.get("ativo") is False:
+        return "Este painel está suspenso. Fale com o suporte.", 403
     query("UPDATE academias SET tv_visto_em=NOW() WHERE slug=%s", (slug,))
     profissionais = query(
         "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE ORDER BY LOWER(nome)",
@@ -746,6 +750,35 @@ def master_entrar_academia(slug):
     session["academia_id"] = academia["id"]
     session["last_activity"] = datetime.utcnow().timestamp()
     return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/master/<slug>/suspender", methods=["POST"])
+@master_required
+def master_suspender_academia(slug):
+    academia = query("SELECT ativo FROM academias WHERE slug=%s", (slug,), fetch="one")
+    if not academia:
+        flash("Academia nao encontrada.")
+        return redirect(url_for("master_dashboard"))
+    novo_estado = not (academia.get("ativo") is not False)
+    query("UPDATE academias SET ativo=%s WHERE slug=%s", (novo_estado, slug))
+    flash("Cliente reativado." if novo_estado else "Cliente suspenso — a TV dele parou de exibir até reativar.")
+    return redirect(url_for("master_dashboard"))
+
+@app.route("/master/<slug>/excluir", methods=["POST"])
+@master_required
+def master_excluir_academia(slug):
+    academia = query("SELECT * FROM academias WHERE slug=%s", (slug,), fetch="one")
+    if not academia:
+        flash("Academia nao encontrada.")
+        return redirect(url_for("master_dashboard"))
+    profissionais = query("SELECT foto_url, video_url FROM profissionais WHERE academia_id=%s",
+        (academia["id"],), fetch="all") or []
+    for p in profissionais:
+        excluir_do_cloudinary(p.get("foto_url"))
+        excluir_do_cloudinary(p.get("video_url"), resource_type="video")
+    excluir_do_cloudinary(academia.get("logo_url"))
+    query("DELETE FROM academias WHERE slug=%s", (slug,))
+    flash(f"Cliente \"{academia['nome']}\" excluido permanentemente.")
+    return redirect(url_for("master_dashboard"))
 
 @app.route("/master/dashboard")
 @master_required
