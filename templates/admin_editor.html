@@ -55,8 +55,9 @@ a{color:inherit;text-decoration:none}
 }
 .logo-icon img{width:100%;height:100%;object-fit:cover;border-radius:9px}
 .logo-icon span{color:#fff;font-size:14px;font-weight:800}
-.logo-text{font-size:18px;font-weight:800;letter-spacing:-0.03em;color:var(--t1)}
+.logo-text{font-size:18px;font-weight:800;letter-spacing:-0.03em;color:var(--t1);text-transform:uppercase}
 .logo-text em{color:var(--acc);font-style:normal}
+.logo-text .tv-tag{font-size:0.5em;color:var(--t2);letter-spacing:0.05em;margin-left:3px;font-weight:800;text-transform:uppercase}
 .academy-pill{
   background:rgba(255,255,255,0.05);
   border:1px solid var(--border);
@@ -471,7 +472,7 @@ details[open] .chevron{transform:rotate(180deg)}
             <span>{{ academia.logo_texto or academia.nome[:2] }}</span>
           {% endif %}
         </div>
-        <span class="logo-text">Painel<em>Pro</em></span>
+        <span class="logo-text">Nexo<em>six</em><span class="tv-tag">tv</span></span>
       </div>
       <div class="academy-pill">
         <strong>{{ academia.nome }}</strong>
@@ -516,7 +517,7 @@ details[open] .chevron{transform:rotate(180deg)}
       <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Abrir menu">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       </button>
-      <span class="logo-text">Painel<em>Pro</em></span>
+      <span class="logo-text">Nexo<em>six</em><span class="tv-tag">tv</span></span>
     </div>
 
     <div class="unsaved-bar" id="unsavedBar">

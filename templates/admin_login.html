@@ -19,9 +19,10 @@ html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:'Int
 body{display:flex;align-items:center;justify-content:center;padding:20px}
 .wrap{width:100%;max-width:400px}
 .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px}
-.brand-icon{width:40px;height:40px;background:var(--acc);border-radius:10px;display:flex;align-items:center;justify-content:center}
-.brand-name{font-size:20px;font-weight:800;letter-spacing:-0.03em;color:var(--t1)}
+.brand-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-name{font-size:20px;font-weight:800;letter-spacing:-0.03em;color:var(--t1);text-transform:uppercase}
 .brand-name em{color:var(--acc);font-style:normal}
+.brand-name .tv-tag{font-size:0.5em;color:var(--t2);letter-spacing:0.05em;margin-left:3px;font-weight:800;text-transform:uppercase}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px}
 .logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
 .logo-circle{
@@ -68,9 +69,17 @@ body{display:flex;align-items:center;justify-content:center;padding:20px}
 <div class="wrap">
   <div class="brand">
     <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+      <svg width="28" height="28" viewBox="0 0 60 60">
+        <path d="M50,30 L40,47.32 L20,47.32 L10,30 L20,12.68 L40,12.68 Z" fill="none" stroke="#3b82f6" stroke-width="3.5"/>
+        <line x1="30" y1="20" x2="23" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+        <line x1="30" y1="20" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+        <line x1="23" y1="35" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+        <circle cx="30" cy="20" r="5.5" fill="#eaf2fd"/>
+        <circle cx="23" cy="35" r="5.5" fill="#eaf2fd"/>
+        <circle cx="37" cy="35" r="5.5" fill="#eaf2fd"/>
+      </svg>
     </div>
-    <span class="brand-name">Painel<em>Pro</em></span>
+    <span class="brand-name">Nexo<em>six</em><span class="tv-tag">tv</span></span>
   </div>
   <div class="card">
     <div class="logo-area">
