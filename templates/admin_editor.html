@@ -966,10 +966,11 @@ details[open] .chevron{transform:rotate(180deg)}
             </div>
             {% if p.foto_url %}
             <div class="grid-full" style="margin-bottom:20px">
-              <label class="field-label">Posição da foto no card (estilo Cartão)</label>
+              <label class="field-label">Posição e zoom da foto no card (estilo Cartão)</label>
               <div style="display:flex;gap:16px;align-items:flex-start">
                 <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:#111;flex-shrink:0;border:1px solid var(--border)">
-                  <img src="{{ p.foto_url }}" id="fotoPos{{ p.id }}" style="width:100%;height:100%;object-fit:contain;object-position:50% {{ p.foto_posicao_y | default(50) }}%">
+                  <img src="{{ p.foto_url }}" id="fotoPos{{ p.id }}"
+                    style="width:100%;height:100%;object-fit:contain;object-position:50% {{ p.foto_posicao_y | default(50) }}%;transform:scale({{ (p.foto_zoom | default(100)) / 100 }})">
                 </div>
                 <div style="flex:1;padding-top:6px">
                   <input type="range" min="0" max="100" name="foto_posicao_y" value="{{ p.foto_posicao_y | default(50) }}"
@@ -979,6 +980,14 @@ details[open] .chevron{transform:rotate(180deg)}
                     <span>Topo</span><span>Centro</span><span>Base</span>
                   </div>
                   <p class="field-hint">Suba ou desça a foto para centralizar a pessoa dentro do card flutuante.</p>
+
+                  <input type="range" min="100" max="200" name="foto_zoom" value="{{ p.foto_zoom | default(100) }}"
+                    oninput="document.getElementById('fotoPos{{ p.id }}').style.transform='scale('+(this.value/100)+')'; document.getElementById('fotoZoomVal{{ p.id }}').textContent=this.value+'%'"
+                    style="width:100%;cursor:pointer;margin-top:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:2px">
+                    <span>Original</span><span id="fotoZoomVal{{ p.id }}">{{ p.foto_zoom | default(100) }}%</span><span>2x</span>
+                  </div>
+                  <p class="field-hint">Aumenta a foto dentro do card — use quando a pessoa fica pequena/sobra muito espaço vazio ao redor.</p>
                 </div>
               </div>
             </div>

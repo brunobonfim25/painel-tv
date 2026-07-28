@@ -334,6 +334,7 @@
             flex-shrink: 0;
             width: calc(140px * var(--cs, 1));
             height: 100%;
+            overflow: hidden;
         }
 
         .card-photo-cartao img {
@@ -802,6 +803,7 @@
                 especialidades: {{ p.especialidades | tojson }},
                 qr_tipo: {{ p.qr_tipo | default('whatsapp') | tojson }},
                 foto_posicao_y: {{ p.foto_posicao_y | default(50) | tojson }},
+                foto_zoom: {{ p.foto_zoom | default(100) | tojson }},
                 id: {{ p.id | tojson }}
             }{{ "," if not loop.last }}
             {% endfor %}
@@ -1001,9 +1003,17 @@
             // sobra espaço vazio em cima/embaixo dela dentro do card;
             // object-position controla onde a foto fica nesse espaço.
             var posY = (p.foto_posicao_y === null || p.foto_posicao_y === undefined) ? 50 : p.foto_posicao_y;
+            // Zoom ajustável no admin (100=original, até 200=2x) — pra
+            // fotos com proporção mais larga que a caixa do card, que
+            // sobram pequenas via object-fit:contain mesmo depois do
+            // e_trim/c_fit. É CSS puro (transform:scale), não recorte no
+            // Cloudinary — não corre o risco de "esquadro" que o recorte
+            // forçado dava antes (ver caso Carolina Torres, 2026-07-28).
+            var zoom = (p.foto_zoom === null || p.foto_zoom === undefined) ? 100 : p.foto_zoom;
+            var photoStyle = 'object-position:50% ' + posY + '%' + (zoom != 100 ? ';transform:scale(' + (zoom / 100) + ')' : '');
             var photo = photoSrc
                 ? '<img src="' + esc(photoSrc) + '" alt="' + esc(p.nome) +
-                  '" style="object-position:50% ' + posY + '%"' +
+                  '" style="' + photoStyle + '"' +
                   ' data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
                 : '<div class="card-photo-cartao-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
 

@@ -108,6 +108,10 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS consentimento_token TEXT""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS consentimento_data TIMESTAMP""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
+    # Zoom da foto no estilo Cartão — ajuste não-destrutivo (CSS, não recorte
+    # no Cloudinary) pra compensar fotos com proporção mais larga que "sobram"
+    # pequenas dentro do card (ver caso da Carolina Torres, sessão 2026-07-28).
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_zoom INTEGER DEFAULT 100""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS tv_visto_em TIMESTAMP""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
@@ -162,6 +166,7 @@ def init_db():
         ordem INTEGER DEFAULT 0,
         ativo BOOLEAN DEFAULT TRUE,
         foto_posicao_y INTEGER DEFAULT 50,
+        foto_zoom INTEGER DEFAULT 100,
         consentimento_status TEXT DEFAULT 'aceito',
         consentimento_token TEXT,
         consentimento_data TIMESTAMP,
@@ -747,16 +752,20 @@ def editar_profissional(slug, prof_id):
         foto_posicao_y = max(0, min(100, int(request.form.get("foto_posicao_y", 50))))
     except (TypeError, ValueError):
         foto_posicao_y = 50
+    try:
+        foto_zoom = max(100, min(200, int(request.form.get("foto_zoom", 100))))
+    except (TypeError, ValueError):
+        foto_zoom = 100
     query("""UPDATE profissionais SET
         nome=%s, cargo=%s, email=%s, instagram=%s, whatsapp=%s,
         anos=%s, especialidades=%s, foto_url=%s, video_url=%s, cor_avatar=%s, qr_tipo=%s,
-        foto_posicao_y=%s
+        foto_posicao_y=%s, foto_zoom=%s
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
-         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, foto_posicao_y,
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, foto_posicao_y, foto_zoom,
          prof_id, academia["id"]))
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
