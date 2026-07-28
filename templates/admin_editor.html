@@ -277,6 +277,12 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
 .pro-card:hover{border-color:rgba(255,255,255,0.11)}
 .pro-card.pro-inativo{opacity:0.55}
 .pro-card.pro-inativo:hover{opacity:0.8}
+.pro-badge-pendente{
+  display:inline-block;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.5px;
+  padding:2px 7px;border-radius:5px;vertical-align:middle;
+  background:rgba(234,179,8,0.12);color:#eab308;margin-left:6px;
+}
 .pro-badge-inativo{
   display:inline-block;font-size:10px;font-weight:700;
   text-transform:uppercase;letter-spacing:0.5px;
@@ -923,7 +929,7 @@ details[open] .chevron{transform:rotate(180deg)}
             {% endif %}
           </div>
           <div style="flex:1;min-width:0">
-            <div class="pro-name">{{ p.nome }}{% if p.ativo == false %} <span class="pro-badge-inativo">Inativo</span>{% endif %}</div>
+            <div class="pro-name">{{ p.nome }}{% if p.ativo == false %} <span class="pro-badge-inativo">Inativo</span>{% endif %}{% if p.consentimento_status == 'pendente' %} <span class="pro-badge-pendente">Aguardando consentimento</span>{% elif p.consentimento_status == 'recusado' %} <span class="pro-badge-inativo">Consentimento recusado</span>{% endif %}</div>
             <div class="pro-role">{{ p.cargo or 'Sem cargo' }}</div>
           </div>
           <div class="scan-badge" title="Vezes que o QR code deste profissional foi escaneado">
@@ -1054,6 +1060,14 @@ details[open] .chevron{transform:rotate(180deg)}
               </button>
               {% endif %}
             </form>
+            {% if p.consentimento_status != 'aceito' %}
+            <form method="POST" action="{{ url_for('reenviar_consentimento', slug=academia.slug, prof_id=p.id) }}">
+              <button type="submit" class="btn-ghost" title="Manda um e-mail pra ele confirmar o uso dos dados dele">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                {{ 'Reenviar' if p.consentimento_status == 'pendente' else 'Pedir de novo' }} consentimento
+              </button>
+            </form>
+            {% endif %}
             <form method="POST" action="{{ url_for('remover_profissional', slug=academia.slug, prof_id=p.id) }}"
               onsubmit="return confirm('Remover {{ p.nome }}? Esta ação não pode ser desfeita.')">
               <button type="submit" class="btn-danger">

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmação de dados — NexosixTV</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070d14;--bg2:#0a121c;--card:#0e1826;
+  --border:rgba(255,255,255,0.08);
+  --acc:#3b82f6;--acc-h:#60a5fa;--acc-dim:rgba(59,130,246,0.12);
+  --t1:#eaf2fd;--t2:#7f97ac;--t3:#3d5064;
+  --green:#22c55e;--red:#ef4444;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center;padding:24px}
+.wrap{width:100%;max-width:460px}
+.wordmark{display:flex;align-items:center;justify-content:center;gap:9px;font-size:20px;font-weight:800;letter-spacing:-0.03em;text-transform:uppercase;margin-bottom:28px}
+.wordmark em{color:var(--acc);font-style:normal}
+.wordmark .tv-tag{font-size:0.5em;color:var(--t2);letter-spacing:0.05em;margin-left:2px;font-weight:800}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:32px}
+.flash{background:var(--acc-dim);border:1px solid rgba(59,130,246,0.25);border-radius:10px;padding:12px 16px;font-size:13.5px;color:var(--acc-h);margin-bottom:20px}
+h1{font-size:19px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
+.sub{font-size:13.5px;color:var(--t2);line-height:1.55;margin-bottom:20px}
+.dados{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px}
+.dados p{font-size:13px;color:var(--t2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em}
+.dados ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.dados li{font-size:14px;color:var(--t1);display:flex;align-items:center;gap:8px}
+.dados li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.status{
+  display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+  padding:6px 14px;border-radius:20px;margin-bottom:20px;
+}
+.status-aceito{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:var(--green)}
+.status-recusado{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:var(--red)}
+.status-pendente{background:var(--acc-dim);border:1px solid rgba(59,130,246,0.25);color:var(--acc-h)}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+button{
+  font-family:inherit;font-size:14px;font-weight:700;border-radius:10px;
+  padding:13px 20px;cursor:pointer;border:none;flex:1;
+}
+.btn-aceitar{background:var(--green);color:#fff}
+.btn-recusar{background:transparent;border:1px solid rgba(239,68,68,0.3);color:var(--red)}
+.btn-revogar{background:transparent;border:1px solid rgba(239,68,68,0.3);color:var(--red)}
+.foot{margin-top:24px;font-size:11.5px;color:var(--t3);text-align:center;line-height:1.5}
+.foot a{color:var(--t2)}
+.erro-404{text-align:center;padding:40px 0;color:var(--t2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="wordmark">
+    <svg width="24" height="24" viewBox="0 0 60 60">
+      <path d="M50,30 L40,47.32 L20,47.32 L10,30 L20,12.68 L40,12.68 Z" fill="none" stroke="#3b82f6" stroke-width="3.5"/>
+      <line x1="30" y1="20" x2="23" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <line x1="30" y1="20" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <line x1="23" y1="35" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <circle cx="30" cy="20" r="5.5" fill="#eaf2fd"/>
+      <circle cx="23" cy="35" r="5.5" fill="#eaf2fd"/>
+      <circle cx="37" cy="35" r="5.5" fill="#eaf2fd"/>
+    </svg>
+    Nexo<em>six</em><span class="tv-tag">tv</span>
+  </div>
+
+  {% if not prof %}
+  <div class="card">
+    <p class="erro-404">Link inválido ou expirado.</p>
+  </div>
+  {% else %}
+  <div class="card">
+    {% with msgs = get_flashed_messages() %}
+      {% if msgs %}{% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <h1>Olá, {{ prof.nome.strip() }}</h1>
+    <p class="sub"><strong>{{ prof.academia_nome }}</strong> quer exibir seus dados no NexosixTV — o painel de TV da recepção e uma página pública acessada por QR Code.</p>
+
+    <div class="dados">
+      <p>O que seria exibido</p>
+      <ul>
+        <li>Seu nome e cargo</li>
+        {% if prof.foto_url %}<li>Sua foto</li>{% endif %}
+        {% if prof.whatsapp %}<li>Seu WhatsApp ({{ prof.whatsapp }})</li>{% endif %}
+        {% if prof.instagram %}<li>Seu Instagram ({{ prof.instagram }})</li>{% endif %}
+        {% if prof.especialidades %}<li>Suas especialidades</li>{% endif %}
+      </ul>
+    </div>
+
+    {% if prof.consentimento_status == 'aceito' %}
+      <div class="status status-aceito">✓ Você já confirmou — seus dados estão sendo exibidos</div>
+      <form method="POST">
+        <input type="hidden" name="acao" value="revogar">
+        <button type="submit" class="btn-revogar" style="width:100%">Não quero mais aparecer</button>
+      </form>
+    {% elif prof.consentimento_status == 'recusado' %}
+      <div class="status status-recusado">✗ Você recusou — seus dados não são exibidos</div>
+      <form method="POST">
+        <input type="hidden" name="acao" value="aceitar">
+        <button type="submit" class="btn-aceitar" style="width:100%">Mudei de ideia, quero aparecer</button>
+      </form>
+    {% else %}
+      <div class="status status-pendente">Aguardando sua confirmação</div>
+      <div class="btn-row">
+        <form method="POST" style="flex:1">
+          <input type="hidden" name="acao" value="aceitar">
+          <button type="submit" class="btn-aceitar" style="width:100%">Concordo, pode exibir</button>
+        </form>
+        <form method="POST" style="flex:1">
+          <input type="hidden" name="acao" value="recusar">
+          <button type="submit" class="btn-recusar" style="width:100%">Não quero aparecer</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  <p class="foot">Seus dados são tratados conforme a <a href="/privacidade">Política de Privacidade</a> do NexosixTV. Dúvidas? <a href="mailto:bsbonfim@fastsupport.com.br">bsbonfim@fastsupport.com.br</a></p>
+  {% endif %}
+</div>
+</body>
+</html>

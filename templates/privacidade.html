@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidade — NexosixTV</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070d14;--bg2:#0a121c;--card:#0e1826;
+  --border:rgba(255,255,255,0.08);
+  --acc:#3b82f6;--acc-h:#60a5fa;--acc-dim:rgba(59,130,246,0.12);
+  --t1:#eaf2fd;--t2:#7f97ac;--t3:#3d5064;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding:48px 24px 80px}
+.wrap{max-width:720px;margin:0 auto}
+.wordmark{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:800;letter-spacing:-0.03em;text-transform:uppercase;margin-bottom:8px}
+.wordmark em{color:var(--acc);font-style:normal}
+.wordmark .tv-tag{font-size:0.5em;color:var(--t2);letter-spacing:0.05em;margin-left:2px;font-weight:800}
+.updated{font-size:12.5px;color:var(--t3);margin-bottom:32px}
+h1{font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
+h2{font-size:16px;font-weight:700;margin:32px 0 10px}
+p,li{font-size:14.5px;color:var(--t2);line-height:1.65}
+ul{padding-left:20px;margin:8px 0}
+a{color:var(--acc-h)}
+.aviso{
+  background:var(--acc-dim);border:1px solid rgba(59,130,246,0.25);border-radius:12px;
+  padding:16px 20px;margin:28px 0;font-size:13.5px;color:var(--t1);line-height:1.6;
+}
+.back{display:inline-block;margin-top:40px;font-size:13px;color:var(--t3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="wordmark">
+    <svg width="24" height="24" viewBox="0 0 60 60">
+      <path d="M50,30 L40,47.32 L20,47.32 L10,30 L20,12.68 L40,12.68 Z" fill="none" stroke="#3b82f6" stroke-width="3.5"/>
+      <line x1="30" y1="20" x2="23" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <line x1="30" y1="20" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <line x1="23" y1="35" x2="37" y2="35" stroke="#eaf2fd" stroke-width="2.6"/>
+      <circle cx="30" cy="20" r="5.5" fill="#eaf2fd"/>
+      <circle cx="23" cy="35" r="5.5" fill="#eaf2fd"/>
+      <circle cx="37" cy="35" r="5.5" fill="#eaf2fd"/>
+    </svg>
+    Nexo<em>six</em><span class="tv-tag">tv</span>
+  </div>
+  <p class="updated">Última atualização: julho de 2026</p>
+
+  <h1>Política de Privacidade</h1>
+  <p>Esta política explica quais dados o NexosixTV coleta, por quê, e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei 13.709/2018 — LGPD).</p>
+
+  <div class="aviso">
+    Este texto foi redigido para refletir de forma honesta como o sistema funciona hoje. Ainda assim, recomendamos revisão por um advogado antes de considerá-lo juridicamente definitivo.
+  </div>
+
+  <h2>Quem somos</h2>
+  <p>O NexosixTV é operado por Bruno Bonfim, prestando o serviço de painel de TV para academias ("Academia", cliente contratante) exibirem sua equipe de profissionais.</p>
+
+  <h2>Quais dados coletamos</h2>
+  <p>Da <strong>Academia</strong>: nome, subtítulo, logo, senha de acesso (armazenada com hash, nunca em texto puro).</p>
+  <p>Do <strong>profissional</strong> cadastrado pela Academia: nome, cargo, foto, WhatsApp, Instagram, e-mail, anos de experiência e especialidades — dados que a própria Academia decide cadastrar, e que exigem confirmação do profissional antes de serem exibidos (ver seção "Consentimento" abaixo).</p>
+  <p>De quem <strong>escaneia um QR Code</strong>: registramos apenas a contagem de scans por profissional (data e hora), sem identificar quem escaneou.</p>
+
+  <h2>Consentimento do profissional</h2>
+  <p>Como a foto, o WhatsApp e o Instagram são dados pessoais do próprio profissional (não da Academia), pedimos a confirmação dele por e-mail antes de exibir qualquer coisa publicamente. Enquanto essa confirmação não acontece, os dados dele não aparecem na TV nem no cartão digital. Ele pode revogar esse consentimento a qualquer momento pelo mesmo link recebido por e-mail.</p>
+
+  <h2>Para que usamos os dados</h2>
+  <ul>
+    <li>Exibir a equipe de profissionais no painel de TV da Academia</li>
+    <li>Gerar o cartão digital acessado via QR Code, com os canais de contato do profissional</li>
+    <li>Enviar o e-mail de confirmação de consentimento ao profissional</li>
+    <li>Registrar estatísticas de uso (quantos scans cada profissional recebeu) para a própria Academia acompanhar</li>
+  </ul>
+
+  <h2>Com quem compartilhamos</h2>
+  <p>Usamos fornecedores de infraestrutura que processam dados em nosso nome (operadores, não terceiros que usam os dados por conta própria):</p>
+  <ul>
+    <li><strong>Cloudinary</strong> — hospedagem de fotos e vídeos (pode processar dados fora do Brasil)</li>
+    <li><strong>Railway</strong> — hospedagem da aplicação e do banco de dados</li>
+    <li><strong>Resend</strong> — envio do e-mail de confirmação de consentimento</li>
+  </ul>
+  <p>Não vendemos nem compartilhamos dados com terceiros para fins de publicidade.</p>
+
+  <h2>Por quanto tempo guardamos</h2>
+  <p>Enquanto o profissional estiver cadastrado na Academia. Ao ser removido pelo admin, seus dados (incluindo foto e vídeo) são apagados também dos nossos fornecedores de hospedagem, não só ocultados.</p>
+
+  <h2>Seus direitos</h2>
+  <p>Você pode pedir acesso, correção, exclusão ou portabilidade dos seus dados, e revogar consentimento a qualquer momento, entrando em contato pelo e-mail abaixo ou diretamente com a Academia que fez seu cadastro.</p>
+
+  <h2>Segurança</h2>
+  <p>Senhas são armazenadas com hash (nunca em texto puro), o tráfego do site é criptografado (HTTPS), e há limite de tentativas de login pra dificultar acesso indevido.</p>
+
+  <h2>Contato</h2>
+  <p>Dúvidas ou solicitações sobre seus dados: <a href="mailto:bsbonfim@fastsupport.com.br">bsbonfim@fastsupport.com.br</a> ou (21) 97292-2992.</p>
+
+  <a class="back" href="/">← Voltar</a>
+</div>
+</body>
+</html>

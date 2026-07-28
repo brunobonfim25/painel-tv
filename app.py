@@ -13,6 +13,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2 import pool as pg_pool
 import cloudinary
 import cloudinary.uploader
+import requests
 
 try:
     import pillow_heif
@@ -38,6 +39,8 @@ app.config.update(
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "master123")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+EMAIL_REMETENTE = os.environ.get("EMAIL_REMETENTE", "onboarding@resend.dev")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm"}
 MAX_VIDEO_SIZE = 40 * 1024 * 1024
@@ -97,6 +100,13 @@ def init_db():
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS qr_tipo TEXT DEFAULT 'whatsapp'""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT ''""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
+    # Consentimento LGPD: profissionais que já existiam antes desse recurso
+    # ficam "aceito" automaticamente (grandfathered) pra não apagar da TV
+    # quem já estava no ar — o fluxo de e-mail vale só pra quem for
+    # cadastrado a partir de agora (ver adicionar_profissional).
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS consentimento_status TEXT DEFAULT 'aceito'""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS consentimento_token TEXT""")
+    query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS consentimento_data TIMESTAMP""")
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_posicao_y INTEGER DEFAULT 50""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS tv_visto_em TIMESTAMP""")
@@ -152,6 +162,9 @@ def init_db():
         ordem INTEGER DEFAULT 0,
         ativo BOOLEAN DEFAULT TRUE,
         foto_posicao_y INTEGER DEFAULT 50,
+        consentimento_status TEXT DEFAULT 'aceito',
+        consentimento_token TEXT,
+        consentimento_data TIMESTAMP,
         criado_em TIMESTAMP DEFAULT NOW())""")
     query("""CREATE TABLE IF NOT EXISTS scans (
         id SERIAL PRIMARY KEY,
@@ -307,6 +320,55 @@ def excluir_do_cloudinary(url, resource_type="image"):
     except Exception as e:
         print(f"Erro ao excluir do Cloudinary: {e}")
 
+def enviar_email(destinatario, assunto, html):
+    """Envia e-mail transacional via Resend. Sem RESEND_API_KEY configurada
+    (ainda não criada a conta), só loga no console e segue em frente —
+    nunca trava o cadastro do profissional por causa disso."""
+    if not RESEND_API_KEY:
+        print(f"[email] RESEND_API_KEY não configurada — e-mail para {destinatario} não enviado.")
+        return False
+    try:
+        r = requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+            json={"from": EMAIL_REMETENTE, "to": [destinatario], "subject": assunto, "html": html},
+            timeout=10,
+        )
+        if r.status_code >= 300:
+            print(f"[email] Falha ao enviar pra {destinatario}: {r.status_code} {r.text}")
+            return False
+        return True
+    except Exception as e:
+        print(f"[email] Erro ao enviar pra {destinatario}: {e}")
+        return False
+
+def enviar_email_consentimento(prof, academia, base_url):
+    link = f"{base_url}/consentimento/{prof['consentimento_token']}"
+    dados = []
+    if prof.get("foto_url"):
+        dados.append("sua foto")
+    if prof.get("whatsapp"):
+        dados.append("seu WhatsApp")
+    if prof.get("instagram"):
+        dados.append("seu Instagram")
+    dados_texto = ", ".join(dados) if dados else "seus dados de contato"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#151515">
+      <p>Olá, {prof['nome'].strip()}!</p>
+      <p><strong>{academia['nome']}</strong> cadastrou você no NexosixTV, o painel de TV que
+      apresenta a equipe de personal trainers da academia — incluindo {dados_texto}, exibidos
+      na TV da recepção e numa página pública acessada por QR Code.</p>
+      <p>Como esses são seus dados pessoais, pedimos sua confirmação antes de exibir qualquer coisa.</p>
+      <p style="margin:28px 0">
+        <a href="{link}" style="background:#3b82f6;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">
+          Ver o que será exibido e responder
+        </a>
+      </p>
+      <p style="font-size:13px;color:#7f97ac">Se preferir, você pode recusar — nesse caso seus dados não aparecem em lugar nenhum.</p>
+    </div>
+    """
+    return enviar_email(prof["email"], f"{academia['nome']} quer te destacar na TV — confirme seus dados", html)
+
 SESSION_TIMEOUT = timedelta(hours=2)
 
 # Rate-limit simples de login, em memória por worker: 5 falhas em 15 min
@@ -398,6 +460,14 @@ def master_required(f):
 def landing():
     return render_template("landing.html")
 
+@app.route("/privacidade")
+def privacidade():
+    return render_template("privacidade.html")
+
+@app.route("/termos")
+def termos():
+    return render_template("termos.html")
+
 @app.route("/__version")
 def versao():
     slug = request.args.get("slug")
@@ -421,7 +491,7 @@ def painel(slug):
         return "Este painel está suspenso. Fale com o suporte.", 403
     query("UPDATE academias SET tv_visto_em=NOW() WHERE slug=%s", (slug,))
     profissionais = query(
-        "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE ORDER BY LOWER(nome)",
+        "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE AND consentimento_status = 'aceito' ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
     )
     card_text_color = cor_contraste(academia.get("cor_card") or "#ffffff")
@@ -605,16 +675,32 @@ def adicionar_profissional(slug):
     qr_tipo = request.form.get("qr_tipo", "whatsapp")
     if qr_tipo not in ("whatsapp", "instagram", "ambos"):
         qr_tipo = "whatsapp"
+    # LGPD: profissional novo sempre entra "pendente" — só aparece na TV
+    # depois que ele mesmo confirmar por e-mail (ver enviar_email_consentimento).
+    # Profissionais que já existiam antes desse recurso foram grandfathered
+    # como "aceito" na migração, pra não sumir da TV sem aviso.
+    email = request.form.get("email", "").strip()
+    token = secrets.token_urlsafe(32)
     query("""INSERT INTO profissionais
-        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, video_url, cor_avatar, qr_tipo, ordem)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, video_url, cor_avatar, qr_tipo, consentimento_status, consentimento_token, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pendente',%s,
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
-         request.form.get("email"), request.form.get("instagram"),
+         email, request.form.get("instagram"),
          request.form.get("whatsapp", ""), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
-         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, academia["id"]))
-    flash("Profissional adicionado!")
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, token, academia["id"]))
+    if email:
+        prof_novo = {
+            "nome": request.form.get("nome"), "email": email,
+            "foto_url": foto_url, "whatsapp": request.form.get("whatsapp", ""),
+            "instagram": request.form.get("instagram"),
+            "consentimento_token": token,
+        }
+        enviar_email_consentimento(prof_novo, academia, request.url_root.rstrip("/"))
+        flash("Profissional adicionado! Enviamos um e-mail pra ele confirmar — só aparece na TV depois que confirmar (LGPD).")
+    else:
+        flash("Profissional adicionado, mas sem e-mail cadastrado ele não pode confirmar o uso dos dados — adicione um e-mail e reenvie o pedido de consentimento pra ele aparecer na TV.")
     return redirect(url_for("admin_editor", slug=slug))
 
 @app.route("/<slug>/admin/profissional/<int:prof_id>/editar", methods=["POST"])
@@ -687,6 +773,52 @@ def remover_profissional(slug, prof_id):
     query("DELETE FROM profissionais WHERE id=%s AND academia_id=%s", (prof_id, academia["id"]))
     flash("Profissional removido.")
     return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/profissional/<int:prof_id>/reenviar-consentimento", methods=["POST"])
+@login_required
+def reenviar_consentimento(slug, prof_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    prof = query("SELECT * FROM profissionais WHERE id=%s AND academia_id=%s",
+                 (prof_id, academia["id"]), fetch="one")
+    if not prof:
+        flash("Profissional não encontrado.")
+        return redirect(url_for("admin_editor", slug=slug))
+    if not prof.get("email"):
+        flash("Cadastre um e-mail pra esse profissional antes de pedir consentimento.")
+        return redirect(url_for("admin_editor", slug=slug))
+    token = prof.get("consentimento_token") or secrets.token_urlsafe(32)
+    query("""UPDATE profissionais SET consentimento_status='pendente', consentimento_token=%s
+             WHERE id=%s AND academia_id=%s""", (token, prof_id, academia["id"]))
+    prof["consentimento_token"] = token
+    if enviar_email_consentimento(prof, academia, request.url_root.rstrip("/")):
+        flash(f"E-mail de consentimento reenviado pra {prof['nome'].strip()}.")
+    else:
+        flash("Não foi possível enviar o e-mail agora — confira se o RESEND_API_KEY está configurado.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/consentimento/<token>", methods=["GET", "POST"])
+def consentimento(token):
+    prof = query("""SELECT p.*, a.nome as academia_nome, a.slug as academia_slug
+                     FROM profissionais p JOIN academias a ON a.id = p.academia_id
+                     WHERE p.consentimento_token=%s""", (token,), fetch="one")
+    if not prof:
+        return render_template("consentimento.html", prof=None), 404
+    if request.method == "POST":
+        acao = request.form.get("acao")
+        if acao == "aceitar":
+            query("UPDATE profissionais SET consentimento_status='aceito', consentimento_data=NOW() WHERE id=%s",
+                  (prof["id"],))
+            flash("Consentimento registrado. Obrigado!")
+        elif acao == "recusar":
+            query("UPDATE profissionais SET consentimento_status='recusado', consentimento_data=NOW() WHERE id=%s",
+                  (prof["id"],))
+            flash("Tudo bem — seus dados não serão exibidos.")
+        elif acao == "revogar":
+            query("UPDATE profissionais SET consentimento_status='recusado', consentimento_data=NOW() WHERE id=%s",
+                  (prof["id"],))
+            flash("Consentimento revogado — seus dados saem da TV.")
+        return redirect(url_for("consentimento", token=token))
+    return render_template("consentimento.html", prof=prof)
 
 @app.route("/<slug>/admin/profissional/<int:prof_id>/toggle-ativo", methods=["POST"])
 @login_required
