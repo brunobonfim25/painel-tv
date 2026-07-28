@@ -394,6 +394,10 @@ def master_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route("/")
+def landing():
+    return render_template("landing.html")
+
 @app.route("/__version")
 def versao():
     slug = request.args.get("slug")
