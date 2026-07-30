@@ -716,14 +716,10 @@ def adicionar_profissional(slug):
         }
         if enviar_email_consentimento(prof_novo, academia, request.url_root.rstrip("/")):
             flash("Profissional adicionado! Enviamos um e-mail pra ele confirmar — só aparece na TV depois que confirmar (LGPD).")
-        elif request.form.get("whatsapp", "").strip():
-            flash("Profissional adicionado, mas não conseguimos enviar o e-mail agora (confira o RESEND_API_KEY) — use o botão \"Pedir por WhatsApp\" pra mandar o pedido de confirmação.")
         else:
             flash("Profissional adicionado, mas não conseguimos enviar o e-mail agora (confira o RESEND_API_KEY) — ele só aparece na TV depois de confirmar.")
-    elif request.form.get("whatsapp", "").strip():
-        flash("Profissional adicionado! Use o botão \"Pedir por WhatsApp\" pra mandar o pedido de confirmação — só aparece na TV depois que ele confirmar (LGPD).")
     else:
-        flash("Profissional adicionado, mas sem e-mail ou WhatsApp cadastrado ele não pode confirmar o uso dos dados — adicione um contato e peça o consentimento pra ele aparecer na TV.")
+        flash("Profissional adicionado, mas sem e-mail cadastrado ele não pode confirmar o uso dos dados — adicione um e-mail e reenvie o pedido de consentimento pra ele aparecer na TV.")
     return redirect(url_for("admin_editor", slug=slug))
 
 @app.route("/<slug>/admin/profissional/<int:prof_id>/editar", methods=["POST"])
