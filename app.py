@@ -702,8 +702,12 @@ def adicionar_profissional(slug):
             "instagram": request.form.get("instagram"),
             "consentimento_token": token,
         }
-        enviar_email_consentimento(prof_novo, academia, request.url_root.rstrip("/"))
-        flash("Profissional adicionado! Enviamos um e-mail pra ele confirmar — só aparece na TV depois que confirmar (LGPD).")
+        if enviar_email_consentimento(prof_novo, academia, request.url_root.rstrip("/")):
+            flash("Profissional adicionado! Enviamos um e-mail pra ele confirmar — só aparece na TV depois que confirmar (LGPD).")
+        elif request.form.get("whatsapp", "").strip():
+            flash("Profissional adicionado, mas não conseguimos enviar o e-mail agora (confira o RESEND_API_KEY) — use o botão \"Pedir por WhatsApp\" pra mandar o pedido de confirmação.")
+        else:
+            flash("Profissional adicionado, mas não conseguimos enviar o e-mail agora (confira o RESEND_API_KEY) — ele só aparece na TV depois de confirmar.")
     elif request.form.get("whatsapp", "").strip():
         flash("Profissional adicionado! Use o botão \"Pedir por WhatsApp\" pra mandar o pedido de confirmação — só aparece na TV depois que ele confirmar (LGPD).")
     else:
