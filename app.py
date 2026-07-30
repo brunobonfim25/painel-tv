@@ -112,6 +112,12 @@ def init_db():
     # no Cloudinary) pra compensar fotos com proporção mais larga que "sobram"
     # pequenas dentro do card (ver caso da Carolina Torres, sessão 2026-07-28).
     query("""ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS foto_zoom INTEGER DEFAULT 100""")
+    # Limpeza única de números salvos antes da normalização em
+    # normalizar_whatsapp() -- número com '+', espaço ou traço quebrava
+    # o link wa.me (usado tanto no QR de contato quanto no pedido de
+    # consentimento por WhatsApp) silenciosamente, sem erro nenhum.
+    query("""UPDATE profissionais SET whatsapp = regexp_replace(whatsapp, '\\D', '', 'g')
+             WHERE whatsapp IS NOT NULL AND whatsapp ~ '\\D'""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS versao_painel INTEGER DEFAULT 0""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS tv_visto_em TIMESTAMP""")
     query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE""")
@@ -324,6 +330,12 @@ def excluir_do_cloudinary(url, resource_type="image"):
             cloudinary.uploader.destroy(m.group(1), resource_type=resource_type)
     except Exception as e:
         print(f"Erro ao excluir do Cloudinary: {e}")
+
+def normalizar_whatsapp(numero):
+    """Remove tudo que não for dígito (espaço, parêntese, traço, '+') --
+    o link wa.me quebra silenciosamente com qualquer caractere fora
+    disso, e o campo do admin é texto livre sem validação."""
+    return re.sub(r"\D", "", numero or "")
 
 def enviar_email(destinatario, assunto, html):
     """Envia e-mail transacional via Resend. Sem RESEND_API_KEY configurada
@@ -692,7 +704,7 @@ def adicionar_profissional(slug):
         (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          email, request.form.get("instagram"),
-         request.form.get("whatsapp", ""), request.form.get("anos"),
+         normalizar_whatsapp(request.form.get("whatsapp", "")), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, token, academia["id"]))
     if email:
@@ -769,7 +781,7 @@ def editar_profissional(slug, prof_id):
         WHERE id=%s AND academia_id=%s""",
         (request.form.get("nome"), request.form.get("cargo"),
          request.form.get("email"), request.form.get("instagram"),
-         request.form.get("whatsapp", ""), request.form.get("anos"),
+         normalizar_whatsapp(request.form.get("whatsapp", "")), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, foto_posicao_y, foto_zoom,
          prof_id, academia["id"]))
