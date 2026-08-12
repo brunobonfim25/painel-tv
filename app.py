@@ -156,6 +156,7 @@ def init_db():
         cards_por_pagina INTEGER DEFAULT 10,
         duracao_pagina INTEGER DEFAULT 10,
         estilo_foto TEXT DEFAULT 'circulo',
+        midia_frequencia INTEGER DEFAULT 3,
         versao_painel INTEGER DEFAULT 0,
         tv_visto_em TIMESTAMP,
         ativo BOOLEAN DEFAULT TRUE,
@@ -195,7 +196,76 @@ def init_db():
     query("""CREATE INDEX IF NOT EXISTS idx_scans_prof_data
              ON scans (profissional_id, criado_em)""")
 
+    # ---- Módulo de Mídias & Patrocínios -------------------------------
+    # ATENÇÃO 1: este bloco fica no FIM de init_db() de propósito, fora do
+    # grupo de ALTERs lá em cima. Motivo: `ALTER TABLE scans ADD midia_id`
+    # referencia a tabela `midias`, que precisa existir antes — e `midias`
+    # referencia `academias`. Movendo estas linhas pra cima (junto dos
+    # outros ALTERs, que rodam antes dos CREATEs) o banco quebra na
+    # primeira subida. Não "organizar".
+    #
+    # ATENÇÃO 2: o bloco todo é tolerante a falha de propósito. init_db()
+    # roda no import do app; sem o try/except, um erro aqui derrubaria o
+    # boot inteiro e tiraria do ar o painel de TV de quem já é cliente,
+    # por causa de um módulo que essa academia talvez nem use. As leituras
+    # de mídia em painel() e admin_editor() também degradam pra lista
+    # vazia, então o pior caso é "as mídias não funcionam", nunca
+    # "o painel caiu".
+    try:
+        _criar_tabelas_midias()
+    except Exception as e:
+        print(f"[MIGRACAO] Falha ao criar estruturas de midias — o modulo de "
+              f"midias fica indisponivel, o resto do painel segue normal: {e}")
+
+def _criar_tabelas_midias():
+    query("""CREATE TABLE IF NOT EXISTS midias (
+        id SERIAL PRIMARY KEY,
+        academia_id INTEGER REFERENCES academias(id) ON DELETE CASCADE,
+        titulo TEXT DEFAULT '',
+        anunciante TEXT DEFAULT '',
+        categoria TEXT DEFAULT 'patrocinio',
+        tipo TEXT DEFAULT 'imagem',
+        imagem_url TEXT DEFAULT '',
+        video_url TEXT DEFAULT '',
+        ajuste TEXT DEFAULT 'contain',
+        legenda TEXT DEFAULT '',
+        link_url TEXT DEFAULT '',
+        qr_ativo BOOLEAN DEFAULT TRUE,
+        qr_texto TEXT DEFAULT 'Aponte a câmera',
+        duracao INTEGER DEFAULT 0,
+        inicio_em DATE,
+        fim_em DATE,
+        ativo BOOLEAN DEFAULT TRUE,
+        ordem INTEGER DEFAULT 0,
+        criado_em TIMESTAMP DEFAULT NOW())""")
+    # Leituras de QR de mídia reusam a tabela `scans`: profissional_id já
+    # é nullable, e as duas únicas leituras da tabela (subqueries em
+    # admin_editor) filtram por `s.profissional_id = p.id`, então linhas
+    # de mídia são invisíveis pra elas — nenhuma query existente muda de
+    # significado.
+    query("""ALTER TABLE scans ADD COLUMN IF NOT EXISTS midia_id
+             INTEGER REFERENCES midias(id) ON DELETE CASCADE""")
+    # Veiculação agregada por dia (1 linha por mídia por dia, não 1 por
+    # exibição — uma peça roda ~1.000x/dia). `segundos` é gravado e não
+    # calculado como inserções × duração: a duração da página é
+    # configurável e muda com o tempo; recalcular quebraria retroativamente
+    # relatórios já entregues ao patrocinador.
+    query("""CREATE TABLE IF NOT EXISTS midia_exibicoes (
+        id SERIAL PRIMARY KEY,
+        midia_id INTEGER REFERENCES midias(id) ON DELETE CASCADE,
+        academia_id INTEGER REFERENCES academias(id) ON DELETE CASCADE,
+        dia DATE NOT NULL,
+        total INTEGER DEFAULT 0,
+        segundos INTEGER DEFAULT 0)""")
+    query("""ALTER TABLE academias ADD COLUMN IF NOT EXISTS midia_frequencia INTEGER DEFAULT 3""")
+    query("""CREATE INDEX IF NOT EXISTS idx_midias_academia ON midias (academia_id, ativo)""")
+    query("""CREATE INDEX IF NOT EXISTS idx_scans_midia_data ON scans (midia_id, criado_em)""")
+    # UNIQUE é obrigatório: é o alvo do ON CONFLICT do UPSERT de veiculação.
+    query("""CREATE UNIQUE INDEX IF NOT EXISTS idx_midia_exib_unico
+             ON midia_exibicoes (midia_id, dia)""")
+
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_MIDIA_SIZE = 10 * 1024 * 1024  # 10MB — arte 1080p de Canva passa fácil de 5MB
 
 def arquivo_permitido(f):
     return "." in f and f.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -325,6 +395,31 @@ def upload_logo(file, pasta="painel_tv/logos"):
         print(f"Erro upload logo Cloudinary: {e}")
         return ""
 
+def upload_midia(file, pasta="painel_tv/midias"):
+    """Sobe a arte de uma mídia patrocinada.
+
+    Deliberadamente NÃO passa por upload_imagem(): aquela função roda o
+    rembg pra recortar a pessoa do fundo, o que aqui destruiria a peça —
+    numa arte publicitária o fundo faz parte do anúncio. Como não toca o
+    rembg, também é bem mais rápida (não depende do modelo aquecido).
+
+    crop:"limit" reduz o que passa de 1920x1080 mas NUNCA corta nem
+    amplia: cortar a arte poderia comer o telefone do anunciante, que
+    vira ligação de reclamação. 1920x1080 é exatamente o tamanho do
+    "stage" do painel, então o pixel entregue é o pixel exibido."""
+    file = preparar_upload_heic(file)
+    try:
+        resultado = cloudinary.uploader.upload(
+            file,
+            folder=pasta,
+            transformation=[{"width": 1920, "height": 1080, "crop": "limit",
+                             "quality": "auto:good", "fetch_format": "auto"}]
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print(f"Erro upload midia Cloudinary: {e}")
+        return ""
+
 def excluir_do_cloudinary(url, resource_type="image"):
     """Remove do Cloudinary o arquivo apontado pela URL (foto/logo/vídeo
     substituído ou removido), para não acumular arquivos órfãos."""
@@ -436,6 +531,73 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+# ---- Módulo de Mídias & Patrocínios ----------------------------------
+
+# O Postgres do Railway roda em UTC, mas a academia raciocina em data
+# civil brasileira. Sem converter, um anúncio contratado até dia 30 sairia
+# do ar às 21h do dia 29 (00h UTC do dia 30) — a academia liga reclamando
+# que o anúncio pago sumiu antes. Nome de zona, não offset fixo: se o
+# Brasil voltar a ter horário de verão, o tzdata acompanha sozinho.
+TZ_ACADEMIA = "America/Sao_Paulo"
+
+CATEGORIAS_MIDIA = ("patrocinio", "promocao", "academia", "vaga", "depoimento", "aviso")
+AJUSTES_MIDIA = ("contain", "cover")
+
+# Uma mídia só vai pra TV se estiver ativa, dentro da validade E com
+# imagem. O COALESCE(imagem_url,'') <> '' é carga pesada: sem ele, uma
+# mídia cujo upload falhou vira uma tela PRETA em tela cheia no painel —
+# o pior fracasso possível num painel de recepção.
+SQL_MIDIA_VIGENTE = """
+    (COALESCE(m.ativo, TRUE) = TRUE
+     AND COALESCE(m.imagem_url, '') <> ''
+     AND (m.inicio_em IS NULL OR m.inicio_em <= (NOW() AT TIME ZONE %s)::date)
+     AND (m.fim_em    IS NULL OR m.fim_em    >= (NOW() AT TIME ZONE %s)::date))
+"""
+
+def bump_versao_painel(slug):
+    """Faz a TV recarregar sozinha em até 5 min (ela compara /__version).
+    O CRUD de profissionais não chama isso, mas o de mídias sim: quem
+    acabou de vender um espaço vai ficar de pé na frente da TV esperando
+    o anúncio aparecer."""
+    query("UPDATE academias SET versao_painel = COALESCE(versao_painel,0)+1 WHERE slug=%s", (slug,))
+
+def normalizar_link(url):
+    """Garante que o link do anunciante é http(s). Bloqueia javascript:
+    e data: (a URL vai parar num href de página pública) e conserta o
+    caso comum da academia digitar 'www.loja.com.br' sem protocolo."""
+    url = (url or "").strip()
+    if not url:
+        return ""
+    if not re.match(r"^https?://", url, re.I):
+        url = "https://" + url
+    return url
+
+def _data_ou_none(valor):
+    """<input type=date> vazio posta string vazia — vira NULL na coluna."""
+    valor = (valor or "").strip()
+    if not valor:
+        return None
+    try:
+        return datetime.strptime(valor, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+@app.template_filter("tempo_tela")
+def filtro_tempo_tela(segundos):
+    """Formata tempo em tela pro relatório: '5h 08min', '42min', '18s'."""
+    s = int(segundos or 0)
+    if s < 60:
+        return f"{s}s"
+    if s < 3600:
+        return f"{s // 60}min"
+    return f"{s // 3600}h {(s % 3600) // 60:02d}min"
+
+def _int_ou(valor, padrao, minimo, maximo):
+    try:
+        return max(minimo, min(maximo, int(valor)))
+    except (TypeError, ValueError):
+        return padrao
+
 def cor_contraste(hex_cor, claro="#ffffff", escuro="#151515"):
     """Escolhe automaticamente texto claro ou escuro conforme a
     luminância da cor de fundo do card (cor_card), para o nome, cargo
@@ -517,11 +679,24 @@ def painel(slug):
         "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE AND consentimento_status = 'aceito' ORDER BY LOWER(nome)",
         (academia["id"],), fetch="all"
     )
+    # Degradação segura: se a migração de mídias não tiver rodado (ou
+    # falhar), a TV continua exibindo a equipe normalmente em vez de dar
+    # 500 na tela da recepção.
+    try:
+        midias = query(
+            """SELECT m.* FROM midias m
+               WHERE m.academia_id = %s AND """ + SQL_MIDIA_VIGENTE + """
+               ORDER BY m.ordem, m.id""",
+            (academia["id"], TZ_ACADEMIA, TZ_ACADEMIA), fetch="all"
+        )
+    except Exception as e:
+        print(f"[MIDIAS] Falha ao carregar midias do painel {slug}: {e}")
+        midias = []
     card_text_color = cor_contraste(academia.get("cor_card") or "#ffffff")
     versao_atual = APP_VERSION + ":" + str(academia.get("versao_painel") or 0)
     html = render_template("painel.html", academia=academia,
-        profissionais=profissionais or [], app_version=versao_atual,
-        card_text_color=card_text_color)
+        profissionais=profissionais or [], midias=midias or [],
+        app_version=versao_atual, card_text_color=card_text_color)
     # Sem isso, o navegador da TV (WebView do Fully Kiosk no Fire TV,
     # rodando dias seguidos) pode reabrir de um cache em disco após um
     # crash/relançamento do app sem nem bater na rede — aí a TV fica
@@ -569,7 +744,33 @@ def admin_editor(slug):
         FROM profissionais p WHERE p.academia_id = %s ORDER BY LOWER(p.nome)""",
         (academia["id"],), fetch="all"
     )
-    return render_template("admin_editor.html", academia=academia, profissionais=profissionais or [])
+    # Lista TODAS as mídias (inclusive pausadas e expiradas) — o admin
+    # precisa enxergar o que desligou. Só o painel() filtra por vigência.
+    # As flags agendada/expirada saem prontas do SQL pra não fazer
+    # aritmética de data no Jinja.
+    try:
+        midias = _midias_do_admin(academia["id"])
+    except Exception as e:
+        print(f"[MIDIAS] Falha ao carregar midias do admin {slug}: {e}")
+        midias = []
+    return render_template("admin_editor.html", academia=academia,
+        profissionais=profissionais or [], midias=midias or [])
+
+def _midias_do_admin(academia_id):
+    return query(
+        """SELECT m.*,
+            (SELECT COUNT(*) FROM scans s WHERE s.midia_id = m.id) AS scans_total,
+            (SELECT COUNT(*) FROM scans s WHERE s.midia_id = m.id
+                AND s.criado_em >= date_trunc('month', NOW())) AS scans_mes,
+            (SELECT COALESCE(SUM(e.total),0) FROM midia_exibicoes e WHERE e.midia_id = m.id
+                AND e.dia >= date_trunc('month', (NOW() AT TIME ZONE %s))::date) AS exibicoes_mes,
+            (SELECT COALESCE(SUM(e.segundos),0) FROM midia_exibicoes e WHERE e.midia_id = m.id
+                AND e.dia >= date_trunc('month', (NOW() AT TIME ZONE %s))::date) AS segundos_mes,
+            (m.inicio_em IS NOT NULL AND m.inicio_em > (NOW() AT TIME ZONE %s)::date) AS agendada,
+            (m.fim_em IS NOT NULL AND m.fim_em < (NOW() AT TIME ZONE %s)::date) AS expirada
+        FROM midias m WHERE m.academia_id = %s ORDER BY m.ordem, m.id""",
+        (TZ_ACADEMIA, TZ_ACADEMIA, TZ_ACADEMIA, TZ_ACADEMIA, academia_id), fetch="all"
+    )
 
 @app.route("/<slug>/admin/salvar-config", methods=["POST"])
 @login_required
@@ -668,7 +869,7 @@ def atualizar_tv(slug):
     # apareceriam na próxima checagem periódica ou no recarregamento de
     # 6h. Esse botão só incrementa o contador pra forçar a checagem
     # seguinte a detectar mudança e recarregar mais cedo.
-    query("UPDATE academias SET versao_painel = COALESCE(versao_painel, 0) + 1 WHERE slug=%s", (slug,))
+    bump_versao_painel(slug)
     flash("Comando enviado! A TV atualiza sozinha em até 5 minutos.")
     return redirect(url_for("admin_editor", slug=slug))
 
@@ -921,6 +1122,189 @@ def qr_tipo_selecionados_profissionais(slug):
         flash(f"QR Code de {len(ids)} profissional(is) atualizado.")
     return redirect(url_for("admin_editor", slug=slug))
 
+# ---- CRUD de mídias patrocinadas -------------------------------------
+# Segue o mesmo padrão das rotas de profissional (busca academia por
+# slug, valida upload, flash + redirect, WHERE sempre com academia_id),
+# com uma divergência deliberada: toda ação aqui chama
+# bump_versao_painel() — ver docstring dessa função.
+
+def _campos_midia_do_form(form):
+    """Lê e valida os campos comuns entre adicionar e editar."""
+    categoria = form.get("categoria", "patrocinio")
+    if categoria not in CATEGORIAS_MIDIA:
+        categoria = "patrocinio"
+    ajuste = form.get("ajuste", "contain")
+    if ajuste not in AJUSTES_MIDIA:
+        ajuste = "contain"
+    return {
+        "titulo": form.get("titulo", "").strip(),
+        "anunciante": form.get("anunciante", "").strip(),
+        "categoria": categoria,
+        "ajuste": ajuste,
+        "legenda": form.get("legenda", "").strip(),
+        "link_url": normalizar_link(form.get("link_url")),
+        "qr_ativo": form.get("qr_ativo") == "on",
+        "qr_texto": form.get("qr_texto", "").strip() or "Aponte a câmera",
+        "duracao": _int_ou(form.get("duracao"), 0, 0, 120),
+        "inicio_em": _data_ou_none(form.get("inicio_em")),
+        "fim_em": _data_ou_none(form.get("fim_em")),
+    }
+
+def _upload_midia_do_request(slug):
+    """Retorna (url, erro). url='' quando nenhum arquivo foi enviado."""
+    if "imagem" not in request.files:
+        return "", None
+    file = request.files["imagem"]
+    if not file or not file.filename:
+        return "", None
+    if not arquivo_permitido(file.filename):
+        return "", "Formato de imagem não suportado. Use JPG, PNG ou WEBP."
+    if not tamanho_valido(file, MAX_MIDIA_SIZE):
+        return "", "A imagem da mídia não pode ter mais de 10MB."
+    return upload_midia(file), None
+
+@app.route("/<slug>/admin/midia/adicionar", methods=["POST"])
+@login_required
+def adicionar_midia(slug):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    imagem_url, erro = _upload_midia_do_request(slug)
+    if erro:
+        flash(erro)
+        return redirect(url_for("admin_editor", slug=slug))
+    c = _campos_midia_do_form(request.form)
+    query("""INSERT INTO midias
+        (academia_id, titulo, anunciante, categoria, imagem_url, ajuste, legenda,
+         link_url, qr_ativo, qr_texto, duracao, inicio_em, fim_em, ordem)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+        (SELECT COALESCE(MAX(ordem),0)+1 FROM midias WHERE academia_id=%s))""",
+        (academia["id"], c["titulo"], c["anunciante"], c["categoria"], imagem_url,
+         c["ajuste"], c["legenda"], c["link_url"], c["qr_ativo"], c["qr_texto"],
+         c["duracao"], c["inicio_em"], c["fim_em"], academia["id"]))
+    bump_versao_painel(slug)
+    if imagem_url:
+        flash("Mídia criada! Ela entra na TV em até 5 minutos.")
+    else:
+        flash("Mídia criada, mas sem imagem ela não vai pra TV — envie a arte para publicá-la.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/midia/<int:midia_id>/editar", methods=["POST"])
+@login_required
+def editar_midia(slug, midia_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    midia = query("SELECT * FROM midias WHERE id=%s AND academia_id=%s",
+                  (midia_id, academia["id"]), fetch="one")
+    if not midia:
+        flash("Mídia não encontrada.")
+        return redirect(url_for("admin_editor", slug=slug))
+    nova_url, erro = _upload_midia_do_request(slug)
+    if erro:
+        flash(erro)
+        return redirect(url_for("admin_editor", slug=slug))
+    imagem_url = midia["imagem_url"]
+    # Só apaga a arte antiga depois que a nova subiu — se o Cloudinary
+    # falhar, a mídia continua no ar com a imagem que já tinha.
+    if nova_url:
+        excluir_do_cloudinary(imagem_url)
+        imagem_url = nova_url
+    c = _campos_midia_do_form(request.form)
+    query("""UPDATE midias SET
+        titulo=%s, anunciante=%s, categoria=%s, imagem_url=%s, ajuste=%s, legenda=%s,
+        link_url=%s, qr_ativo=%s, qr_texto=%s, duracao=%s, inicio_em=%s, fim_em=%s, ordem=%s
+        WHERE id=%s AND academia_id=%s""",
+        (c["titulo"], c["anunciante"], c["categoria"], imagem_url, c["ajuste"], c["legenda"],
+         c["link_url"], c["qr_ativo"], c["qr_texto"], c["duracao"], c["inicio_em"], c["fim_em"],
+         _int_ou(request.form.get("ordem"), midia["ordem"] or 0, 0, 999),
+         midia_id, academia["id"]))
+    bump_versao_painel(slug)
+    flash("Mídia atualizada!")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/midia/<int:midia_id>/remover", methods=["POST"])
+@login_required
+def remover_midia(slug, midia_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    midia = query("SELECT imagem_url, video_url FROM midias WHERE id=%s AND academia_id=%s",
+                  (midia_id, academia["id"]), fetch="one")
+    if midia:
+        excluir_do_cloudinary(midia["imagem_url"])
+        excluir_do_cloudinary(midia["video_url"], resource_type="video")
+    query("DELETE FROM midias WHERE id=%s AND academia_id=%s", (midia_id, academia["id"]))
+    bump_versao_painel(slug)
+    flash("Mídia removida.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/midia/<int:midia_id>/toggle-ativo", methods=["POST"])
+@login_required
+def toggle_ativo_midia(slug, midia_id):
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    query("""UPDATE midias SET ativo = NOT COALESCE(ativo, TRUE)
+             WHERE id=%s AND academia_id=%s""", (midia_id, academia["id"]))
+    midia = query("SELECT titulo, ativo FROM midias WHERE id=%s AND academia_id=%s",
+                  (midia_id, academia["id"]), fetch="one")
+    bump_versao_painel(slug)
+    if midia:
+        nome = midia["titulo"] or "Mídia"
+        flash(f"{nome} {'reativada' if midia['ativo'] else 'pausada'}.")
+    return redirect(url_for("admin_editor", slug=slug))
+
+@app.route("/<slug>/admin/midia/<int:midia_id>/relatorio")
+@login_required
+def relatorio_midia(slug, midia_id):
+    """Relatório de veiculação — o documento que a academia entrega ao
+    patrocinador pra justificar a renovação. Linguagem de mídia OOH:
+    inserções e tempo em tela, que são fatos medidos. Leitura de QR
+    aparece como complemento, nunca como 'contatos gerados'."""
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    midia = query("SELECT * FROM midias WHERE id=%s AND academia_id=%s",
+                  (midia_id, academia["id"]), fetch="one")
+    if not midia:
+        flash("Mídia não encontrada.")
+        return redirect(url_for("admin_editor", slug=slug))
+
+    periodo = request.args.get("periodo", "30d")
+    hoje = query("SELECT (NOW() AT TIME ZONE %s)::date AS d", (TZ_ACADEMIA,), fetch="one")["d"]
+    if periodo == "hoje":
+        inicio, fim, rotulo = hoje, hoje, "Hoje"
+    elif periodo == "7d":
+        inicio, fim, rotulo = hoje - timedelta(days=6), hoje, "Últimos 7 dias"
+    elif periodo == "mes":
+        inicio, fim, rotulo = hoje.replace(day=1), hoje, "Mês atual"
+    elif periodo == "contrato":
+        inicio = midia["inicio_em"] or (hoje - timedelta(days=365))
+        fim = midia["fim_em"] or hoje
+        rotulo = "Período contratado"
+    else:
+        periodo = "30d"
+        inicio, fim, rotulo = hoje - timedelta(days=29), hoje, "Últimos 30 dias"
+
+    linhas = query(
+        """SELECT e.dia, e.total, e.segundos,
+            (SELECT COUNT(*) FROM scans s WHERE s.midia_id = %s
+                AND (s.criado_em AT TIME ZONE %s)::date = e.dia) AS leituras
+           FROM midia_exibicoes e
+           WHERE e.midia_id = %s AND e.dia BETWEEN %s AND %s
+           ORDER BY e.dia""",
+        (midia_id, TZ_ACADEMIA, midia_id, inicio, fim), fetch="all") or []
+
+    total_insercoes = sum(l["total"] or 0 for l in linhas)
+    total_segundos = sum(l["segundos"] or 0 for l in linhas)
+    total_leituras = sum(l["leituras"] or 0 for l in linhas)
+    pico = max((l["total"] or 0) for l in linhas) if linhas else 0
+
+    return render_template("midia_relatorio.html", academia=academia, midia=midia,
+        linhas=linhas, periodo=periodo, rotulo=rotulo, inicio=inicio, fim=fim,
+        total_insercoes=total_insercoes, total_segundos=total_segundos,
+        total_leituras=total_leituras, pico=pico)
+
+@app.route("/<slug>/admin/midias/frequencia", methods=["POST"])
+@login_required
+def salvar_frequencia_midias(slug):
+    freq = _int_ou(request.form.get("midia_frequencia"), 3, 1, 10)
+    query("UPDATE academias SET midia_frequencia=%s WHERE slug=%s", (freq, slug))
+    bump_versao_painel(slug)
+    flash(f"Frequência atualizada: uma mídia a cada {freq} página(s) de profissionais.")
+    return redirect(url_for("admin_editor", slug=slug))
+
 @app.route("/master", methods=["GET", "POST"])
 def master_login():
     if session.get("master_logged"):
@@ -1085,6 +1469,85 @@ def prof_links(slug, prof_id):
         print(f"[SCAN] Falha ao registrar scan: {e}")
     return render_template("prof_links.html", academia=academia, prof=prof)
 
+@app.route("/<slug>/midia/<int:midia_id>")
+def midia_links(slug, midia_id):
+    """Destino do QR de uma mídia patrocinada.
+
+    É uma landing page e não um redirect 302 direto pro link do
+    anunciante de propósito: um redirect pra URL cadastrada por um admin
+    seria um open redirect (phishing hospedado no nosso domínio se a
+    senha de uma academia vazar). De quebra, uma tela com a marca do
+    patrocinador vale mais que um pisca-e-some."""
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    if not academia:
+        return render_template("404.html"), 404
+    midia = query("SELECT * FROM midias WHERE id=%s AND academia_id=%s",
+                  (midia_id, academia["id"]), fetch="one")
+    if not midia:
+        return render_template("404.html"), 404
+    try:
+        query("INSERT INTO scans (midia_id, academia_id) VALUES (%s, %s)",
+              (midia_id, academia["id"]))
+    except Exception as e:
+        print(f"[SCAN] Falha ao registrar scan de midia: {e}")
+    return render_template("midia_links.html", academia=academia, midia=midia)
+
+# A TV não é autenticada, então este endpoint é público. Duas defesas:
+# (1) só aceita midia_id que pertence à academia do slug; (2) limita o
+# quanto um lote pode declarar. Um lote cobre no máximo ~60s de painel,
+# então nenhuma mídia pode alegar mais que LOTE_MAX_SEGUNDOS ali dentro —
+# isso sozinho barra tentativa de inflar o relatório em ordens de
+# grandeza. Inflar um pouco só enganaria o próprio patrocinador da
+# academia, o que volta contra ela.
+LOTE_MAX_SEGUNDOS = 300
+LOTE_MAX_INSERCOES = 120
+
+@app.route("/<slug>/exibicoes", methods=["POST"])
+def registrar_exibicoes(slug):
+    academia = query("SELECT id FROM academias WHERE slug = %s", (slug,), fetch="one")
+    if not academia:
+        return {"ok": False}, 404
+    dados = request.get_json(silent=True) or {}
+    if not isinstance(dados, dict) or not dados:
+        return {"ok": True, "gravadas": 0}
+    # Chave inválida é ignorada em vez de derrubar o lote inteiro: perder
+    # a veiculação de 5 mídias válidas por causa de uma chave estranha
+    # seria pior do que simplesmente pular a estranha.
+    ids = []
+    for k in list(dados.keys())[:50]:
+        try:
+            ids.append(int(k))
+        except (TypeError, ValueError):
+            continue
+    if not ids:
+        return {"ok": True, "gravadas": 0}
+    validas = query("SELECT id FROM midias WHERE academia_id=%s AND id = ANY(%s)",
+                    (academia["id"], ids), fetch="all") or []
+    validas = {m["id"] for m in validas}
+    gravadas = 0
+    for chave, valor in dados.items():
+        try:
+            mid = int(chave)
+        except (TypeError, ValueError):
+            continue
+        if mid not in validas or not isinstance(valor, dict):
+            continue
+        n = _int_ou(valor.get("n"), 0, 0, LOTE_MAX_INSERCOES)
+        s = _int_ou(valor.get("s"), 0, 0, LOTE_MAX_SEGUNDOS)
+        if not n and not s:
+            continue
+        try:
+            query("""INSERT INTO midia_exibicoes (midia_id, academia_id, dia, total, segundos)
+                     VALUES (%s, %s, (NOW() AT TIME ZONE %s)::date, %s, %s)
+                     ON CONFLICT (midia_id, dia) DO UPDATE
+                        SET total    = midia_exibicoes.total    + EXCLUDED.total,
+                            segundos = midia_exibicoes.segundos + EXCLUDED.segundos""",
+                  (mid, academia["id"], TZ_ACADEMIA, n, s))
+            gravadas += 1
+        except Exception as e:
+            print(f"[EXIBICAO] Falha ao gravar midia {mid}: {e}")
+    return {"ok": True, "gravadas": gravadas}
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
@@ -1095,7 +1558,7 @@ def server_error(e):
 
 @app.errorhandler(413)
 def file_too_large(e):
-    flash("Arquivo muito grande. Limite: 5MB para fotos e logo, 40MB para vídeos.")
+    flash("Arquivo muito grande. Limite: 5MB para fotos e logo, 10MB para mídias, 40MB para vídeos.")
     return redirect(request.referrer or "/")
 
 with app.app_context():

@@ -289,6 +289,35 @@ select.field-input option{background:var(--bg2);color:var(--t1)}
   padding:2px 7px;border-radius:5px;vertical-align:middle;
   background:var(--danger-dim);color:var(--danger);margin-left:6px;
 }
+.pro-badge-ativo{
+  display:inline-block;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.5px;
+  padding:2px 7px;border-radius:5px;vertical-align:middle;
+  background:rgba(34,197,94,0.12);color:#22c55e;margin-left:6px;
+}
+/* Miniatura da arte: retangular (16:9), não redonda como o avatar do
+   profissional — um banner cortado em círculo fica irreconhecível. */
+.midia-thumb{
+  width:64px;height:36px;border-radius:6px;object-fit:cover;
+  border:1px solid var(--border);flex-shrink:0;background:#000;
+}
+.midia-thumb-vazia{
+  width:64px;height:36px;border-radius:6px;flex-shrink:0;
+  border:1px dashed var(--border);display:flex;align-items:center;
+  justify-content:center;color:var(--t3);font-size:9px;text-align:center;
+}
+/* O ícone nativo do seletor de data é preto — invisível no tema escuro.
+   Mesma categoria do fix de select option{} feito antes. */
+input[type=date].field-input::-webkit-calendar-picker-indicator{
+  filter:invert(1);opacity:.6;cursor:pointer;
+}
+input[type=date].field-input::-webkit-calendar-picker-indicator:hover{opacity:1}
+.midia-vazio{
+  border:1px dashed var(--border);border-radius:14px;
+  padding:26px 24px;margin-bottom:16px;color:var(--t2);
+  font-size:13px;line-height:1.65;
+}
+.midia-vazio strong{color:var(--t1);display:block;margin-bottom:8px;font-size:14px}
 .pro-header{
   display:flex;align-items:center;gap:14px;
   padding:18px 22px;cursor:pointer;user-select:none;
@@ -496,6 +525,10 @@ details[open] .chevron{transform:rotate(180deg)}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Profissionais
       </button>
+      <button class="nav-item" onclick="switchTab('midias')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        Mídias
+      </button>
       <button class="nav-item" onclick="switchTab('seguranca')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Segurança
@@ -573,6 +606,10 @@ details[open] .chevron{transform:rotate(180deg)}
       <button class="tab-btn active" id="tab-profissionais" onclick="switchTab('profissionais')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Profissionais
+      </button>
+      <button class="tab-btn inactive" id="tab-midias" onclick="switchTab('midias')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        Mídias
       </button>
       <button class="tab-btn inactive" id="tab-seguranca" onclick="switchTab('seguranca')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1173,6 +1210,311 @@ details[open] .chevron{transform:rotate(180deg)}
 
     </div><!-- /tab profissionais -->
 
+    <!-- TAB: MÍDIAS & PATROCÍNIOS -->
+    <div class="tab-content" id="content-midias">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Mídias &amp; Patrocínios</h2>
+          <p class="section-sub">{{ midias | length }} mídia(s) cadastrada(s)</p>
+        </div>
+      </div>
+
+      <!-- Frequência de intercalação -->
+      <div class="pro-card" style="padding:20px 22px;margin-bottom:16px">
+        <form method="POST" action="{{ url_for('salvar_frequencia_midias', slug=academia.slug) }}"
+              style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px">
+            <label class="field-label">Intercalar mídia a cada</label>
+            <select class="field-input" name="midia_frequencia">
+              {% for n in [1,2,3,4,5,6] %}
+              <option value="{{ n }}" {% if (academia.midia_frequencia | default(3)) == n %}selected{% endif %}>
+                {{ n }} página{{ 's' if n > 1 }} de profissionais
+              </option>
+              {% endfor %}
+            </select>
+            {% set dur = academia.duracao_pagina | default(10) %}
+            {% set freq = academia.midia_frequencia | default(3) %}
+            <p class="field-hint">
+              A cada quantas páginas de profissionais entra uma mídia em tela cheia.
+              Com {{ freq }}, um patrocinador aparece a cada ~{{ (freq + 1) * dur }} segundos.
+            </p>
+          </div>
+          <button type="submit" class="btn-ghost" style="margin-bottom:22px">Salvar frequência</button>
+        </form>
+      </div>
+
+      {% if not midias %}
+      <div class="midia-vazio">
+        <strong>Ainda não há nenhuma mídia cadastrada.</strong>
+        Aqui você cria telas cheias que entram no meio do carrossel da TV: o anúncio de um
+        parceiro (loja de suplementos, nutricionista, fisioterapeuta), uma promoção da própria
+        academia, uma vaga de emprego ou um aviso.<br><br>
+        Cada mídia mede <strong style="display:inline">quantas vezes foi ao ar</strong> e
+        <strong style="display:inline">quanto tempo ficou na tela</strong> — é o relatório que
+        você entrega ao patrocinador na hora de renovar. O espaço é seu para vender; o
+        NexosixTV só coloca no ar e mede.
+      </div>
+      {% endif %}
+
+      {% for m in midias %}
+      {% set no_ar = m.ativo != false and not m.agendada and not m.expirada and m.imagem_url %}
+      <details class="pro-card{{ '' if no_ar else ' pro-inativo' }}">
+        <summary class="pro-header">
+          {% if m.imagem_url %}
+          <img class="midia-thumb" src="{{ m.imagem_url }}" alt="">
+          {% else %}
+          <div class="midia-thumb-vazia">sem<br>arte</div>
+          {% endif %}
+          <div style="flex:1;min-width:0">
+            <div class="pro-name">
+              {{ m.titulo or 'Sem título' }}
+              {% if m.ativo == false %}<span class="pro-badge-inativo">Pausada</span>
+              {% elif not m.imagem_url %}<span class="pro-badge-inativo">Sem arte</span>
+              {% elif m.expirada %}<span class="pro-badge-inativo">Expirada</span>
+              {% elif m.agendada %}<span class="pro-badge-pendente">Agendada</span>
+              {% else %}<span class="pro-badge-ativo">No ar</span>{% endif %}
+            </div>
+            <div class="pro-role">
+              {{ m.anunciante or 'Sem anunciante' }}
+              {% if m.inicio_em or m.fim_em %}
+                · {{ m.inicio_em.strftime('%d/%m') if m.inicio_em else 'sempre' }}
+                → {{ m.fim_em.strftime('%d/%m') if m.fim_em else 'sem fim' }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="scan-badge" title="Vezes que a mídia foi ao ar neste mês e tempo total em tela">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/></svg>
+            {{ m.exibicoes_mes or 0 }} inserções · {{ m.segundos_mes | tempo_tela }}
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="pro-body">
+          <form method="POST" action="{{ url_for('editar_midia', slug=academia.slug, midia_id=m.id) }}" enctype="multipart/form-data">
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Título</label>
+                <input class="field-input" type="text" name="titulo" value="{{ m.titulo }}" placeholder="Suplementos Silva">
+                <p class="field-hint">Aparece em destaque na TV. Deixe vazio se a arte já tem tudo escrito.</p>
+              </div>
+              <div>
+                <label class="field-label">Anunciante</label>
+                <input class="field-input" type="text" name="anunciante" value="{{ m.anunciante }}" placeholder="Loja do João">
+                <p class="field-hint">Só para seu controle e para o relatório — não vai pra TV.</p>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Categoria</label>
+                <select class="field-input" name="categoria">
+                  <option value="patrocinio" {% if m.categoria == 'patrocinio' %}selected{% endif %}>Patrocínio (vendido a um parceiro)</option>
+                  <option value="promocao" {% if m.categoria == 'promocao' %}selected{% endif %}>Promoção / oferta</option>
+                  <option value="academia" {% if m.categoria == 'academia' %}selected{% endif %}>Divulgação da academia</option>
+                  <option value="vaga" {% if m.categoria == 'vaga' %}selected{% endif %}>Vaga de emprego</option>
+                  <option value="aviso" {% if m.categoria == 'aviso' %}selected{% endif %}>Aviso aos alunos</option>
+                  <option value="depoimento" {% if m.categoria == 'depoimento' %}selected{% endif %}>Depoimento de aluno</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Ajuste da imagem</label>
+                <select class="field-input" name="ajuste">
+                  <option value="contain" {% if m.ajuste != 'cover' %}selected{% endif %}>Encaixar tudo (pode sobrar borda)</option>
+                  <option value="cover" {% if m.ajuste == 'cover' %}selected{% endif %}>Preencher a tela (pode cortar)</option>
+                </select>
+                <p class="field-hint">"Encaixar tudo" nunca corta a arte do anunciante.</p>
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Arte da mídia</label>
+              <div style="display:flex;gap:16px;align-items:flex-start">
+                <img id="midiaPrev{{ m.id }}" src="{{ m.imagem_url }}"
+                  style="width:160px;height:90px;object-fit:contain;background:#000;border-radius:8px;border:1px solid var(--border);flex-shrink:0;{{ '' if m.imagem_url else 'display:none' }}">
+                <div style="flex:1">
+                  <input class="field-input" type="file" name="imagem" accept="image/*"
+                    onchange="previewMidia(this, '{{ m.id }}')">
+                  <p class="field-hint">JPG, PNG ou WEBP, até 10MB. Ideal 1920x1080 (16:9, deitada).</p>
+                </div>
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Legenda</label>
+              <input class="field-input" type="text" name="legenda" value="{{ m.legenda }}" placeholder="10% de desconto para alunos">
+            </div>
+            <div class="grid-3">
+              <div>
+                <label class="field-label">Início</label>
+                <input class="field-input" type="date" name="inicio_em" value="{{ m.inicio_em or '' }}">
+                <p class="field-hint">Vazio = já entra.</p>
+              </div>
+              <div>
+                <label class="field-label">Fim</label>
+                <input class="field-input" type="date" name="fim_em" value="{{ m.fim_em or '' }}">
+                <p class="field-hint">Vazio = sem prazo. Sai sozinha no dia seguinte.</p>
+              </div>
+              <div>
+                <label class="field-label">Tempo na tela</label>
+                <input class="field-input" type="number" name="duracao" value="{{ m.duracao or 0 }}" min="0" max="120">
+                <p class="field-hint">Segundos. 0 = igual às outras páginas.</p>
+              </div>
+            </div>
+            <div class="grid-full" style="border-top:1px solid var(--border);padding-top:16px">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--t1)">
+                <input type="checkbox" name="qr_ativo" {{ 'checked' if m.qr_ativo != false }}
+                  style="width:18px;height:18px;accent-color:var(--acc);cursor:pointer">
+                Mostrar QR Code na TV
+              </label>
+              <p class="field-hint" style="margin-top:6px">
+                <strong>Desative se a arte enviada já tem um QR Code próprio</strong> — dois QRs na
+                mesma tela fazem as pessoas lerem o errado, e aí a contagem de leituras fica zerada.
+              </p>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Link do QR</label>
+                <input class="field-input" type="text" name="link_url" value="{{ m.link_url }}" placeholder="instagram.com/lojadojoao">
+                <p class="field-hint">Site, Instagram ou WhatsApp do anunciante.</p>
+              </div>
+              <div>
+                <label class="field-label">Chamada do QR</label>
+                <input class="field-input" type="text" name="qr_texto" value="{{ m.qr_texto }}" placeholder="Aponte a câmera">
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Ordem de exibição</label>
+              <input class="field-input" type="number" name="ordem" value="{{ m.ordem or 0 }}" min="0" max="999">
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salvar alterações
+              </button>
+            </div>
+          </form>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+            <a href="{{ url_for('relatorio_midia', slug=academia.slug, midia_id=m.id) }}" target="_blank"
+               class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+              Ver relatório
+            </a>
+            <form method="POST" action="{{ url_for('toggle_ativo_midia', slug=academia.slug, midia_id=m.id) }}">
+              <button type="submit" class="btn-ghost">
+                {% if m.ativo == false %}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                Reativar
+                {% else %}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                Pausar (tirar da TV)
+                {% endif %}
+              </button>
+            </form>
+            <form method="POST" action="{{ url_for('remover_midia', slug=academia.slug, midia_id=m.id) }}"
+              onsubmit="return confirm('Remover esta mídia? O histórico de inserções e leituras também será apagado. Se quiser só tirar do ar, use Pausar.')">
+              <button type="submit" class="btn-danger">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                Remover
+              </button>
+            </form>
+          </div>
+        </div>
+      </details>
+      {% endfor %}
+
+      <details class="add-card" style="margin-top:4px">
+        <summary class="add-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Nova mídia
+        </summary>
+        <div class="pro-body">
+          <form method="POST" action="{{ url_for('adicionar_midia', slug=academia.slug) }}" enctype="multipart/form-data">
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Título</label>
+                <input class="field-input" type="text" name="titulo" placeholder="Suplementos Silva">
+              </div>
+              <div>
+                <label class="field-label">Anunciante</label>
+                <input class="field-input" type="text" name="anunciante" placeholder="Loja do João">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Categoria</label>
+                <select class="field-input" name="categoria">
+                  <option value="patrocinio">Patrocínio (vendido a um parceiro)</option>
+                  <option value="promocao">Promoção / oferta</option>
+                  <option value="academia">Divulgação da academia</option>
+                  <option value="vaga">Vaga de emprego</option>
+                  <option value="aviso">Aviso aos alunos</option>
+                  <option value="depoimento">Depoimento de aluno</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Ajuste da imagem</label>
+                <select class="field-input" name="ajuste">
+                  <option value="contain">Encaixar tudo (pode sobrar borda)</option>
+                  <option value="cover">Preencher a tela (pode cortar)</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Arte da mídia</label>
+              <div style="display:flex;gap:16px;align-items:flex-start">
+                <img id="midiaPrevnovo"
+                  style="width:160px;height:90px;object-fit:contain;background:#000;border-radius:8px;border:1px solid var(--border);flex-shrink:0;display:none">
+                <div style="flex:1">
+                  <input class="field-input" type="file" name="imagem" accept="image/*"
+                    onchange="previewMidia(this, 'novo')">
+                  <p class="field-hint">JPG, PNG ou WEBP, até 10MB. Ideal 1920x1080 (16:9, deitada).</p>
+                </div>
+              </div>
+            </div>
+            <div class="grid-full">
+              <label class="field-label">Legenda</label>
+              <input class="field-input" type="text" name="legenda" placeholder="10% de desconto para alunos">
+            </div>
+            <div class="grid-3">
+              <div>
+                <label class="field-label">Início</label>
+                <input class="field-input" type="date" name="inicio_em">
+              </div>
+              <div>
+                <label class="field-label">Fim</label>
+                <input class="field-input" type="date" name="fim_em">
+              </div>
+              <div>
+                <label class="field-label">Tempo na tela</label>
+                <input class="field-input" type="number" name="duracao" value="0" min="0" max="120">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="field-label">Link do QR</label>
+                <input class="field-input" type="text" name="link_url" placeholder="instagram.com/lojadojoao">
+              </div>
+              <div>
+                <label class="field-label">Chamada do QR</label>
+                <input class="field-input" type="text" name="qr_texto" placeholder="Aponte a câmera">
+              </div>
+            </div>
+            <div class="grid-full">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--t1)">
+                <input type="checkbox" name="qr_ativo" checked
+                  style="width:18px;height:18px;accent-color:var(--acc);cursor:pointer">
+                Mostrar QR Code na TV
+              </label>
+              <p class="field-hint" style="margin-top:6px">Desative se a arte enviada já tem um QR Code próprio.</p>
+            </div>
+            <div style="margin-top:4px">
+              <button type="submit" class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Adicionar mídia
+              </button>
+            </div>
+          </form>
+        </div>
+      </details>
+
+    </div><!-- /tab midias -->
+
     <!-- TAB: SEGURANÇA -->
     <div class="tab-content" id="content-seguranca">
       <div class="section-head">
@@ -1231,6 +1573,15 @@ function togglePassword(btn) {
     ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>'
     : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M6.61 6.61A18.5 18.5 0 0 0 1 12s4 8 11 8a9.26 9.26 0 0 0 5.39-1.61"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 }
+// Preview da arte antes de salvar. Id único por linha (midiaPrev<id>)
+// pelo mesmo motivo do fotoPos<id> dos profissionais: várias mídias
+// abertas na mesma página colidiriam num id fixo.
+function previewMidia(input, id) {
+  var el = document.getElementById('midiaPrev' + id);
+  if (!el || !input.files || !input.files[0]) return;
+  el.src = URL.createObjectURL(input.files[0]);
+  el.style.display = '';
+}
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => {el.classList.remove('active');el.classList.add('inactive')});
@@ -1241,6 +1592,7 @@ function switchTab(tab) {
   const titles = {
     config: ['Configurações', 'Personalize o painel da sua academia'],
     profissionais: ['Profissionais', 'Gerencie a equipe de profissionais da academia'],
+    midias: ['Mídias & Patrocínios', 'Anúncios e avisos em tela cheia no carrossel da TV'],
     seguranca: ['Segurança', 'Altere a senha de acesso ao painel']
   };
   const [title, sub] = titles[tab] || titles['profissionais'];

@@ -191,6 +191,77 @@
             transform: translateX(-30px);
         }
 
+        /* ===== MÍDIA PATROCINADA (tela cheia) =====
+           Modificador de .page, não uma estrutura nova: as transições de
+           entrada/saída (.page.active / .page.exit-left) só mexem em
+           opacity/transform, então continuam valendo aqui sem alteração
+           nenhuma. Só o display:grid da .page precisa ser sobreposto. */
+        .page.page--midia {
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            gap: 0;
+            overflow: hidden;
+        }
+        .midia-fill {
+            flex: 1;
+            min-height: 0;
+            background: #000;
+        }
+        .midia-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .midia-img--cover { object-fit: cover; }
+        .midia-bar {
+            display: flex;
+            align-items: center;
+            gap: calc(24px * var(--ms, 1));
+            padding: calc(18px * var(--ms, 1)) calc(32px * var(--ms, 1));
+            background: var(--card-bg);
+            border-top: 3px solid var(--accent);
+        }
+        .midia-bar-texto { flex: 1; min-width: 0; }
+        .midia-titulo {
+            font-size: calc(34px * var(--ms, 1));
+            font-weight: 900;
+            color: var(--pri);
+            line-height: 1.1;
+        }
+        .midia-legenda {
+            font-size: calc(20px * var(--ms, 1));
+            font-weight: 500;
+            color: #777;
+            margin-top: 4px;
+        }
+        .midia-qr-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        /* 180px no palco de 1920x1080 é o mínimo que lê de 2-3m de
+           distância com a câmera do celular — toda a contagem de
+           leituras depende disso. Não encolher. */
+        .midia-qr {
+            width: 180px;
+            height: 180px;
+            border-radius: 10px;
+            border: 4px solid var(--accent);
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .midia-qr-texto {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--accent);
+            text-align: center;
+            max-width: 180px;
+        }
+
         /* ===== CARD ===== */
         .card {
             background: var(--card-bg);
@@ -705,7 +776,7 @@
     <!-- FOOTER -->
     <div class="footer">
         <div class="footer-left">
-            <strong>{{ profissionais | length }}</strong> profissionais na equipe
+            {% if profissionais %}<strong>{{ profissionais | length }}</strong> profissionais na equipe{% endif %}
         </div>
 
         <div class="footer-center">
@@ -809,6 +880,27 @@
             {% endfor %}
         ];
 
+        // Mídias patrocinadas — array SEPARADO do de profissionais, de
+        // propósito. Fundir os dois num array só com um campo "tipo"
+        // obrigaria a auditar todo uso de profissionais.length (rodapé,
+        // contagem de páginas) pra não vazar mídia na contagem de equipe.
+        const midias = [
+            {% for m in midias %}
+            {
+                id: {{ m.id | tojson }},
+                titulo: {{ m.titulo | tojson }},
+                legenda: {{ m.legenda | tojson }},
+                imagem_url: {{ m.imagem_url | tojson }},
+                ajuste: {{ m.ajuste | default('contain') | tojson }},
+                qr_ativo: {{ (m.qr_ativo != false) | tojson }},
+                qr_texto: {{ m.qr_texto | default('Aponte a câmera') | tojson }},
+                duracao: {{ m.duracao | default(0) | tojson }},
+                tipo: {{ m.tipo | default('imagem') | tojson }}
+            }{{ "," if not loop.last }}
+            {% endfor %}
+        ];
+        const MIDIA_FREQUENCIA = {{ academia.midia_frequencia | default(3) }};
+
         function makeQrDataUrl(text) {
             var qr = qrcode(0, 'M');
             qr.addData(text);
@@ -838,7 +930,6 @@
         const progressBar = document.getElementById('progressBar');
         const dotsContainer = document.getElementById('pageDots');
 
-        const totalPages = Math.max(1, Math.ceil(profissionais.length / CARDS_PER_PAGE));
         let currentPage = 0;
 
         // Layout adaptativo: com menos cards, usa menos colunas e aumenta a
@@ -876,6 +967,57 @@
         // Sem isso, computeLayout(1) criava 1 coluna única e o card
         // esticava pra largura inteira da tela — desproporcional.
         const REFERENCE_LAYOUT = computeLayout(CARDS_PER_PAGE);
+
+        // Lista EXPLÍCITA das páginas do carrossel.
+        //
+        // Antes, "página N" era só aritmética: a fatia N do array de
+        // profissionais, e totalPages saía de profissionais.length. Com
+        // mídias em tela cheia intercaladas o índice da página não mapeia
+        // mais 1:1 numa fatia, e três funções (showPage, createDots, o
+        // bootstrap) dependiam silenciosamente daquela conta. Um
+        // descritor único quebra essa dependência num lugar só — sem ele
+        // haveria duas fontes de verdade pra contagem de páginas.
+        //
+        // Propriedade que precisa continuar valendo: com `midias` vazio,
+        // isto devolve exatamente as mesmas fatias de antes, na mesma
+        // ordem. É o que garante que o painel de quem não usa mídia
+        // (todos os clientes atuais) não muda em nada.
+        function buildPageList() {
+            var paginasGrade = [];
+            for (var i = 0; i < profissionais.length; i += CARDS_PER_PAGE) {
+                paginasGrade.push({tipo: 'grade', itens: profissionais.slice(i, i + CARDS_PER_PAGE)});
+            }
+
+            // Mídia sem imagem viraria uma tela PRETA em tela cheia. O SQL
+            // já filtra, isto aqui é a segunda barreira.
+            var midiasOk = midias.filter(function (m) { return m && m.imagem_url; });
+
+            if (!midiasOk.length) return paginasGrade;
+            if (!paginasGrade.length) {
+                return midiasOk.map(function (m) { return {tipo: 'midia', midia: m}; });
+            }
+
+            var out = [], mi = 0;
+            for (var p = 0; p < paginasGrade.length; p++) {
+                out.push(paginasGrade[p]);
+                if ((p + 1) % MIDIA_FREQUENCIA === 0) {
+                    out.push({tipo: 'midia', midia: midiasOk[mi % midiasOk.length]});
+                    mi++;
+                }
+            }
+            // Descarga do resto: garante que TODA mídia vigente aparece ao
+            // menos 1x por ciclo. Sem isso, com mais mídias do que espaços
+            // de intercalação, uma mídia paga simplesmente nunca iria ao ar.
+            while (mi < midiasOk.length) {
+                out.push({tipo: 'midia', midia: midiasOk[mi]});
+                mi++;
+            }
+            return out;
+        }
+
+        const PAGES = buildPageList();
+        if (!PAGES.length) PAGES.push({tipo: 'grade', itens: []});
+        const totalPages = PAGES.length;
 
         function esc(str) {
             if (!str) return '';
@@ -1104,23 +1246,62 @@
                 '</div>';
         }
 
+        // Página de mídia em tela cheia. A barra inferior (título/legenda
+        // /QR) só existe se houver o que colocar nela — sem isso, uma arte
+        // que já traz tudo embutido ficaria com uma faixa vazia embaixo.
+        function buildMidia(m) {
+            var img = '<div class="midia-fill"><img class="midia-img' +
+                      (m.ajuste === 'cover' ? ' midia-img--cover' : '') +
+                      '" src="' + esc(m.imagem_url) + '" alt=""></div>';
+
+            var temTexto = !!(m.titulo || m.legenda);
+            var temQr = !!(m.qr_ativo && m.id);
+            if (!temTexto && !temQr) return img;
+
+            var qr = '';
+            if (temQr) {
+                // O QR aponta pra rota de rastreio (/slug/midia/id), nunca
+                // direto pro link do anunciante: é ela que conta a leitura
+                // e é curta o bastante pra gerar um QR de módulo grosso,
+                // que lê fácil de longe.
+                var url = window.location.origin + '/{{ academia.slug }}/midia/' + m.id;
+                qr = '<div class="midia-qr-wrap">' +
+                     '<img class="midia-qr" src="' + makeQrDataUrl(url) + '" alt="QR">' +
+                     (m.qr_texto ? '<span class="midia-qr-texto">' + esc(m.qr_texto) + '</span>' : '') +
+                     '</div>';
+            }
+            return img +
+                '<div class="midia-bar">' +
+                    '<div class="midia-bar-texto">' +
+                        (m.titulo ? '<div class="midia-titulo">' + esc(m.titulo) + '</div>' : '') +
+                        (m.legenda ? '<div class="midia-legenda">' + esc(m.legenda) + '</div>' : '') +
+                    '</div>' + qr +
+                '</div>';
+        }
+
         function createPages() {
             for (var i = 0; i < totalPages; i++) {
+                var pg = PAGES[i];
                 var page = document.createElement('div');
-                page.className = 'page' + (i === 0 ? ' active' : '');
 
-                var start = i * CARDS_PER_PAGE;
-                var end = Math.min(start + CARDS_PER_PAGE, profissionais.length);
+                if (pg.tipo === 'midia') {
+                    page.className = 'page page--midia' + (i === 0 ? ' active' : '');
+                    page.innerHTML = buildMidia(pg.midia);
+                    // Sem --cols/--cs/gridTemplateRows aqui de propósito:
+                    // são variáveis de escala de CARD, e uma página de
+                    // mídia não tem card nenhum.
+                } else {
+                    page.className = 'page' + (i === 0 ? ' active' : '');
+                    page.style.setProperty('--cols', REFERENCE_LAYOUT.cols);
+                    page.style.setProperty('--cs', REFERENCE_LAYOUT.scale.toFixed(3));
+                    page.style.gridTemplateRows = 'repeat(' + REFERENCE_LAYOUT.rows + ', minmax(0, 1fr))';
 
-                page.style.setProperty('--cols', REFERENCE_LAYOUT.cols);
-                page.style.setProperty('--cs', REFERENCE_LAYOUT.scale.toFixed(3));
-                page.style.gridTemplateRows = 'repeat(' + REFERENCE_LAYOUT.rows + ', minmax(0, 1fr))';
-
-                var html = '';
-                for (var j = start; j < end; j++) {
-                    html += buildCard(profissionais[j]);
+                    var html = '';
+                    for (var j = 0; j < pg.itens.length; j++) {
+                        html += buildCard(pg.itens[j]);
+                    }
+                    page.innerHTML = html;
                 }
-                page.innerHTML = html;
                 container.appendChild(page);
             }
         }
@@ -1156,29 +1337,123 @@
             if (totalPages > 1) indicator.textContent = (index + 1) + ' / ' + totalPages;
         }
 
-        function animateProgress() {
+        // ===== Medição de veiculação (inserções e tempo em tela) =====
+        //
+        // É o número que a academia entrega ao patrocinador, então a
+        // regra é sempre subcontar em vez de superestimar:
+        //  - tempo é o REAL decorrido (Date.now()), não a duração
+        //    agendada — se a TV for desligada no meio de uma peça, aquele
+        //    tempo simplesmente não é contabilizado;
+        //  - o envio é em lote a cada 60s, e o que não foi enviado se
+        //    perde no reload. Preferível a inflar o relatório.
+        var _midiaAtiva = null;   // {id, desde}
+        var _acumulado = {};      // id -> {n: inserções, s: segundos}
+
+        function _slot(id) {
+            if (!_acumulado[id]) _acumulado[id] = {n: 0, s: 0};
+            return _acumulado[id];
+        }
+
+        function _fecharTempoCorrente() {
+            if (!_midiaAtiva) return;
+            var seg = Math.round((Date.now() - _midiaAtiva.desde) / 1000);
+            if (seg > 0) _slot(_midiaAtiva.id).s += seg;
+            _midiaAtiva.desde = Date.now();
+        }
+
+        function marcarPaginaAtual(i) {
+            _fecharTempoCorrente();
+            _midiaAtiva = null;
+            var pg = PAGES[i];
+            if (pg && pg.tipo === 'midia' && pg.midia.id) {
+                _slot(pg.midia.id).n += 1;
+                _midiaAtiva = {id: pg.midia.id, desde: Date.now()};
+            }
+        }
+
+        function enviarExibicoes(saindo) {
+            _fecharTempoCorrente();
+            var payload = {}, tem = false;
+            for (var k in _acumulado) {
+                if (_acumulado[k].n || _acumulado[k].s) { payload[k] = _acumulado[k]; tem = true; }
+            }
+            if (!tem) return;
+            _acumulado = {};
+            var url = '/{{ academia.slug }}/exibicoes';
+            var corpo = JSON.stringify(payload);
+            try {
+                // sendBeacon sobrevive ao unload da página (o reload de 5
+                // min mataria um fetch normal no meio do caminho).
+                if (saindo && navigator.sendBeacon) {
+                    navigator.sendBeacon(url, new Blob([corpo], {type: 'application/json'}));
+                } else {
+                    fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                body: corpo, keepalive: true}).catch(function () {});
+                }
+            } catch (e) { /* métrica nunca pode derrubar o painel */ }
+        }
+
+        if (midias.length) {
+            setInterval(function () { enviarExibicoes(false); }, 60000);
+            window.addEventListener('pagehide', function () { enviarExibicoes(true); });
+        }
+
+        // Uma mídia pode ter duração própria (um anúncio precisa de mais
+        // tempo na tela que uma página de equipe — 10s não dá pra ler um
+        // telefone). Por isso o intervalo virou variável.
+        function duracaoDaPagina(i) {
+            var pg = PAGES[i];
+            if (pg && pg.tipo === 'midia' && pg.midia.duracao > 0) {
+                return pg.midia.duracao * 1000;
+            }
+            return PAGE_DURATION;
+        }
+
+        function animateProgress(ms) {
             progressBar.style.transition = 'none';
             progressBar.style.width = '0%';
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
-                    progressBar.style.transition = 'width ' + PAGE_DURATION + 'ms linear';
+                    progressBar.style.transition = 'width ' + ms + 'ms linear';
                     progressBar.style.width = '100%';
                 });
             });
         }
 
+        var timerPagina = null;
+        function agendarProxima() {
+            clearTimeout(timerPagina);
+            timerPagina = setTimeout(nextPage, duracaoDaPagina(currentPage));
+        }
+
         function nextPage() {
-            currentPage = (currentPage + 1) % totalPages;
-            showPage(currentPage);
-            animateProgress();
+            try {
+                currentPage = (currentPage + 1) % totalPages;
+                showPage(currentPage);
+                marcarPaginaAtual(currentPage);
+                animateProgress(duracaoDaPagina(currentPage));
+            } catch (e) {
+                // Com setInterval, uma exceção pulava um ciclo e o
+                // carrossel seguia. Numa cadeia de setTimeout ela mataria
+                // a corrente e a TV congelaria numa página até o reload —
+                // e num kiosk ninguém percebe por horas. Por isso o
+                // reagendamento fica no finally.
+                try { console.error('[carrossel]', e); } catch (_) {}
+            } finally {
+                agendarProxima();
+            }
         }
 
         createPages();
         createDots();
+        // Fora do if abaixo de propósito: uma academia com 1 mídia e
+        // nenhum profissional tem totalPages === 1 e nunca rotaciona, mas
+        // a peça está 100% do tempo na tela e precisa ser contabilizada.
+        marcarPaginaAtual(0);
         if (totalPages > 1) {
             indicator.textContent = '1 / ' + totalPages;
-            animateProgress();
-            setInterval(nextPage, PAGE_DURATION);
+            animateProgress(duracaoDaPagina(0));
+            agendarProxima();
         }
 
         // QR Code

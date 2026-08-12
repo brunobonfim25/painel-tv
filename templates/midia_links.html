@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ midia.titulo or midia.anunciante or 'Oferta' }} — {{ academia.nome }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { font-family: 'Outfit', sans-serif; background: #0f1923; color: #fff; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade { animation: fadeUp 0.7s ease forwards; }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px;
+    }
+    .section { width: 100%; max-width: 448px; padding: 0 20px; }
+
+    .arte-wrap {
+      width: 100%;
+      background: #000;
+      border-bottom: 3px solid {{ academia.cor_destaque | default('#e94560') }};
+    }
+    .arte {
+      display: block;
+      width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+      margin: 0 auto;
+    }
+
+    .titulo {
+      font-size: 26px; font-weight: 800; line-height: 1.2;
+      margin-top: 28px; text-align: center;
+    }
+    .legenda {
+      font-size: 16px; font-weight: 400; color: #93a5b5;
+      margin-top: 10px; text-align: center; line-height: 1.5;
+    }
+    .anunciante {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: {{ academia.cor_destaque | default('#e94560') }};
+      margin-top: 22px; text-align: center;
+    }
+
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; margin-top: 26px; padding: 17px 22px;
+      background: {{ academia.cor_destaque | default('#e94560') }};
+      color: #fff; text-decoration: none;
+      font-size: 16px; font-weight: 700; border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .rodape {
+      margin-top: 36px; text-align: center;
+      font-size: 12px; color: #4a5c6d; line-height: 1.6;
+    }
+    .rodape strong { color: #7f97ac; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    {% if midia.imagem_url %}
+    <div class="arte-wrap">
+      <img class="arte" src="{{ midia.imagem_url }}" alt="{{ midia.titulo }}">
+    </div>
+    {% endif %}
+
+    <div class="section">
+      {% if midia.anunciante %}
+      <div class="anunciante anim-fade delay-1">{{ midia.anunciante }}</div>
+      {% endif %}
+
+      {% if midia.titulo %}
+      <h1 class="titulo anim-fade delay-1">{{ midia.titulo }}</h1>
+      {% endif %}
+
+      {% if midia.legenda %}
+      <p class="legenda anim-fade delay-2">{{ midia.legenda }}</p>
+      {% endif %}
+
+      {% if midia.link_url %}
+      <a class="btn anim-fade delay-3" href="{{ midia.link_url }}" target="_blank" rel="noopener noreferrer">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Acessar
+      </a>
+      {% endif %}
+
+      <p class="rodape">
+        Você viu isso no painel da <strong>{{ academia.nome }}</strong>.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

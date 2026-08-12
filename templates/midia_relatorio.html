@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório — {{ midia.titulo or midia.anunciante or 'Mídia' }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#070d14;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+      --acc:#3b82f6;--t1:#eaf2fd;--t2:#7f97ac;--t3:#3d5064;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);
+      -webkit-font-smoothing:antialiased;padding:32px 20px 60px;
+    }
+    .wrap{max-width:880px;margin:0 auto}
+    .voltar{
+      display:inline-flex;align-items:center;gap:6px;color:var(--t2);
+      text-decoration:none;font-size:13px;margin-bottom:22px;
+    }
+    .voltar:hover{color:var(--t1)}
+
+    .cabecalho{display:flex;gap:20px;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap}
+    .arte{
+      width:200px;height:113px;object-fit:contain;background:#000;
+      border-radius:10px;border:1px solid var(--border);flex-shrink:0;
+    }
+    .cab-txt{flex:1;min-width:240px}
+    .rotulo{
+      font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--acc);margin-bottom:6px;
+    }
+    h1{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+    .sub{font-size:14px;color:var(--t2);margin-top:6px}
+
+    .periodo-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+    .periodo-bar a{
+      font-size:12.5px;font-weight:600;text-decoration:none;
+      padding:7px 14px;border-radius:8px;border:1px solid var(--border);
+      color:var(--t2);
+    }
+    .periodo-bar a.on{background:var(--acc);border-color:var(--acc);color:#fff}
+
+    .manchete{
+      display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;
+    }
+    .metrica{
+      flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:22px 24px;
+    }
+    .metrica .n{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .metrica .l{font-size:12.5px;color:var(--t2);margin-top:8px;font-weight:500}
+    .metrica.destaque .n{color:var(--acc)}
+    .metrica.secundaria .n{font-size:26px;color:var(--t1)}
+
+    .nota{font-size:11.5px;color:var(--t3);line-height:1.6;margin:10px 0 30px}
+
+    h2{font-size:15px;font-weight:700;margin:0 0 14px}
+
+    .grafico{
+      background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:22px 24px;margin-bottom:26px;
+    }
+    .barras{display:flex;align-items:flex-end;gap:3px;height:150px;margin-bottom:8px}
+    .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+    .barra{
+      background:var(--acc);border-radius:3px 3px 0 0;min-height:2px;
+      transition:opacity .15s;
+    }
+    .col:hover .barra{opacity:.75}
+    .barra.zero{background:var(--t3);opacity:.35}
+    .eixo{display:flex;justify-content:space-between;font-size:10.5px;color:var(--t3)}
+
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{
+      text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--t2);padding:0 12px 10px;border-bottom:1px solid var(--border);
+    }
+    th.num,td.num{text-align:right}
+    td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+    tbody tr:last-child td{border-bottom:none}
+    tfoot td{font-weight:700;border-top:2px solid var(--border);padding-top:13px}
+    .vazio{color:var(--t2);font-size:13.5px;padding:26px 0;text-align:center;line-height:1.6}
+
+    .rodape{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);
+      font-size:11.5px;color:var(--t3);line-height:1.7}
+
+    @media print{
+      body{background:#fff;color:#111;padding:0}
+      .voltar,.periodo-bar{display:none}
+      .metrica,.grafico{background:#fff;border-color:#ddd}
+      .arte{border-color:#ddd}
+      h1,.metrica .n{color:#111}
+      .metrica.destaque .n{color:#1d4ed8}
+      .barra{background:#1d4ed8}
+      .rotulo{color:#1d4ed8}
+      .sub,.metrica .l,th{color:#555}
+      .nota,.rodape,.eixo{color:#777}
+      td{border-bottom-color:#eee}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <a class="voltar" href="{{ url_for('admin_editor', slug=academia.slug) }}">← Voltar ao painel</a>
+
+  <div class="cabecalho">
+    {% if midia.imagem_url %}
+    <img class="arte" src="{{ midia.imagem_url }}" alt="">
+    {% endif %}
+    <div class="cab-txt">
+      <div class="rotulo">Relatório de veiculação</div>
+      <h1>{{ midia.titulo or midia.anunciante or 'Mídia sem título' }}</h1>
+      <p class="sub">
+        {% if midia.anunciante %}{{ midia.anunciante }} · {% endif %}
+        Exibida no painel de TV da {{ academia.nome }}
+      </p>
+      <p class="sub">{{ rotulo }}: {{ inicio.strftime('%d/%m/%Y') }} a {{ fim.strftime('%d/%m/%Y') }}</p>
+    </div>
+  </div>
+
+  <div class="periodo-bar">
+    {% for chave, nome in [('hoje','Hoje'), ('7d','7 dias'), ('30d','30 dias'), ('mes','Mês atual'), ('contrato','Período contratado')] %}
+    <a href="{{ url_for('relatorio_midia', slug=academia.slug, midia_id=midia.id, periodo=chave) }}"
+       class="{{ 'on' if periodo == chave }}">{{ nome }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="manchete">
+    <div class="metrica destaque">
+      <div class="n">{{ '{:,}'.format(total_insercoes).replace(',', '.') }}</div>
+      <div class="l">inserções — vezes que a peça foi ao ar</div>
+    </div>
+    <div class="metrica destaque">
+      <div class="n">{{ total_segundos | tempo_tela }}</div>
+      <div class="l">tempo total em tela</div>
+    </div>
+    <div class="metrica secundaria">
+      <div class="n">{{ total_leituras }}</div>
+      <div class="l">leituras do QR Code</div>
+    </div>
+  </div>
+
+  <p class="nota">
+    Inserções e tempo em tela são medidos pelo próprio painel a cada exibição. Uma inserção
+    significa que a peça foi exibida na tela — não é uma medição de quantas pessoas a viram.
+    As leituras do QR indicam interesse, e não contatos ou vendas concretizadas.
+  </p>
+
+  <h2>Inserções por dia</h2>
+  {% if linhas %}
+  <div class="grafico">
+    <div class="barras">
+      {% for l in linhas %}
+      <div class="col" title="{{ l.dia.strftime('%d/%m') }}: {{ l.total }} inserções · {{ l.segundos | tempo_tela }}">
+        <div class="barra {{ 'zero' if not l.total }}"
+             style="height:{{ ((l.total or 0) / pico * 100) if pico else 0 }}%"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="eixo">
+      <span>{{ linhas[0].dia.strftime('%d/%m') }}</span>
+      <span>{{ linhas[-1].dia.strftime('%d/%m') }}</span>
+    </div>
+  </div>
+
+  <h2>Detalhamento</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th class="num">Inserções</th>
+        <th class="num">Tempo em tela</th>
+        <th class="num">Leituras do QR</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in linhas %}
+      <tr>
+        <td>{{ l.dia.strftime('%d/%m/%Y') }}</td>
+        <td class="num">{{ l.total or 0 }}</td>
+        <td class="num">{{ l.segundos | tempo_tela }}</td>
+        <td class="num">{{ l.leituras or 0 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>Total</td>
+        <td class="num">{{ total_insercoes }}</td>
+        <td class="num">{{ total_segundos | tempo_tela }}</td>
+        <td class="num">{{ total_leituras }}</td>
+      </tr>
+    </tfoot>
+  </table>
+  {% else %}
+  <div class="grafico">
+    <p class="vazio">
+      Nenhuma veiculação registrada neste período.<br>
+      Se a mídia acabou de ser criada, os primeiros números aparecem alguns minutos
+      depois que a TV começar a exibi-la.
+    </p>
+  </div>
+  {% endif %}
+
+  <p class="rodape">
+    Relatório gerado pelo NexosixTV · painel de TV da {{ academia.nome }}.<br>
+    Para enviar ao anunciante, use a impressão do navegador e salve como PDF.
+  </p>
+</div>
+</body>
+</html>
