@@ -8,6 +8,7 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2 import pool as pg_pool
@@ -22,6 +23,11 @@ except Exception:
     pass
 
 app = Flask(__name__)
+# Railway termina o HTTPS na borda e encaminha pro container em HTTP puro
+# -- sem isso, o Flask acha que toda requisição chegou em http:// e gera
+# links errados (redirect de barra, request.url_root nos e-mails de
+# consentimento, etc.), mesmo o usuário estando em https:// o tempo todo.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config['MAX_CONTENT_LENGTH'] = 60 * 1024 * 1024
 app.secret_key = os.environ.get("SECRET_KEY", "troque-em-producao")
 app.permanent_session_lifetime = timedelta(hours=8)
