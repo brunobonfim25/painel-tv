@@ -960,6 +960,11 @@
         ];
         const MIDIA_FREQUENCIA = {{ academia.midia_frequencia | default(3) }};
 
+        // Base dos links estampados nos QR codes. Vem fixa do servidor
+        // (domínio da marca) para o QR não herdar o endereço técnico do
+        // Railway nas TVs que ainda carregam o painel pelo link antigo.
+        var BASE_PUBLICA = {{ base_publica | default('') | tojson }} || window.location.origin;
+
         function makeQrDataUrl(text, cell) {
             var qr = qrcode(0, 'M');
             qr.addData(text);
@@ -1226,7 +1231,7 @@
                   ' data-fallback="' + esc(photoSrcPlain) + '" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">'
                 : '<div class="card-photo-cartao-ph" style="background:' + esc(p.cor_avatar) + '">' + initials + '</div>';
 
-            var linkUrl = window.location.origin + '/{{ academia.slug }}/prof/' + p.id + '/links';
+            var linkUrl = BASE_PUBLICA + '/{{ academia.slug }}/prof/' + p.id + '/links';
 
             return '<div class="card card--row">' +
                 '<div class="card-photo-cartao">' + photo + '</div>' +
@@ -1291,7 +1296,7 @@
                     '</div>';
             }
 
-            var linkUrl = window.location.origin + '/{{ academia.slug }}/prof/' + p.id + '/links';
+            var linkUrl = BASE_PUBLICA + '/{{ academia.slug }}/prof/' + p.id + '/links';
             var tipo = p.qr_tipo || 'whatsapp';
             var hasContact = (tipo === 'whatsapp' && p.whatsapp) ||
                              (tipo === 'instagram' && p.instagram) ||
@@ -1331,7 +1336,7 @@
                 // direto pro link do anunciante: é ela que conta a leitura
                 // e é curta o bastante pra gerar um QR de módulo grosso,
                 // que lê fácil de longe.
-                var url = window.location.origin + '/{{ academia.slug }}/midia/' + m.id;
+                var url = BASE_PUBLICA + '/{{ academia.slug }}/midia/' + m.id;
                 qr = '<div class="midia-qr-wrap">' +
                      '<img class="midia-qr" src="' + makeQrDataUrl(url) + '" alt="QR">' +
                      (m.qr_texto ? '<span class="midia-qr-texto">' + esc(m.qr_texto) + '</span>' : '') +
@@ -1351,7 +1356,7 @@
         // metros de distância — regra ainda mais crítica que no QR de
         // mídia de 180px.
         function buildQrEquipe() {
-            var url = window.location.origin + '/{{ academia.slug }}/equipe';
+            var url = BASE_PUBLICA + '/{{ academia.slug }}/equipe';
             return '<div class="qrpage">' +
                 '<div class="qrpage-titulo">Conheça nossa equipe no seu celular</div>' +
                 '<div class="qrpage-sub">Aponte a câmera para o QR code e veja todos os profissionais — perfil, especialidades e contato direto</div>' +

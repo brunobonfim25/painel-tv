@@ -63,6 +63,13 @@ if app.secret_key == "troque-em-producao":
 # para detectar versão nova e se recarregar sozinho.
 APP_VERSION = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or str(int(os.path.getmtime(__file__)))
 
+# Domínio público estampado nos QR codes do painel (equipe, cartões dos
+# profissionais e mídias). Fixo no domínio da marca de propósito: várias
+# TVs ainda carregam o painel pelo domínio antigo do Railway, e sem isso
+# o QR herdaria aquele endereço feio via window.location.origin. Vazio
+# ("") volta ao comportamento antigo de usar o endereço da própria TV.
+BASE_URL_PUBLICA = os.environ.get("BASE_URL_PUBLICA", "https://www.nexosix.com.br").rstrip("/")
+
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -696,7 +703,8 @@ def painel(slug):
     versao_atual = APP_VERSION + ":" + str(academia.get("versao_painel") or 0)
     html = render_template("painel.html", academia=academia,
         profissionais=profissionais or [], midias=midias or [],
-        app_version=versao_atual, card_text_color=card_text_color)
+        app_version=versao_atual, card_text_color=card_text_color,
+        base_publica=BASE_URL_PUBLICA)
     # Sem isso, o navegador da TV (WebView do Fully Kiosk no Fire TV,
     # rodando dias seguidos) pode reabrir de um cache em disco após um
     # crash/relançamento do app sem nem bater na rede — aí a TV fica
