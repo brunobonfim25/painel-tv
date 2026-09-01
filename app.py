@@ -1453,6 +1453,22 @@ def setup():
     academias_existentes = query("SELECT slug, nome FROM academias ORDER BY nome", fetch="all") or []
     return render_template("setup.html", academias_existentes=academias_existentes)
 
+@app.route("/<slug>/equipe")
+def equipe(slug):
+    """Destino do QR único exibido em tela cheia no carrossel da TV:
+    lista toda a equipe no celular do cliente, que navega e escolhe o
+    profissional — cada card leva ao cartão digital individual."""
+    academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
+    if not academia:
+        return render_template("404.html"), 404
+    if academia.get("ativo") is False:
+        return "Este painel está suspenso. Fale com o suporte.", 403
+    profissionais = query(
+        "SELECT * FROM profissionais WHERE academia_id = %s AND ativo = TRUE AND consentimento_status = 'aceito' ORDER BY LOWER(nome)",
+        (academia["id"],), fetch="all"
+    )
+    return render_template("equipe.html", academia=academia, profissionais=profissionais or [])
+
 @app.route("/<slug>/prof/<int:prof_id>/links")
 def prof_links(slug, prof_id):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")

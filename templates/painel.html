@@ -262,6 +262,65 @@
             max-width: 180px;
         }
 
+        /* ===== PÁGINA DE QR DA EQUIPE (tela cheia no carrossel) ===== */
+        .page.page--qr {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .qrpage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 26px;
+            background: var(--card-bg);
+            color: var(--card-text);
+            border-radius: 28px;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-top: 6px solid var(--accent);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+            padding: 56px 110px;
+            max-width: 1100px;
+        }
+        .qrpage-titulo {
+            font-size: 54px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            text-align: center;
+            line-height: 1.1;
+        }
+        .qrpage-sub {
+            font-size: 25px;
+            font-weight: 500;
+            opacity: 0.65;
+            text-align: center;
+            max-width: 820px;
+            margin-top: -10px;
+        }
+        /* Mesma regra do QR de mídia: módulo grosso pra ler de longe.
+           image-rendering mantém as bordas dos módulos nítidas mesmo
+           com o PNG ampliado. */
+        .qrpage-qr {
+            width: 430px;
+            height: 430px;
+            background: #fff;
+            border: 6px solid var(--accent);
+            border-radius: 20px;
+            image-rendering: pixelated;
+        }
+        .qrpage-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 23px;
+            font-weight: 800;
+            border-radius: 999px;
+            padding: 14px 36px;
+        }
+
         /* ===== CARD ===== */
         .card {
             background: var(--card-bg);
@@ -901,11 +960,11 @@
         ];
         const MIDIA_FREQUENCIA = {{ academia.midia_frequencia | default(3) }};
 
-        function makeQrDataUrl(text) {
+        function makeQrDataUrl(text, cell) {
             var qr = qrcode(0, 'M');
             qr.addData(text);
             qr.make();
-            return qr.createDataURL(6, 4);
+            return qr.createDataURL(cell || 6, 4);
         }
 
         const FOTO_DESTAQUE = {{ (academia.estilo_foto == 'destaque') | tojson }};
@@ -986,6 +1045,14 @@
             var paginasGrade = [];
             for (var i = 0; i < profissionais.length; i += CARDS_PER_PAGE) {
                 paginasGrade.push({tipo: 'grade', itens: profissionais.slice(i, i + CARDS_PER_PAGE)});
+            }
+
+            // Página de QR da equipe: entra na rotação como uma página a
+            // mais do ciclo — o cliente escaneia e navega por todos os
+            // profissionais no celular (/slug/equipe). Só existe se há
+            // equipe para mostrar.
+            if (paginasGrade.length) {
+                paginasGrade.push({tipo: 'qr_equipe'});
             }
 
             // Mídia sem imagem viraria uma tela PRETA em tela cheia. O SQL
@@ -1279,12 +1346,29 @@
                 '</div>';
         }
 
+        // Página de QR da equipe em tela cheia. Módulo do QR bem grosso
+        // (cell 12 ≈ 500px naturais) porque este é lido da recepção, a
+        // metros de distância — regra ainda mais crítica que no QR de
+        // mídia de 180px.
+        function buildQrEquipe() {
+            var url = window.location.origin + '/{{ academia.slug }}/equipe';
+            return '<div class="qrpage">' +
+                '<div class="qrpage-titulo">Conheça nossa equipe no seu celular</div>' +
+                '<div class="qrpage-sub">Aponte a câmera para o QR code e veja todos os profissionais — perfil, especialidades e contato direto</div>' +
+                '<img class="qrpage-qr" src="' + makeQrDataUrl(url, 12) + '" alt="QR code da equipe">' +
+                '<div class="qrpage-cta">Escolha seu profissional e chame no WhatsApp</div>' +
+            '</div>';
+        }
+
         function createPages() {
             for (var i = 0; i < totalPages; i++) {
                 var pg = PAGES[i];
                 var page = document.createElement('div');
 
-                if (pg.tipo === 'midia') {
+                if (pg.tipo === 'qr_equipe') {
+                    page.className = 'page page--qr' + (i === 0 ? ' active' : '');
+                    page.innerHTML = buildQrEquipe();
+                } else if (pg.tipo === 'midia') {
                     page.className = 'page page--midia' + (i === 0 ? ' active' : '');
                     page.innerHTML = buildMidia(pg.midia);
                     // Sem --cols/--cs/gridTemplateRows aqui de propósito:
