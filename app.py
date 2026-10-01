@@ -1585,8 +1585,36 @@ def file_too_large(e):
     flash("Arquivo muito grande. Limite: 5MB para fotos e logo, 10MB para mídias, 40MB para vídeos.")
     return redirect(request.referrer or "/")
 
-with app.app_context():
-    init_db()
+# Boot resiliente a banco fora do ar. No incidente de 30/09/2026, o
+# Postgres ficou inacessível por instantes durante um reboot do worker;
+# init_db() estourou no import, o gunicorn desligou de vez ("Worker
+# failed to boot") e o sistema ficou ~32h fora até restart manual. Com
+# isto, o app sobe mesmo sem banco e fica tentando em background — as
+# rotas voltam a funcionar sozinhas assim que o banco responder, já que
+# o pool de conexões é criado sob demanda.
+def _init_db_resiliente():
+    try:
+        with app.app_context():
+            init_db()
+        return
+    except Exception as e:
+        print(f"[BOOT] init_db falhou (banco fora do ar?): {e} — seguindo o boot; novas tentativas em background")
+
+    def tentar_ate_conseguir():
+        import time as _t
+        while True:
+            _t.sleep(15)
+            try:
+                with app.app_context():
+                    init_db()
+                print("[BOOT] init_db concluído após banco voltar")
+                return
+            except Exception as e2:
+                print(f"[BOOT] banco ainda indisponível: {e2}")
+
+    threading.Thread(target=tentar_ate_conseguir, daemon=True).start()
+
+_init_db_resiliente()
 
 def _aquecer_rembg():
     # Roda uma remoção de fundo "descartável" em segundo plano assim que o
