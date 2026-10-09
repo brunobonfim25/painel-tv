@@ -343,25 +343,28 @@ def upload_imagem(file, pasta="painel_tv"):
     # cloudinaryPhotoUrl() em painel.html). Isso evita reenvio de fotos
     # toda vez que o layout muda de tamanho.
     #
-    # Fluxo de remoção de fundo:
-    #  1. Se a foto JÁ vem transparente (PNG recortado no editor do
-    #     próprio usuário), sobe ela como está — respeita o recorte
-    #     manual, que é sempre melhor que o automático.
-    #  2. Senão, tenta remover o fundo com rembg (local, sem serviço
-    #     externo). Se falhar, sobe a foto original sem quebrar o
-    #     cadastro — só essa foto fica sem fundo removido.
+    # IMPORTANTE: esta função NÃO remove mais o fundo aqui dentro. O
+    # rembg leva dezenas de segundos numa máquina pequena e, rodando
+    # dentro da requisição, estourava o timeout do servidor — o admin
+    # via a página de erro do Railway ("A solicitação não respondeu") ao
+    # cadastrar profissional com foto. O fluxo agora é:
+    #  1. Sobe a foto ORIGINAL imediatamente (rápido) e o cadastro
+    #     responde na hora.
+    #  2. Retorna (url, raw): raw são os bytes para processar em
+    #     background via agendar_remocao_fundo(), ou None quando não há
+    #     o que processar (foto já veio transparente de um recorte
+    #     manual — que é sempre melhor que o automático — ou erro de
+    #     leitura).
     file = preparar_upload_heic(file)
     upload_source = file
+    raw_para_fundo = None
     try:
         file.seek(0)
         raw = file.read()
         file.seek(0)
-        if ja_tem_transparencia(raw):
-            upload_source = io.BytesIO(raw)
-        else:
-            fundo_removido = remover_fundo_bytes(raw)
-            if fundo_removido:
-                upload_source = io.BytesIO(fundo_removido)
+        upload_source = io.BytesIO(raw)
+        if not ja_tem_transparencia(raw):
+            raw_para_fundo = raw
     except Exception as e:
         print(f"[upload_imagem] erro no pré-processamento da foto: {e}")
 
@@ -371,10 +374,45 @@ def upload_imagem(file, pasta="painel_tv"):
             folder=pasta,
             transformation=[{"width": 1600, "height": 1600, "crop": "limit", "quality": "auto:best"}]
         )
-        return resultado.get("secure_url", "")
+        url = resultado.get("secure_url", "")
+        return url, (raw_para_fundo if url else None)
     except Exception as e:
         print(f"Erro upload Cloudinary: {e}")
-        return ""
+        return "", None
+
+def agendar_remocao_fundo(prof_id, academia_id, slug, raw, url_original, pasta="painel_tv/profissionais"):
+    """Remove o fundo da foto em SEGUNDO PLANO e troca a foto do
+    profissional quando ficar pronta. O cadastro já respondeu ao admin
+    com a foto original; se o rembg falhar, a original simplesmente
+    fica. A troca só acontece se a foto do profissional ainda for a
+    mesma deste agendamento — se o admin trocou de novo nesse meio
+    tempo, a escolha mais recente dele vence."""
+    def trabalho():
+        try:
+            fundo_removido = remover_fundo_bytes(raw)
+            if not fundo_removido:
+                return
+            resultado = cloudinary.uploader.upload(
+                io.BytesIO(fundo_removido),
+                folder=pasta,
+                transformation=[{"width": 1600, "height": 1600, "crop": "limit", "quality": "auto:best"}]
+            )
+            nova_url = resultado.get("secure_url", "")
+            if not nova_url:
+                return
+            atual = query("SELECT foto_url FROM profissionais WHERE id=%s AND academia_id=%s",
+                          (prof_id, academia_id), fetch="one")
+            if not atual or atual["foto_url"] != url_original:
+                excluir_do_cloudinary(nova_url)
+                return
+            query("UPDATE profissionais SET foto_url=%s WHERE id=%s AND academia_id=%s",
+                  (nova_url, prof_id, academia_id))
+            excluir_do_cloudinary(url_original)
+            bump_versao_painel(slug)
+            print(f"[fundo] foto do profissional {prof_id} trocada pela versão sem fundo")
+        except Exception as e:
+            print(f"[fundo] processamento em background falhou (foto original mantida): {e}")
+    threading.Thread(target=trabalho, daemon=True).start()
 
 def upload_video(file, pasta="painel_tv/videos"):
     try:
@@ -886,13 +924,14 @@ def atualizar_tv(slug):
 def adicionar_profissional(slug):
     academia = query("SELECT * FROM academias WHERE slug = %s", (slug,), fetch="one")
     foto_url = ""
+    raw_fundo = None
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
             if not tamanho_valido(file):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
-            foto_url = upload_imagem(file, pasta="painel_tv/profissionais")
+            foto_url, raw_fundo = upload_imagem(file, pasta="painel_tv/profissionais")
     video_url = ""
     if "video" in request.files:
         file = request.files["video"]
@@ -913,15 +952,19 @@ def adicionar_profissional(slug):
     # como "aceito" na migração, pra não sumir da TV sem aviso.
     email = request.form.get("email", "").strip()
     token = secrets.token_urlsafe(32)
-    query("""INSERT INTO profissionais
+    novo = query("""INSERT INTO profissionais
         (academia_id, nome, cargo, email, instagram, whatsapp, anos, especialidades, foto_url, video_url, cor_avatar, qr_tipo, consentimento_status, consentimento_token, ordem)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pendente',%s,
-        (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))""",
+        (SELECT COALESCE(MAX(ordem),0)+1 FROM profissionais WHERE academia_id=%s))
+        RETURNING id""",
         (academia["id"], request.form.get("nome"), request.form.get("cargo"),
          email, request.form.get("instagram"),
          normalizar_whatsapp(request.form.get("whatsapp", "")), request.form.get("anos"),
          request.form.get("especialidades"), foto_url, video_url,
-         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, token, academia["id"]))
+         request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, token, academia["id"]),
+        fetch="one")
+    if novo and foto_url and raw_fundo:
+        agendar_remocao_fundo(novo["id"], academia["id"], slug, raw_fundo, foto_url)
     if email:
         prof_novo = {
             "nome": request.form.get("nome"), "email": email,
@@ -947,13 +990,14 @@ def editar_profissional(slug, prof_id):
         flash("Profissional nao encontrado.")
         return redirect(url_for("admin_editor", slug=slug))
     foto_url = prof["foto_url"]
+    raw_fundo = None
     if "foto" in request.files:
         file = request.files["foto"]
         if file and file.filename and arquivo_permitido(file.filename):
             if not tamanho_valido(file):
                 flash("A foto não pode ter mais de 5MB.")
                 return redirect(url_for("admin_editor", slug=slug))
-            nova_foto = upload_imagem(file, pasta="painel_tv/profissionais")
+            nova_foto, raw_fundo = upload_imagem(file, pasta="painel_tv/profissionais")
             if nova_foto:
                 excluir_do_cloudinary(foto_url)
                 foto_url = nova_foto
@@ -996,6 +1040,8 @@ def editar_profissional(slug, prof_id):
          request.form.get("especialidades"), foto_url, video_url,
          request.form.get("cor_avatar", "#1a6fd4"), qr_tipo, foto_posicao_y, foto_zoom,
          prof_id, academia["id"]))
+    if foto_url and raw_fundo:
+        agendar_remocao_fundo(prof_id, academia["id"], slug, raw_fundo, foto_url)
     flash("Profissional atualizado!")
     return redirect(url_for("admin_editor", slug=slug))
 
