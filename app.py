@@ -324,15 +324,27 @@ def ja_tem_transparencia(file_bytes):
         print(f"[transparencia] falha ao checar: {e}")
         return False
 
+_rembg_session = None
+
 def remover_fundo_bytes(file_bytes):
     """Remove o fundo da imagem localmente com rembg (biblioteca Python,
     roda no próprio servidor, sem conta/API externa). Retorna os bytes
     do PNG resultante (com transparência), ou None se falhar -- nesse
     caso quem chamou deve seguir com a foto original, sem travar o
-    cadastro do profissional."""
+    cadastro do profissional.
+
+    Usa o modelo COMPACTO u2netp (~5MB) em vez do u2net padrão
+    (~176MB): o modelo cheio estourava a RAM do container no Railway —
+    o worker era morto por OOM no meio do recorte (era a causa do loop
+    de SIGKILL do incidente de 30/09) e as fotos nunca saíam sem fundo.
+    Para retrato de profissional a qualidade do compacto atende. A
+    sessão é criada uma vez e reaproveitada entre fotos."""
+    global _rembg_session
     try:
-        from rembg import remove as rembg_remove
-        return rembg_remove(file_bytes)
+        from rembg import remove as rembg_remove, new_session
+        if _rembg_session is None:
+            _rembg_session = new_session("u2netp")
+        return rembg_remove(file_bytes, session=_rembg_session)
     except Exception as e:
         print(f"[rembg] falha ao remover fundo: {e}")
         return None
@@ -1664,10 +1676,10 @@ _init_db_resiliente()
 
 def _aquecer_rembg():
     # Roda uma remoção de fundo "descartável" em segundo plano assim que o
-    # servidor sobe, só para forçar o download do modelo de IA (~176MB) e
-    # o carregamento do onnxruntime antes que um upload de verdade precise
-    # disso -- sem isso, o primeiro upload de foto depois de cada deploy
-    # ficaria bem mais lento (download + inferência na mesma requisição).
+    # servidor sobe, só para forçar o download do modelo de IA (u2netp,
+    # ~5MB — ver remover_fundo_bytes) e o carregamento do onnxruntime
+    # antes que um upload de verdade precise disso -- sem isso, o primeiro
+    # upload de foto depois de cada deploy ficaria mais lento.
     try:
         from io import BytesIO
         from PIL import Image
