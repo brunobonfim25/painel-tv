@@ -63,12 +63,55 @@ if app.secret_key == "troque-em-producao":
 # para detectar versão nova e se recarregar sozinho.
 APP_VERSION = os.environ.get("RAILWAY_GIT_COMMIT_SHA") or str(int(os.path.getmtime(__file__)))
 
+# Domínio próprio do painel de TV (ex.: "tv.nexosix.com.br"). Vazio
+# mantém tudo como antes. Quando definido, libera o www.nexosix.com.br
+# para o site institucional da marca: os acessos ao painel que chegam
+# pelo www são redirecionados para cá (ver redirecionar_para_dominio_do_painel)
+# e os QR codes passam a estampar este domínio. Para reverter, basta
+# apagar a variável.
+DOMINIO_PAINEL = os.environ.get("DOMINIO_PAINEL", "").strip().lower().rstrip("/")
+HOSTS_LEGADOS_DO_PAINEL = {"www.nexosix.com.br", "nexosix.com.br"}
+
 # Domínio público estampado nos QR codes do painel (equipe, cartões dos
 # profissionais e mídias). Fixo no domínio da marca de propósito: várias
 # TVs ainda carregam o painel pelo domínio antigo do Railway, e sem isso
 # o QR herdaria aquele endereço feio via window.location.origin. Vazio
 # ("") volta ao comportamento antigo de usar o endereço da própria TV.
-BASE_URL_PUBLICA = os.environ.get("BASE_URL_PUBLICA", "https://www.nexosix.com.br").rstrip("/")
+BASE_URL_PUBLICA = os.environ.get(
+    "BASE_URL_PUBLICA",
+    ("https://" + DOMINIO_PAINEL) if DOMINIO_PAINEL else "https://www.nexosix.com.br",
+).rstrip("/")
+
+@app.before_request
+def redirecionar_para_dominio_do_painel():
+    """Leva para DOMINIO_PAINEL quem acessa o painel pelo www antigo:
+    a TV com a URL velha salva, QR codes já escaneados, links de
+    e-mails de consentimento e favoritos continuam funcionando.
+
+    Fica no www, sem redirecionar:
+      - "/" — a página de apresentação, até existir o site da marca;
+      - /__version e /<slug>/exibicoes — chamados por JavaScript da TV
+        que ainda está com a página antiga aberta. Redirecionar essas
+        chamadas para outro domínio quebraria por CORS (a TV pararia de
+        se auto-atualizar e as métricas das mídias se perderiam). A
+        própria página da TV recarrega sozinha em até 5 min e aí já
+        abre no domínio novo.
+    O endereço técnico do Railway nunca é redirecionado: é a reserva se
+    o DNS do domínio da marca falhar."""
+    if not DOMINIO_PAINEL:
+        return None
+    host = (request.host or "").split(":")[0].lower()
+    if host not in HOSTS_LEGADOS_DO_PAINEL:
+        return None
+    caminho = request.path
+    if caminho == "/" or caminho == "/__version" or caminho.endswith("/exibicoes"):
+        return None
+    destino = "https://" + DOMINIO_PAINEL + caminho
+    if request.query_string:
+        destino += "?" + request.query_string.decode("utf-8", "replace")
+    # 301 para navegação; 308 preserva o método e o corpo de um POST
+    # (ex.: formulário enviado de uma aba antiga do admin).
+    return redirect(destino, code=301 if request.method in ("GET", "HEAD") else 308)
 
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
